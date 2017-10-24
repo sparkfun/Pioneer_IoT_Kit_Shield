@@ -1,0 +1,128 @@
+#! armcc -E
+; The first line specifies a preprocessor command that the linker invokes
+; to pass a scatter file through a C preprocessor.
+
+;*******************************************************************************
+;* \file cy8c6x7_cm0plus.scat
+;* \version 1.0
+;*
+;* \brief Linker file for the ARMCC.
+;*
+;* \note The entry point location is fixed and starts at 0x10000000. The valid
+;* application image should be placed there.
+;*
+;* \note The linker files included with the PDL template projects must be
+;* generic and handle all common use cases. Your project may not use every
+;* section defined in the linker files. In that case you may see the warnings
+;* during the build process: L6314W (no section matches pattern) and/or L6329W
+;* (pattern only matches removed unused sections). In your project, you can
+;* suppress the warning by passing the "--diag_suppress=L6314W,L6329W" option to
+;* the linker, simply comment out or remove the relevant code in the linker
+;* file.
+;*
+;*******************************************************************************
+;* \copyright
+;* Copyright 2016-2017, Cypress Semiconductor Corporation.  All rights reserved.
+;* You may use this file only in accordance with the license, terms, conditions,
+;* disclaimers, and limitations in the end user license agreement accompanying
+;* the software package with which this file was provided.
+;******************************************************************************/
+
+/* Flash */
+#define __cy_memory_0_start     0x10000000;
+#define __cy_memory_0_length    0x00100000;
+#define __cy_memory_0_row_size  0x200
+
+/* Working Flash */
+#define __cy_memory_1_start     0x14000000
+#define __cy_memory_1_length    0x8000
+#define __cy_memory_1_row_size  0x200
+
+/* XIP */
+#define __cy_memory_2_start     0x18000000
+#define __cy_memory_2_length    0x08000000
+#define __cy_memory_2_row_size  0x200
+
+
+; Flash base address
+#define FLASH_START             0x10000000
+; Flash size
+#define FLASH_SIZE              0x00080000
+
+; Working flash base address
+#define WFLASH_START            0x14000000
+; Working flash size
+#define WFLASH_SIZE             0x8000
+
+; External memory base address
+#define XIP_START               0x18000000
+; External memory size
+#define XIP_SIZE                0x08000000
+
+; RAM base address
+#define RAM_START               0x08000000
+; RAM size
+#define RAM_SIZE                0x00024000
+
+LR_CM0P_IROM0 FLASH_START FLASH_SIZE
+{
+    ER_CM0P_ROM_VECTORS +0
+    {
+        * (RESET, +FIRST)
+    }
+
+    ER_CM0P_CODE +0 FIXED
+    {
+        * (InRoot$$Sections)
+        * (+RO)
+    }
+
+    ER_CM0P_RAM_VECTORS RAM_START UNINIT
+    {
+        * (RESET_RAM, +FIRST)
+    }
+
+    ER_CM0P_DATA +0
+    {
+        .ANY (+RW, +ZI)
+    }
+
+    ; Place variables in the section that should not be initialized during the device startup.
+    ER_CM0P_NOINIT_DATA +0 UNINIT
+    {
+        * (.noinit)
+    }
+}
+
+; The section is used for BLE bonding data storage.
+LR_CM0P_WROM0 WFLASH_START WFLASH_SIZE
+{
+    ER_CM0P_BLE_BOND +0
+    {
+        * (.ble_bond_data)
+    }
+}
+
+; Places the code in the Execute in Place (XIP) section. See the smif driver documentation for details.
+LR_CM0P_XIP0 XIP_START XIP_SIZE
+{
+    ER_CM0P_XIP +0
+    {
+        * (.xip)
+    }
+}
+
+; The section is used for additional metadata (silicon revision, Silicon/JTAG ID, etc.) storage.
+CYMETA 0x90500000
+{
+    .cymeta +0 { * (.cymeta) }
+}
+
+; The section is used for additional metadata (silicon revision, Silicon/JTAG ID, etc.) storage.
+CYCHIPPROTECT 0x90600000
+{
+    .cychipprotect +0 { * (.cychipprotect) }
+}
+
+
+/* [] END OF FILE */

@@ -1,0 +1,106 @@
+/***************************************************************************//**
+* \file cy8c6x7_cm4_dual.icf
+* \version 1.0
+*
+* \brief Linker file for the IAR compiler.
+*
+* \note The entry point is fixed and starts at 0x10000000. The valid application
+* image should be placed there.
+*
+* \note The linker files included with the PDL template projects must be generic
+* and handle all common use cases. Your project may not use every section
+* defined in the linker files. In that case you may see warnings during the
+* build process. In your project, you can simply comment out or remove the
+* relevant code in the linker file.
+*
+********************************************************************************
+* \copyright
+* Copyright 2016-2017, Cypress Semiconductor Corporation.  All rights reserved.
+* You may use this file only in accordance with the license, terms, conditions,
+* disclaimers, and limitations in the end user license agreement accompanying
+* the software package with which this file was provided.
+*******************************************************************************/
+
+/*-Editor annotation file-*/
+/* IcfEditorFile="$TOOLKIT_DIR$\config\ide\IcfEditor\cortex_v1_4.xml" */
+
+/*-Memory Regions-*/
+/* Flash and RAM are divided equally between the cores. */
+define symbol __ICFEDIT_region_IROM_start__       = 0x10080000;
+define symbol __ICFEDIT_region_IROM_end__         = 0x10100000;
+define symbol __ICFEDIT_region_WROM_start__       = 0x14000000;
+define symbol __ICFEDIT_region_WROM_end__         = 0x14007FFF;
+define symbol __ICFEDIT_region_XIP_start__        = 0x18000000;
+define symbol __ICFEDIT_region_XIP_end__          = 0x1FFFFFFF;
+define symbol __ICFEDIT_region_IRAM_CM4_start__   = 0x08024000;
+define symbol __ICFEDIT_region_IRAM_CM4_end__     = 0x08048000;
+
+/* Flash */
+define symbol __cy_memory_0_start                 = 0x10000000;
+define symbol __cy_memory_0_length                = 0x00100000;
+define symbol __cy_memory_0_row_size              = 0x200;
+
+/* Working Flash */
+define symbol __cy_memory_1_start                 = 0x14000000;
+define symbol __cy_memory_1_length                = 0x8000;
+define symbol __cy_memory_1_row_size              = 0x200;
+
+/* XIP */
+define symbol __cy_memory_2_start                 = 0x18000000;
+define symbol __cy_memory_2_length                = 0x08000000;
+define symbol __cy_memory_2_row_size              = 0x200;
+
+
+/*-Sizes-*/
+if (isdefinedsymbol(__stack_size__)) {
+  define symbol __ICFEDIT_size_cstack__ = __stack_size__;
+} else {
+  define symbol __ICFEDIT_size_cstack__ = 0x1000;
+}
+
+if (isdefinedsymbol(__heap_size__)) {
+  define symbol __ICFEDIT_size_heap__ = __heap_size__;
+} else {
+  define symbol __ICFEDIT_size_heap__ = 0x0400;
+}
+
+
+define memory mem with size = 4G;
+define region IROM_region      = mem:[from __ICFEDIT_region_IROM_start__     to __ICFEDIT_region_IROM_end__     ];
+define region WROM_region      = mem:[from __ICFEDIT_region_WROM_start__     to __ICFEDIT_region_WROM_end__     ];
+define region XIP_region       = mem:[from __ICFEDIT_region_XIP_start__      to __ICFEDIT_region_XIP_end__      ];
+define region IRAM_CM4_region  = mem:[from __ICFEDIT_region_IRAM_CM4_start__ to __ICFEDIT_region_IRAM_CM4_end__ ];
+
+define block CSTACK with alignment = 8, size = __ICFEDIT_size_cstack__  { };
+define block HEAP   with alignment = 8, size = __ICFEDIT_size_heap__    { };
+define block HSTACK {block HEAP, last block CSTACK};
+define block CM4_RO     { first section .intvec, readonly };
+
+/*-Initializations-*/
+initialize by copy { readwrite };
+do not initialize  { section .noinit, section .intvec_ram };
+
+/*-Placement-*/
+place at start of IROM_region       { block CM4_RO };
+
+place at start of IRAM_CM4_region  { readwrite section .intvec_ram};
+place in          IRAM_CM4_region  { readwrite };
+place at end   of IRAM_CM4_region  { block HSTACK };
+/* The section is used for BLE bonding data storage. */
+place at start of WROM_region      { section .ble_bond_data };
+/* Places the code in the Execute in Place (XIP) section. See the smif driver documentation for details. */
+place at start of XIP_region       { section .xip };
+
+keep {  section .cy_m0plus_image,
+        section .cymeta,
+        section .cychipprotect,
+        section .xip };
+
+/* The section is used for Table of Content (TOC) storage. */
+".cy_toc"           : place at address mem : 0x100FFE00 { readonly section .cy_toc };
+/* These sections are used for additional metadata (silicon revision, Silicon/JTAG ID, etc.) storage. */
+".cymeta"           : place at address mem : 0x90500000 { readonly section .cymeta };
+".cychipprotect"    : place at address mem : 0x90600000 { readonly section .cychipprotect };
+
+
+/* EOF */
