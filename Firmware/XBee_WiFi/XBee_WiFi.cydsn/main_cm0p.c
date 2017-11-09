@@ -93,6 +93,7 @@ int main(void)
     {
       copy = 0x01;
       mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&yellowButton, copy);
+      CyDelay(50);
       while (gpioRes == 0)
       {
         gpioRes = Cy_GPIO_Read(Yellow_Btn_0);
@@ -104,6 +105,7 @@ int main(void)
     {
       copy = 0x10;
       mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&whiteButton, copy);
+      CyDelay(50);
       while (gpioRes == 0)
       {
         gpioRes = Cy_GPIO_Read(White_Btn_0);

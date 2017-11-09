@@ -241,9 +241,6 @@
 <v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\project.h</v>
 </ExpandedNodeIds>
 <VisibleNodeIds>
-<v>XBee_WiFi</v>
-<v>XBee_WiFi\XBee_WiFi</v>
-<v>XBee_WiFi\XBee_WiFi\TopDesign</v>
 <v>XBee_WiFi\XBee_WiFi\XBee_WiFi.cydwr</v>
 <v>XBee_WiFi\XBee_WiFi\XBee_WiFi.cydwr\Pins</v>
 <v>XBee_WiFi\XBee_WiFi\XBee_WiFi.cydwr\Analog</v>
@@ -290,6 +287,9 @@
 <v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\ipc\cy_ipc_lock.h</v>
 <v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\ipc\cy_ipc_pipe.c</v>
 <v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\ipc\cy_ipc_pipe.h</v>
+<v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\profile</v>
+<v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\profile\cy_profile.c</v>
+<v>XBee_WiFi\XBee_WiFi\Generated_Source\PSoC6\pdl\drivers\peripheral\profile\cy_profile.h</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 <CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
@@ -407,6 +407,53 @@
 <VisibleNodeIds>
 <v>XBee_WiFi</v>
 <v>XBee_WiFi\XBee_WiFi</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ble_clk.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_aes.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_cmac.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_crc.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_des.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_hmac.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_prng.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_rsa.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_sha.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_str.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_trng.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_util.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_core_vu.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_crypto_server.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_flash.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_gpio.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_drv.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_lock.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_pipe.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_profile.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_prot.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_common.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_ezi2c.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_i2c.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_spi.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_uart.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysclk.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysint.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib_gcc.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syspm.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_systick.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_trigmux.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_wdt.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cyfitter_cfg.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\ipc_common.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\main_cm0p.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\SPI.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\SPI_SCB_IRQ.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\startup_psoc6ble_cm0plus.lst</v>
+<v>XBee_WiFi\XBee_WiFi\CortexM0p\ARM_GCC_541\Debug\Listing Files\system_psoc6ble_cm0plus.lst</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStates>
@@ -460,7 +507,6 @@
 <name v=".\XBee_WiFi.cydsn\TopDesign\TopDesign.cysch" />
 <name v=".\XBee_WiFi.cydsn\main_cm0p.c" />
 <name v=".\XBee_WiFi.cydsn\main_cm4.c" />
-<name v=".\XBee_WiFi.cydsn\XBee_WiFi.cydwr" />
 </OpenDocs>
 <OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
 
@@ -468,7 +514,7 @@
   Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
   http://www.actiprosoftware.com
 
---><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1182, 710" SelectedTabbedMdiWindow="5e7a26c5-46b3-4b28-b2c4-576d288608ca"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\TopDesign\TopDesign.cysch" Guid="eee6b8dd-bc26-4340-81e5-8b9ff1e27eed" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\main_cm0p.c" Guid="5e7a26c5-46b3-4b28-b2c4-576d288608ca" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\main_cm4.c" Guid="8e99c5e1-9819-4e4a-8abd-e5b19d36783d" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\XBee_WiFi.cydwr" Guid="ca5a8fe0-42b9-4627-8c35-196d55fc7c6d" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1182, 710" SelectedTabbedMdiWindow="5e7a26c5-46b3-4b28-b2c4-576d288608ca"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\TopDesign\TopDesign.cysch" Guid="eee6b8dd-bc26-4340-81e5-8b9ff1e27eed" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\main_cm0p.c" Guid="5e7a26c5-46b3-4b28-b2c4-576d288608ca" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi\XBee_WiFi.cydsn\main_cm4.c" Guid="8e99c5e1-9819-4e4a-8abd-e5b19d36783d" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
 <config v="" />
 <AutoUpdate v="true" />
 </CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>
