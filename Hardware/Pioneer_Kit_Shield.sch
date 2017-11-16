@@ -23643,9 +23643,10 @@ Select</text>
 </sheet>
 <sheet>
 <plain>
-<text x="172.72" y="7.62" size="3.81" layer="94">Mike Hord</text>
-<text x="239.014" y="6.858" size="3.81" layer="94">01</text>
+<text x="172.72" y="7.62" size="3.81" layer="97">Mike Hord</text>
+<text x="239.014" y="6.858" size="3.81" layer="97">01</text>
 <text x="177.8" y="121.92" size="1.778" layer="97">Vcc = 3.3V</text>
+<text x="7.62" y="175.26" size="3.81" layer="97">Power Regulator</text>
 </plain>
 <instances>
 <instance part="U5" gate="G$1" x="142.24" y="104.14"/>
