@@ -1,6 +1,6 @@
-C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\I2C_BLE_Bridge.cydsn\I2C_BLE_Bridge.cyprj|f094a941-8d22-4929-9bf8-f3b487dff60a
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|a6f27d5f-6f57-418a-ad6d-a2ead2112cfa
 C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|c590e7ad-803b-43b1-8592-a8dbbb52a1b5
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|f93bcee1-b3ef-4ae1-8ff8-9b02eada9d7e
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|c7a47386-9cd5-438b-bc8f-891d7bf64ad2
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|4498a14f-c4e6-4076-a7ab-8d577ca87126
+C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\Environmental_Sensor.cyprj|cc5a58eb-748d-413d-bf61-0d92b4e27d3b

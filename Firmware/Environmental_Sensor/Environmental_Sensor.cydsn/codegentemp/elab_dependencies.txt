@@ -1,4 +1,4 @@
-C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\I2C_BLE_Bridge.cydsn\TopDesign\TopDesign.cysch
+C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\TopDesign\TopDesign.cysch
 C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\SCB_P4_v4_0\SCB_P4_v4_0.cysym
 C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\SCB_P4_v4_0\SCB_P4_v4_0.pdf
 C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\SCB_P4_v4_0\SCB_P4_v4_0.cycdx
@@ -257,7 +257,7 @@ C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyPrim
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_constant_v1_0\cy_constant_v1_0.pdf
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_constant_v1_0
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_constant_v1_0\Custom\custom.cs
-C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\I2C_BLE_Bridge.cydsn\I2C_BLE_Bridge.cydwr
+C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\Environmental_Sensor.cydwr
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyComponentLibrary\CyComponentLibrary.cylib\cy_boot_v5_60\PSoC4\API\cm0gcc.ld
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyComponentLibrary\CyComponentLibrary.cylib\cy_boot_v5_60\PSoC4\API\Cm0RealView.scat
 C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\CyComponentLibrary\CyComponentLibrary.cylib\cy_boot_v5_60\PSoC4\API\Cm0Start.c

@@ -22,7 +22,6 @@
 // #define ENABLE_I2C_ONLY_WHEN_CONNECTED	
 	
 extern uint8 wrBuf[I2C_WRITE_BUFFER_SIZE]; /* I2C write buffer */
-extern uint32 byteCnt;	
 
 extern uint8 sendNotifications;   
 

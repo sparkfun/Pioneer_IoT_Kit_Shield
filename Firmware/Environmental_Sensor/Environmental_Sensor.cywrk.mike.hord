@@ -13,7 +13,7 @@
 <v>Output</v>
 </TreeKeys>
 <TreeStates>
-<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="Environmental_Sensor\Environmental_Sensor">
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="Environmental_Sensor\Environmental_Sensor\Source Files\bme280.c">
 <ExpandedNodeIds>
 <v>Environmental_Sensor</v>
 <v>Environmental_Sensor\Environmental_Sensor</v>

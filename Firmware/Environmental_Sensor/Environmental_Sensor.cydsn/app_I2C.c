@@ -45,17 +45,32 @@ void sendI2CNotification(void)
 		
 		I2CHandle.value.val = wrBuf;
 		
-		I2CHandle.value.len = byteCnt;
+		I2CHandle.value.len = 2;
 
 	    /* Send the I2C_read Characteristic to the client only when notification is enabled */
 		do
 		{
-		    apiResult = CyBle_GattsNotification(cyBle_connHandle,&I2CHandle);
-			
+		  apiResult = CyBle_GattsNotification(cyBle_connHandle,&I2CHandle);
 			CyBle_ProcessEvents();
-		
 		} while((CYBLE_ERROR_OK != apiResult)  && (CYBLE_STATE_CONNECTED == cyBle_state));
 		
-	}		
+	}
+  if(sendNotifications_BME280_Pressure)
+	{
+		/* Package the notification data as part of I2C_read Characteristic*/
+		I2CHandle.attrHandle = CYBLE_BME280_PRESSURE_BME280_PRESSURE_CHAR_HANDLE;				
+		
+		I2CHandle.value.val = wrBuf + 2;
+		
+		I2CHandle.value.len = 2;
+
+	    /* Send the I2C_read Characteristic to the client only when notification is enabled */
+		do
+		{
+		  apiResult = CyBle_GattsNotification(cyBle_connHandle,&I2CHandle);
+			CyBle_ProcessEvents();
+		} while((CYBLE_ERROR_OK != apiResult)  && (CYBLE_STATE_CONNECTED == cyBle_state));
+		
+	}	
 }
 /* [] END OF FILE */

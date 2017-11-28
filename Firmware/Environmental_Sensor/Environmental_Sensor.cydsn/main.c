@@ -14,7 +14,6 @@
 #include "bme280.h"
 
 uint8 wrBuf[I2C_WRITE_BUFFER_SIZE];
-uint32 byteCnt;
 
 uint8 sendNotifications_BME280_Temp;
 uint8 sendNotifications_BME280_Pressure;
@@ -66,8 +65,8 @@ int main()
 		CyBle_ProcessEvents();
 		
     bme280TempRead(wrBuf);
+    bme280PresRead(wrBuf + 2);
     
-    byteCnt = 2;
 		sendI2CNotification();
 		
 	}

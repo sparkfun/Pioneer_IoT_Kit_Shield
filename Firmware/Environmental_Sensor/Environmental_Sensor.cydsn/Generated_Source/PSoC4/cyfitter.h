@@ -903,7 +903,7 @@
 #define UART_tx__SHIFT 5u
 
 /* Miscellaneous */
-#define CY_PROJECT_NAME "I2C_BLE_Bridge"
+#define CY_PROJECT_NAME "Environmental_Sensor"
 #define CY_VERSION "PSoC Creator  4.1 Update 1"
 #define CYDEV_BANDGAP_VOLTAGE 1.024
 #define CYDEV_BCLK__HFCLK__HZ 24000000U
