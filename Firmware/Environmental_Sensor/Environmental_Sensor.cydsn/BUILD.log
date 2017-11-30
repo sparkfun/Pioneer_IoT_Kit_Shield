@@ -1,27 +1,14 @@
---------------- Build Started: 11/28/2017 13:14:55 Project: Environmental_Sensor, Configuration: ARM GCC 5.4-2016-q2-update Debug ---------------
+--------------- Build Started: 11/30/2017 09:34:10 Project: Environmental_Sensor, Configuration: ARM GCC 5.4-2016-q2-update Debug ---------------
 The code generation step is up to date.
-arm-none-eabi-gcc.exe -mcpu=cortex-m0 -mthumb -I. -IGenerated_Source\PSoC4 -Wa,-alh=.\CortexM0\ARM_GCC_541\Debug/main.lst -g -D DEBUG -Wall -ffunction-sections -ffat-lto-objects -O0 -c main.c -o .\CortexM0\ARM_GCC_541\Debug\main.o
+arm-none-eabi-gcc.exe -mcpu=cortex-m0 -mthumb -I. -IGenerated_Source\PSoC4 -Wa,-alh=.\CortexM0\ARM_GCC_541\Debug/bme280.lst -g -D DEBUG -Wall -ffunction-sections -ffat-lto-objects -O0 -c bme280.c -o .\CortexM0\ARM_GCC_541\Debug\bme280.o
+bme280.c: In function 'bme280Init':
+bme280.c:53:9: warning: unused variable 'tempBuff' [-Wunused-variable]
+   uint8 tempBuff[2];
+         ^
 In file included from main.h:9:0,
-                 from main.c:13:
-low_power.h:21:20: warning: inline function 'handleLowPowerMode' declared but never defined
- extern inline void handleLowPowerMode(void);  
-                    ^
-arm-none-eabi-gcc.exe -mcpu=cortex-m0 -mthumb -I. -IGenerated_Source\PSoC4 -Wa,-alh=.\CortexM0\ARM_GCC_541\Debug/app_I2C.lst -g -D DEBUG -Wall -ffunction-sections -ffat-lto-objects -O0 -c app_I2C.c -o .\CortexM0\ARM_GCC_541\Debug\app_I2C.o
-In file included from main.h:9:0,
-                 from app_I2C.h:16,
-                 from app_I2C.c:1:
-low_power.h:21:20: warning: inline function 'handleLowPowerMode' declared but never defined
- extern inline void handleLowPowerMode(void);  
-                    ^
-arm-none-eabi-gcc.exe -mcpu=cortex-m0 -mthumb -I. -IGenerated_Source\PSoC4 -Wa,-alh=.\CortexM0\ARM_GCC_541\Debug/app_Ble.lst -g -D DEBUG -Wall -ffunction-sections -ffat-lto-objects -O0 -c app_Ble.c -o .\CortexM0\ARM_GCC_541\Debug\app_Ble.o
-app_Ble.c: In function 'AppCallBack':
-app_Ble.c:20:8: warning: unused variable 'i' [-Wunused-variable]
-  uint8 i;
-        ^
-In file included from main.h:9:0,
-                 from app_Ble.h:17,
-                 from app_Ble.c:1:
-app_Ble.c: At top level:
+                 from app_I2C.h:4,
+                 from bme280.c:3:
+bme280.c: At top level:
 low_power.h:21:20: warning: inline function 'handleLowPowerMode' declared but never defined
  extern inline void handleLowPowerMode(void);  
                     ^
@@ -30,6 +17,6 @@ arm-none-eabi-ar.exe: creating .\CortexM0\ARM_GCC_541\Debug\Environmental_Sensor
 arm-none-eabi-gcc.exe -Wl,--start-group -o C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\CortexM0\ARM_GCC_541\Debug\Environmental_Sensor.elf .\CortexM0\ARM_GCC_541\Debug\main.o .\CortexM0\ARM_GCC_541\Debug\app_I2C.o .\CortexM0\ARM_GCC_541\Debug\app_Ble.o .\CortexM0\ARM_GCC_541\Debug\low_power.o .\CortexM0\ARM_GCC_541\Debug\bme280.o .\CortexM0\ARM_GCC_541\Debug\cyfitter_cfg.o .\CortexM0\ARM_GCC_541\Debug\cymetadata.o .\CortexM0\ARM_GCC_541\Debug\Cm0Start.o .\CortexM0\ARM_GCC_541\Debug\Environmental_Sensor.a "C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\BLE_v3_40\Library\gccCyBLEStack_BLE_SOC_PERIPHERAL.a" "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CortexM0\ARM_GCC_541\Debug\CyComponentLibrary.a" -mcpu=cortex-m0 -mthumb -L Generated_Source\PSoC4 -Wl,-Map,.\CortexM0\ARM_GCC_541\Debug/Environmental_Sensor.map -T Generated_Source\PSoC4\cm0gcc.ld -specs=nano.specs -Wl,--gc-sections -g -ffunction-sections -O0 -ffat-lto-objects -Wl,--end-group
 cyelftool.exe -C C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\CortexM0\ARM_GCC_541\Debug\Environmental_Sensor.elf --flash_row_size 128 --flash_size 131072 --flash_offset 0x00000000
 cyelftool.exe -S C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\CortexM0\ARM_GCC_541\Debug\Environmental_Sensor.elf
-Flash used: 88203 of 131072 bytes (67.3 %).
-SRAM used: 11080 of 16384 bytes (67.6 %). Stack: 2048 bytes. Heap: 128 bytes.
---------------- Build Succeeded: 11/28/2017 13:14:56 ---------------
+Flash used: 91289 of 131072 bytes (69.6 %).
+SRAM used: 11184 of 16384 bytes (68.3 %). Stack: 2048 bytes. Heap: 128 bytes.
+--------------- Build Succeeded: 11/30/2017 09:34:11 ---------------

@@ -18,6 +18,7 @@
 
 extern uint8 sendNotifications_BME280_Temp;
 extern uint8 sendNotifications_BME280_Pressure;
+extern uint8 sendNotifications_BME280_Humidity;
 extern CYBLE_CONN_HANDLE_T ConnHandle;    
     
 extern void AppCallBack(uint32 , void *);  

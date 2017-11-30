@@ -17,6 +17,7 @@ uint8 wrBuf[I2C_WRITE_BUFFER_SIZE];
 
 uint8 sendNotifications_BME280_Temp;
 uint8 sendNotifications_BME280_Pressure;
+uint8 sendNotifications_BME280_Humidity;
 CYBLE_API_RESULT_T	apiResult;  /*  variable to store BLE component API return */
 
 /*******************************************************************************
@@ -63,9 +64,6 @@ int main()
     handleLowPowerMode();
     
 		CyBle_ProcessEvents();
-		
-    bme280TempRead(wrBuf);
-    bme280PresRead(wrBuf + 2);
     
 		sendI2CNotification();
 		

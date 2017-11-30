@@ -103,6 +103,29 @@ void AppCallBack(uint32 event, void *eventParam)
     				/* Report data to BLE component for sending data when read by Central device */
     				CyBle_GattsWriteAttributeValue(&I2CNotificationCCDHandle, 0, &cyBle_connHandle, CYBLE_GATT_DB_LOCALLY_INITIATED);			
 	        }
+          if(wrReqParam->handleValPair.attrHandle == CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE)
+	        {
+    				CYBLE_GATT_HANDLE_VALUE_PAIR_T    I2CNotificationCCDHandle;
+    				uint8 I2CCCDValue[2];
+			
+            /* Extract CCCD Notification enable flag */
+            sendNotifications_BME280_Humidity = wrReqParam->handleValPair.value.val[0];
+				
+    				/* Write the present I2C notification status to the local variable */
+    				I2CCCDValue[0] = sendNotifications_BME280_Humidity;
+    				
+    				I2CCCDValue[1] = 0x00;
+    				
+    				/* Update CCCD handle with notification status data*/
+    				I2CNotificationCCDHandle.attrHandle = CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE;
+    				
+    				I2CNotificationCCDHandle.value.val = I2CCCDValue;
+    				
+    				I2CNotificationCCDHandle.value.len = 2;
+    				
+    				/* Report data to BLE component for sending data when read by Central device */
+    				CyBle_GattsWriteAttributeValue(&I2CNotificationCCDHandle, 0, &cyBle_connHandle, CYBLE_GATT_DB_LOCALLY_INITIATED);			
+	        }
 	            
 	        if (event == CYBLE_EVT_GATTS_WRITE_REQ)
 			    {

@@ -81,28 +81,33 @@ CYBLE_STATE_T cyBle_state;
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
-        },
-        {
-            0x00u, 0x00u,
-            0x00u, 0x00u,
             0x00u, 0x00u,
         },
         {
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
+            0x00u, 0x00u,
+        },
+        {
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
         },
         {
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
+            0x00u, 0x00u,
         },
         {
+            0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
         }}, 
-        0x06u, /* CYBLE_GATT_DB_CCCD_COUNT */ 
+        0x08u, /* CYBLE_GATT_DB_CCCD_COUNT */ 
         0x05u, /* CYBLE_GAP_MAX_BONDED_DEVICE */ 
     };
 #endif /* (CYBLE_MODE_PROFILE) */
@@ -118,7 +123,7 @@ CYBLE_STATE_T cyBle_state;
     0x000Bu,    /* Handle of the Client Characteristic Configuration descriptor */
 };
     
-    static uint8 cyBle_attValues[0x1Bu] = {
+    static uint8 cyBle_attValues[0x1Cu] = {
     /* Device Name */
     (uint8)'E', (uint8)'n', (uint8)'v', (uint8)'_', (uint8)'S', (uint8)'e', (uint8)'n', (uint8)'s', (uint8)'o',
     (uint8)'r',
@@ -138,6 +143,9 @@ CYBLE_STATE_T cyBle_state;
     /* BME280_Pressure */
     0x00u,
 
+    /* BME280_Humidity */
+    0x00u,
+
 };
 #if(CYBLE_GATT_DB_CCCD_COUNT != 0u)
 uint8 cyBle_attValuesCCCD[CYBLE_GATT_DB_CCCD_COUNT];
@@ -152,6 +160,10 @@ const uint8 cyBle_attUuid128[][16u] = {
     { 0xB4u, 0x38u, 0xA1u, 0xBBu, 0x38u, 0x97u, 0x3Fu, 0xBFu, 0x17u, 0x4Du, 0x3Fu, 0x78u, 0xC2u, 0x61u, 0x6Bu, 0xCEu },
     /* BME280_Pressure */
     { 0xD3u, 0xD6u, 0xDBu, 0xD6u, 0xF6u, 0x30u, 0xF8u, 0xA3u, 0x7Fu, 0x41u, 0x80u, 0xBFu, 0x37u, 0x80u, 0xBAu, 0x92u },
+    /* BME280_Humidity */
+    { 0xCDu, 0xD3u, 0x20u, 0xBBu, 0x83u, 0xCBu, 0xBCu, 0xABu, 0x83u, 0x41u, 0x88u, 0x88u, 0xF8u, 0xC7u, 0x4Du, 0x4Bu },
+    /* BME280_Humidity */
+    { 0x7Eu, 0x04u, 0x80u, 0x41u, 0x12u, 0x11u, 0xE2u, 0xB2u, 0x30u, 0x47u, 0x48u, 0x17u, 0x62u, 0x0Cu, 0xD1u, 0x81u },
 };
 
 CYBLE_GATTS_ATT_GEN_VAL_LEN_T cyBle_attValuesLen[CYBLE_GATT_DB_ATT_VAL_COUNT] = {
@@ -168,9 +180,13 @@ CYBLE_GATTS_ATT_GEN_VAL_LEN_T cyBle_attValuesLen[CYBLE_GATT_DB_ATT_VAL_COUNT] = 
     { 0x0010u, (void *)&cyBle_attUuid128[3] }, /* BME280_Pressure UUID */
     { 0x0001u, (void *)&cyBle_attValues[26] }, /* BME280_Pressure */
     { 0x0002u, (void *)&cyBle_attValuesCCCD[4] }, /* Client Characteristic Configuration */
+    { 0x0010u, (void *)&cyBle_attUuid128[4] }, /* BME280_Humidity UUID */
+    { 0x0010u, (void *)&cyBle_attUuid128[5] }, /* BME280_Humidity UUID */
+    { 0x0001u, (void *)&cyBle_attValues[27] }, /* BME280_Humidity */
+    { 0x0002u, (void *)&cyBle_attValuesCCCD[6] }, /* Client Characteristic Configuration */
 };
 
-const CYBLE_GATTS_DB_T cyBle_gattDB[0x13u] = {
+const CYBLE_GATTS_DB_T cyBle_gattDB[0x17u] = {
     { 0x0001u, 0x2800u /* Primary service                     */, 0x00000001u /*        */, 0x0007u, {{0x1800u, NULL}}                           },
     { 0x0002u, 0x2803u /* Characteristic                      */, 0x00020001u /* rd     */, 0x0003u, {{0x2A00u, NULL}}                           },
     { 0x0003u, 0x2A00u /* Device Name                         */, 0x01020001u /* rd     */, 0x0003u, {{0x000Au, (void *)&cyBle_attValuesLen[0]}} },
@@ -190,6 +206,10 @@ const CYBLE_GATTS_DB_T cyBle_gattDB[0x13u] = {
     { 0x0011u, 0x2803u /* Characteristic                      */, 0x00100001u /* ntf    */, 0x0013u, {{0x0010u, (void *)&cyBle_attValuesLen[10]}} },
     { 0x0012u, 0x8037u /* BME280_Pressure                     */, 0x09100000u /* ntf    */, 0x0013u, {{0x0001u, (void *)&cyBle_attValuesLen[11]}} },
     { 0x0013u, 0x2902u /* Client Characteristic Configuration */, 0x010A0101u /* rd,wr  */, 0x0013u, {{0x0002u, (void *)&cyBle_attValuesLen[12]}} },
+    { 0x0014u, 0x2800u /* Primary service                     */, 0x08000001u /*        */, 0x0017u, {{0x0010u, (void *)&cyBle_attValuesLen[13]}} },
+    { 0x0015u, 0x2803u /* Characteristic                      */, 0x00100001u /* ntf    */, 0x0017u, {{0x0010u, (void *)&cyBle_attValuesLen[14]}} },
+    { 0x0016u, 0x0C62u /* BME280_Humidity                     */, 0x09100000u /* ntf    */, 0x0017u, {{0x0001u, (void *)&cyBle_attValuesLen[15]}} },
+    { 0x0017u, 0x2902u /* Client Characteristic Configuration */, 0x010A0101u /* rd,wr  */, 0x0017u, {{0x0002u, (void *)&cyBle_attValuesLen[16]}} },
 };
 
 

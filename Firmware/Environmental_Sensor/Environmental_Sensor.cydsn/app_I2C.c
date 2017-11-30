@@ -1,37 +1,14 @@
 #include "app_I2C.h"
+#include "bme280.h"
 
-/*******************************************************************************
-* Function Name: handleI2CTraffic
-********************************************************************************
-* Summary:
-*    This function handles the I2C read or write processing
-*
-* Parameters:
-*  void
-*
-* Return:
-*  void
-*
-*******************************************************************************/
-
-void handleI2CTraffic(void)
+void readI2CRegister(uint32 slaveAddress, uint32 regAddress, uint8* buff, uint32 cnt)
 {
-  sendI2CNotification();
+  I2C_I2CMasterSendStart(slaveAddress, I2C_I2C_WRITE_XFER_MODE, 1);
+  I2C_I2CMasterWriteByte(regAddress, 1);
+  I2C_I2CMasterSendStop(1);
+  I2C_I2CMasterReadBuf(slaveAddress, buff, cnt, I2C_I2C_MODE_COMPLETE_XFER);
+  while ((I2C_I2CMasterStatus() & I2C_I2C_MSTAT_RD_CMPLT) == 0);
 }
-
-/*******************************************************************************
-* Function Name: sendI2CNotification
-********************************************************************************
-* Summary:
-*    This function notifies the I2C data written by I2C master to the Client
-*
-* Parameters:
-*  void
-*
-* Return:
-*  void
-*
-*******************************************************************************/
 
 void sendI2CNotification(void)
 {
@@ -40,6 +17,7 @@ void sendI2CNotification(void)
 	
 	if(sendNotifications_BME280_Temp)
 	{
+    bme280TempRead(wrBuf);
 		/* Package the notification data as part of I2C_read Characteristic*/
 		I2CHandle.attrHandle = CYBLE_BME280_TEMP_BME280_TEMP_CHAR_HANDLE;				
 		
@@ -47,27 +25,43 @@ void sendI2CNotification(void)
 		
 		I2CHandle.value.len = 2;
 
-	    /* Send the I2C_read Characteristic to the client only when notification is enabled */
-		do
+	  do
 		{
-		  apiResult = CyBle_GattsNotification(cyBle_connHandle,&I2CHandle);
+		  apiResult = CyBle_GattsNotification(cyBle_connHandle, &I2CHandle);
 			CyBle_ProcessEvents();
 		} while((CYBLE_ERROR_OK != apiResult)  && (CYBLE_STATE_CONNECTED == cyBle_state));
 		
 	}
   if(sendNotifications_BME280_Pressure)
 	{
+    bme280PresRead(wrBuf);
 		/* Package the notification data as part of I2C_read Characteristic*/
 		I2CHandle.attrHandle = CYBLE_BME280_PRESSURE_BME280_PRESSURE_CHAR_HANDLE;				
 		
-		I2CHandle.value.val = wrBuf + 2;
+		I2CHandle.value.val = wrBuf;
 		
 		I2CHandle.value.len = 2;
 
-	    /* Send the I2C_read Characteristic to the client only when notification is enabled */
 		do
 		{
-		  apiResult = CyBle_GattsNotification(cyBle_connHandle,&I2CHandle);
+		  apiResult = CyBle_GattsNotification(cyBle_connHandle, &I2CHandle);
+			CyBle_ProcessEvents();
+		} while((CYBLE_ERROR_OK != apiResult)  && (CYBLE_STATE_CONNECTED == cyBle_state));
+		
+	}	
+  if(sendNotifications_BME280_Humidity)
+	{
+    bme280HumRead(wrBuf);
+		/* Package the notification data as part of I2C_read Characteristic*/
+		I2CHandle.attrHandle = CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CHAR_HANDLE;				
+		
+		I2CHandle.value.val = wrBuf;
+		
+		I2CHandle.value.len = 2;
+
+		do
+		{
+		  apiResult = CyBle_GattsNotification(cyBle_connHandle, &I2CHandle);
 			CyBle_ProcessEvents();
 		} while((CYBLE_ERROR_OK != apiResult)  && (CYBLE_STATE_CONNECTED == cyBle_state));
 		

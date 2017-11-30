@@ -24,7 +24,7 @@
 ***************************************/
 
 /* Maximum supported Custom Services */
-#define CYBLE_CUSTOMS_SERVICE_COUNT                  (0x02u)
+#define CYBLE_CUSTOMS_SERVICE_COUNT                  (0x03u)
 #define CYBLE_CUSTOMC_SERVICE_COUNT                  (0x00u)
 #define CYBLE_CUSTOM_SERVICE_CHAR_COUNT              (0x01u)
 #define CYBLE_CUSTOM_SERVICE_CHAR_DESCRIPTORS_COUNT  (0x01u)
@@ -38,6 +38,10 @@
 #define CYBLE_BME280_PRESSURE_BME280_PRESSURE_CHAR_INDEX   (0x00u) /* Index of BME280_Pressure characteristic */
 #define CYBLE_BME280_PRESSURE_BME280_PRESSURE_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x00u) /* Index of Client Characteristic Configuration descriptor */
 
+#define CYBLE_BME280_HUMIDITY_SERVICE_INDEX   (0x02u) /* Index of BME280_Humidity service in the cyBle_customs array */
+#define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CHAR_INDEX   (0x00u) /* Index of BME280_Humidity characteristic */
+#define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x00u) /* Index of Client Characteristic Configuration descriptor */
+
 
 #define CYBLE_BME280_TEMP_SERVICE_HANDLE   (0x000Cu) /* Handle of BME280_Temp service */
 #define CYBLE_BME280_TEMP_BME280_TEMP_DECL_HANDLE   (0x000Du) /* Handle of BME280_Temp characteristic declaration */
@@ -48,6 +52,11 @@
 #define CYBLE_BME280_PRESSURE_BME280_PRESSURE_DECL_HANDLE   (0x0011u) /* Handle of BME280_Pressure characteristic declaration */
 #define CYBLE_BME280_PRESSURE_BME280_PRESSURE_CHAR_HANDLE   (0x0012u) /* Handle of BME280_Pressure characteristic */
 #define CYBLE_BME280_PRESSURE_BME280_PRESSURE_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x0013u) /* Handle of Client Characteristic Configuration descriptor */
+
+#define CYBLE_BME280_HUMIDITY_SERVICE_HANDLE   (0x0014u) /* Handle of BME280_Humidity service */
+#define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_DECL_HANDLE   (0x0015u) /* Handle of BME280_Humidity characteristic declaration */
+#define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CHAR_HANDLE   (0x0016u) /* Handle of BME280_Humidity characteristic */
+#define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x0017u) /* Handle of Client Characteristic Configuration descriptor */
 
 
 
