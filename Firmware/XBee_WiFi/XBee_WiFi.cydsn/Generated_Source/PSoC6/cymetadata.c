@@ -1,7 +1,7 @@
 /*******************************************************************************
 * File Name: cymetadata.c
 * 
-* PSoC Creator  4.1
+* PSoC Creator  4.2
 *
 * Description:
 * This file defines all extra memory spaces that need to be included.
@@ -29,20 +29,6 @@ CY_META_SECTION
 #error "Unsupported toolchain"
 #endif
 const uint8_t cy_metadata[] = {
-    0x00u, 0x05u, 0xE2u, 0x01u, 0x11u, 0x00u, 0x00u, 0x01u,
+    0x00u, 0x05u, 0xE2u, 0x07u, 0x21u, 0x00u, 0x21u, 0x01u,
     0x00u, 0x00u, 0x00u, 0x00u
-};
-
-#if defined(__GNUC__) || defined(__ARMCC_VERSION)
-#ifndef CY_CHIP_PROT_SECTION
-#define CY_CHIP_PROT_SECTION __attribute__ ((__section__(".cychipprotect"), used))
-#endif
-CY_CHIP_PROT_SECTION
-#elif defined(__ICCARM__)
-#pragma  location=".cychipprotect"
-#else
-#error "Unsupported toolchain"
-#endif
-const uint8_t cy_meta_chipprotect[] = {
-    0x01u
 };

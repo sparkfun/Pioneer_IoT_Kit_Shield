@@ -13,6 +13,9 @@
 *******************************************************************************/
 
 #include "SPI.h"
+#include "sysint/cy_sysint.h"
+#include "cyfitter_sysint.h"
+#include "cyfitter_sysint_cfg.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -24,8 +27,8 @@ extern "C" {
 
 /** SPI_initVar indicates whether the SPI
 *  component has been initialized. The variable is initialized to 0
-*  and set to 1 the first time SPI_Start() is called. 
-*  This allows  the component to restart without reinitialization 
+*  and set to 1 the first time SPI_Start() is called.
+*  This allows  the component to restart without reinitialization
 *  after the first call to the SPI_Start() routine.
 *
 *  If re-initialization of the component is required, then the
@@ -34,8 +37,8 @@ extern "C" {
 */
 uint8 SPI_initVar = 0U;
 
-/** The instance-specific configuration structure. 
-* The pointer to this structure should be passed to SPI_Init() function
+/** The instance-specific configuration structure.
+* The pointer to this structure should be passed to Cy_SCB_SPI_Init function
 * to initialize component with GUI selected settings.
 */
 cy_stc_scb_spi_config_t const SPI_config =
@@ -54,10 +57,10 @@ cy_stc_scb_spi_config_t const SPI_config =
     .enableFreeRunSclk        = false,
     .enableMisoLateSample     = false,
     .enableTransferSeperation = false,
-    .ssPolarity               = ((CY_SCB_SPI_ACTIVE_LOW  << SPI_SPI_SLAVE_SELECT0) | \
-                                 (CY_SCB_SPI_ACTIVE_LOW  << SPI_SPI_SLAVE_SELECT1) | \
-                                 (CY_SCB_SPI_ACTIVE_LOW  << SPI_SPI_SLAVE_SELECT2) | \
-                                 (CY_SCB_SPI_ACTIVE_LOW  << SPI_SPI_SLAVE_SELECT3)),
+    .ssPolarity               = ((CY_SCB_SPI_ACTIVE_LOW << SPI_SPI_SLAVE_SELECT0) | \
+                                 (CY_SCB_SPI_ACTIVE_LOW << SPI_SPI_SLAVE_SELECT1) | \
+                                 (CY_SCB_SPI_ACTIVE_LOW << SPI_SPI_SLAVE_SELECT2) | \
+                                 (CY_SCB_SPI_ACTIVE_LOW << SPI_SPI_SLAVE_SELECT3)),
 
     .enableWakeFromSleep = false,
 
@@ -70,9 +73,10 @@ cy_stc_scb_spi_config_t const SPI_config =
     .masterSlaveIntEnableMask = 0x0UL
 };
 
-/** The instance-specific context structure. 
-* It is used while the SPI operation for internal configuration and 
-* data keeping. The user should not modify anything in this structure.
+/** The instance-specific context structure.
+* It is used while the driver operation for internal configuration and
+* data keeping for the SPI. The user should not modify anything in this 
+* structure.
 */
 cy_stc_scb_spi_context_t SPI_context;
 
@@ -81,13 +85,13 @@ cy_stc_scb_spi_context_t SPI_context;
 * Function Name: SPI_Start
 ****************************************************************************//**
 *
-* Invokes SPI_Init() and SPI_Enable(). 
+* Invokes SPI_Init() and SPI_Enable().
 * Also configures interrupt if it is internal.
-* After this function call the component is enabled and ready for operation. 
+* After this function call the component is enabled and ready for operation.
 * This is the preferred method to begin component operation.
 *
 * \globalvars
-* \ref SPI_initVar - used to check initial configuration, 
+* \ref SPI_initVar - used to check initial configuration,
 * modified  on first function call.
 *
 *******************************************************************************/
@@ -100,32 +104,20 @@ void SPI_Start(void)
 
         /* Set active slave select to line 0 */
         Cy_SCB_SPI_SetActiveSlaveSelect(SPI_HW, SPI_SPI_SLAVE_SELECT0);
-        
-    #if (SPI_USE_IRQ)
-        /* Hook interrupt service routine */
-        #if defined(SPI_SCB_IRQ__INTC_CORTEXM4_ASSIGNED)
-            Cy_SysInt_Init(&SPI_SCB_IRQ_cfg_cm4, &SPI_Interrupt);
-        #endif
 
-        #if defined(SPI_SCB_IRQ__INTC_CORTEXM0P_ASSIGNED)
-           Cy_SysInt_Init(&SPI_SCB_IRQ_cfg_cm0p, &SPI_Interrupt);
-        #endif
-    #endif /* (SPI_USE_IRQ) */
+        /* Hook interrupt service routine */
+    #if defined(SPI_SCB_IRQ__INTC_ASSIGNED)
+        (void) Cy_SysInt_Init(&SPI_SCB_IRQ_cfg, &SPI_Interrupt);
+    #endif /* (SPI_SCB_IRQ__INTC_ASSIGNED) */
 
         /* Component is configured */
         SPI_initVar = 1U;
     }
 
-#if (SPI_USE_IRQ)
     /* Enable interrupt in NVIC */
-    #if defined(SPI_SCB_IRQ__INTC_CORTEXM4_ASSIGNED)
-        NVIC_EnableIRQ(SPI_SCB_IRQ_cfg_cm4.intrSrc);
-    #endif
-
-    #if defined(SPI_SCB_IRQ__INTC_CORTEXM0P_ASSIGNED)
-       NVIC_EnableIRQ(SPI_SCB_IRQ_cfg_cm0p.intrCm0p);
-    #endif
-#endif /* (SPI_USE_IRQ) */
+#if defined(SPI_SCB_IRQ__INTC_ASSIGNED)
+    NVIC_EnableIRQ((IRQn_Type) SPI_SCB_IRQ_cfg.intrSrc);
+#endif /* (SPI_SCB_IRQ__INTC_ASSIGNED) */
 
     Cy_SCB_SPI_Enable(SPI_HW);
 }

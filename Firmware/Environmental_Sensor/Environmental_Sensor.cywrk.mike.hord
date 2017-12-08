@@ -13,7 +13,7 @@
 <v>Output</v>
 </TreeKeys>
 <TreeStates>
-<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="Environmental_Sensor\Environmental_Sensor\Header Files\app_I2C.h">
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="Environmental_Sensor\Environmental_Sensor\Header Files\bme280_defs.h">
 <ExpandedNodeIds>
 <v>Environmental_Sensor</v>
 <v>Environmental_Sensor\Environmental_Sensor</v>
@@ -28,18 +28,25 @@
 <v>Environmental_Sensor\Environmental_Sensor\Environmental_Sensor.cydwr\Flash Security</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\app_Ble.h</v>
-<v>Environmental_Sensor\Environmental_Sensor\Header Files\app_I2C.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\app_sensors.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\bme280.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\bme280_defs.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\ccs811.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\config.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\i2c_support.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\LED.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\low_power.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\main.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\sensors_config.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\app_Ble.c</v>
-<v>Environmental_Sensor\Environmental_Sensor\Source Files\app_I2C.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\app_sensors.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\bme280.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\ccs811.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\i2c_support.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\low_power.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\main.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\sensors_config.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4</v>
 </ExpandedNodeIds>
@@ -57,18 +64,25 @@
 <v>Environmental_Sensor\Environmental_Sensor\Environmental_Sensor.cydwr\Flash Security</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\app_Ble.h</v>
-<v>Environmental_Sensor\Environmental_Sensor\Header Files\app_I2C.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\app_sensors.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\bme280.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\bme280_defs.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\ccs811.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\config.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\i2c_support.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\LED.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\low_power.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Header Files\main.h</v>
+<v>Environmental_Sensor\Environmental_Sensor\Header Files\sensors_config.h</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\app_Ble.c</v>
-<v>Environmental_Sensor\Environmental_Sensor\Source Files\app_I2C.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\app_sensors.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\bme280.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\ccs811.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\i2c_support.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\low_power.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Source Files\main.c</v>
+<v>Environmental_Sensor\Environmental_Sensor\Source Files\sensors_config.c</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\ADV_LED</v>
@@ -86,13 +100,6 @@
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\UART</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\UART_rx</v>
 <v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\UART_SCBCLK</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\UART_tx</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cycodeshareexport.ld</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cycodeshareimport.ld</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cycodeshareimport.scat</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cydevice_trm.h</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cydevicegnu_trm.inc</v>
-<v>Environmental_Sensor\Environmental_Sensor\Generated_Source\PSoC4\cydeviceiar_trm.inc</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 <CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
@@ -120,7 +127,7 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ADV_LED.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ADV_LED_PM.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_Ble.lst</v>
-<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_I2C.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_sensors.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_bless_isr.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_custom.lst</v>
@@ -129,6 +136,7 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_HAL_INT.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_HAL_PVT.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\bme280.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ccs811.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\Cm0Start.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\CONNECT_LED.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\CONNECT_LED_PM.lst</v>
@@ -155,8 +163,10 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_scl_PM.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_sda.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_sda_PM.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\i2c_support.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\low_power.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\main.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\sensors_config.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART_BOOT.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART_PM.lst</v>
@@ -186,7 +196,7 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ADV_LED.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ADV_LED_PM.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_Ble.lst</v>
-<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_I2C.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\app_sensors.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_bless_isr.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_custom.lst</v>
@@ -195,6 +205,7 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_HAL_INT.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\BLE_HAL_PVT.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\bme280.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\ccs811.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\Cm0Start.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\CONNECT_LED.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\CONNECT_LED_PM.lst</v>
@@ -221,11 +232,10 @@
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_scl_PM.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_sda.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\I2C_sda_PM.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\i2c_support.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\low_power.lst</v>
 <v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\main.lst</v>
-<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART.lst</v>
-<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART_BOOT.lst</v>
-<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\UART_PM.lst</v>
+<v>Environmental_Sensor\Environmental_Sensor\CortexM0\ARM_GCC_541\Debug\Listing Files\sensors_config.lst</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStates>
@@ -275,15 +285,20 @@
 </CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997>
 <Unloaded />
 <OpenDocs>
-<name v=".\Environmental_Sensor.cydsn\app_I2C.h" />
-<name v=".\Environmental_Sensor.cydsn\app_I2C.c" />
 <name v=".\Environmental_Sensor.cydsn\main.c" />
-<name v=".\Environmental_Sensor.cydsn\main.h" />
-<name v=".\Environmental_Sensor.cydsn\bme280.c" />
-<name v=".\Environmental_Sensor.cydsn\bme280.h" />
-<name v=".\Environmental_Sensor.cydsn\TopDesign\TopDesign.cysch" />
+<name v=".\Environmental_Sensor.cydsn\LED.h" />
+<name v=".\Environmental_Sensor.cydsn\i2c_support.h" />
+<name v=".\Environmental_Sensor.cydsn\low_power.h" />
+<name v=".\Environmental_Sensor.cydsn\sensors_config.h" />
 <name v=".\Environmental_Sensor.cydsn\app_Ble.c" />
-<name v=".\Environmental_Sensor.cydsn\app_Ble.h" />
+<name v=".\Environmental_Sensor.cydsn\app_sensors.c" />
+<name v=".\Environmental_Sensor.cydsn\bme280.c" />
+<name v=".\Environmental_Sensor.cydsn\ccs811.c" />
+<name v=".\Environmental_Sensor.cydsn\i2c_support.c" />
+<name v=".\Environmental_Sensor.cydsn\low_power.c" />
+<name v=".\Environmental_Sensor.cydsn\sensors_config.c" />
+<name v=".\Environmental_Sensor.cydsn\bme280.h" />
+<name v=".\Environmental_Sensor.cydsn\bme280_defs.h" />
 </OpenDocs>
 <OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
 
@@ -291,7 +306,7 @@
   Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
   http://www.actiprosoftware.com
 
---><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1182, 710" SelectedTabbedMdiWindow="bc6b61fd-710a-4cc0-bf9b-ee3a1b6bd0fc"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\app_I2C.h" Guid="4e641f7a-28e8-4eae-8531-a016ffac8c27" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\app_I2C.c" Guid="2e0da0a2-9b6e-4609-bcf3-ba8eb7fb9791" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\main.c" Guid="bc6b61fd-710a-4cc0-bf9b-ee3a1b6bd0fc" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\main.h" Guid="18e6b9de-4963-4cd6-90e5-d88e4402c228" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\bme280.c" Guid="db28931c-a905-4844-80bc-5a4478f3eeea" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\bme280.h" Guid="6e5f86d2-0917-4d0a-bfeb-6222742e060d" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\TopDesign\TopDesign.cysch" Guid="2135f9b0-01ae-4e7c-bf53-9b2d213123f5" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\app_Ble.c" Guid="5d395a22-8608-4b7d-9bb1-e9f7e13c87a8" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\I2C_BLE_Bridge\Environmental_Sensor.cydsn\app_Ble.h" Guid="407f6eaa-9ca5-480c-a6cf-70fa4b2fc1d6" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1182, 710" SelectedTabbedMdiWindow="7e4b3ffd-cc58-48a2-b425-6b1b4f6ac6d8"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\main.c" Guid="9ee7bd3b-b514-47a1-87f7-5f10a3c16163" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\LED.h" Guid="abcf65bc-17ea-4063-80e2-66e55d13b5d0" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\i2c_support.h" Guid="9583f2a5-cf26-48a5-9a06-f646d439dd57" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\low_power.h" Guid="88ca682d-c70e-4f5d-b33a-73bdab01aa20" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\sensors_config.h" Guid="0cd6600a-96a4-4c1a-b32b-13d7a706fead" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\app_Ble.c" Guid="732371f8-6003-4831-b3ee-e716ab54e9b9" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\app_sensors.c" Guid="bb0e1071-7510-4b1c-91b9-6f77aca905d6" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\bme280.c" Guid="914bf7ca-0129-40c3-b73c-17fde601b816" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\ccs811.c" Guid="2047912d-cbcd-438d-a4a3-a95e264b4b88" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\i2c_support.c" Guid="95298c2c-e403-455f-886f-b5b2ffd31456" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\low_power.c" Guid="742b1080-2880-408f-b340-8f2382163f13" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\sensors_config.c" Guid="c9828de2-9ddb-462b-aeca-d58fc25d3876" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\bme280.h" Guid="60fb3221-221b-4520-869f-f4ccbef396db" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\bme280_defs.h" Guid="7e4b3ffd-cc58-48a2-b425-6b1b4f6ac6d8" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
 <config v="" />
 <AutoUpdate v="true" />
 </CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>

@@ -23,23 +23,6 @@ extern "C" {
 #endif
 
 /***************************************
-*   Initial Parameter Constants
-****************************************/
-
-#define SPI_USE_IRQ    (1U != 0U)
-
-
-/***************************************
-*       Additional includes
-***************************************/
-
-#if (SPI_USE_IRQ)
-    #include "SPI_SCB_IRQ.h"
-    #include "cyapicallbacks.h"
-#endif
-
-
-/***************************************
 *        Function Prototypes
 ***************************************/
 /**
@@ -51,13 +34,9 @@ void SPI_Start(void);
 
 /* Basic functions. */
 __STATIC_INLINE cy_en_scb_spi_status_t SPI_Init(cy_stc_scb_spi_config_t const *config);
-__STATIC_INLINE void     SPI_DeInit(void);
-__STATIC_INLINE void     SPI_Enable(void);
-__STATIC_INLINE void     SPI_Disable(void);
-
-/* Low power functions. */
-__STATIC_INLINE void SPI_DeepSleep(void);
-__STATIC_INLINE void SPI_Wakeup(void);
+__STATIC_INLINE void SPI_DeInit(void);
+__STATIC_INLINE void SPI_Enable(void);
+__STATIC_INLINE void SPI_Disable(void);
 
 /* Register callback. */
 __STATIC_INLINE void SPI_RegisterCallback(scb_spi_handle_events_t callback);
@@ -123,7 +102,7 @@ extern cy_stc_scb_spi_context_t SPI_context;
 * @{
 */
 /** The pointer to the base address of the hardware */
-#define SPI_HW         ((CySCB_Type *) SPI_SCB__HW)
+#define SPI_HW     ((CySCB_Type *) SPI_SCB__HW)
 
 /** The slave select line 0 constant which takes into account pin placement */
 #define SPI_SPI_SLAVE_SELECT0    (SPI_SCB__SS0_POSITION)
@@ -147,7 +126,7 @@ extern cy_stc_scb_spi_context_t SPI_context;
 * Function Name: SPI_Init
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Init() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Init() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_scb_spi_status_t SPI_Init(cy_stc_scb_spi_config_t const *config)
@@ -160,7 +139,7 @@ __STATIC_INLINE cy_en_scb_spi_status_t SPI_Init(cy_stc_scb_spi_config_t const *c
 * Function Name: SPI_DeInit
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_DeInit() PDL driver function. 
+* Invokes the Cy_SCB_SPI_DeInit() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_DeInit(void)
@@ -173,7 +152,7 @@ __STATIC_INLINE void SPI_DeInit(void)
 * Function Name: SPI_Enable
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Enable() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Enable() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_Enable(void)
@@ -186,7 +165,7 @@ __STATIC_INLINE void SPI_Enable(void)
 * Function Name: SPI_Disable
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Disable() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Disable() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_Disable(void)
@@ -196,36 +175,10 @@ __STATIC_INLINE void SPI_Disable(void)
 
 
 /*******************************************************************************
-* Function Name: SPI_DeepSleep
-****************************************************************************//**
-*
-* Invokes the Cy_SCB_SPI_DeepSleep() PDL driver function. 
-*
-*******************************************************************************/
-__STATIC_INLINE void SPI_DeepSleep(void)
-{
-    Cy_SCB_SPI_DeepSleep(SPI_HW);
-}
-
-
-/*******************************************************************************
-* Function Name: SPI_Wakeup
-****************************************************************************//**
-*
-* Invokes the Cy_SCB_SPI_Wakeup() PDL driver function. 
-*
-*******************************************************************************/
-__STATIC_INLINE void SPI_Wakeup(void)
-{
-    Cy_SCB_SPI_Wakeup(SPI_HW);
-}
-
-
-/*******************************************************************************
 * Function Name: SPI_RegisterCallback
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_RegisterCallback() PDL driver function. 
+* Invokes the Cy_SCB_SPI_RegisterCallback() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_RegisterCallback(scb_spi_handle_events_t callback)
@@ -238,7 +191,7 @@ __STATIC_INLINE void SPI_RegisterCallback(scb_spi_handle_events_t callback)
 * Function Name: SPI_IsBusBusy
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_IsBusBusy() PDL driver function. 
+* Invokes the Cy_SCB_SPI_IsBusBusy() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE bool SPI_IsBusBusy(void)
@@ -251,7 +204,7 @@ __STATIC_INLINE bool SPI_IsBusBusy(void)
 * Function Name: SPI_SetActiveSlaveSelect
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_SetActiveSlaveSelect() PDL driver function. 
+* Invokes the Cy_SCB_SPI_SetActiveSlaveSelect() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_SetActiveSlaveSelect(uint32_t slaveSelect)
@@ -264,7 +217,7 @@ __STATIC_INLINE void SPI_SetActiveSlaveSelect(uint32_t slaveSelect)
 * Function Name: SPI_SetActiveSlaveSelectPolarity
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_SetActiveSlaveSelectPolarity() PDL driver function. 
+* Invokes the Cy_SCB_SPI_SetActiveSlaveSelectPolarity() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_SetActiveSlaveSelectPolarity(uint32_t slaveSelect, uint32_t polarity)
@@ -277,7 +230,7 @@ __STATIC_INLINE void SPI_SetActiveSlaveSelectPolarity(uint32_t slaveSelect, uint
 * Function Name: SPI_Read
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Read() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Read() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_Read(void)
@@ -290,7 +243,7 @@ __STATIC_INLINE uint32_t SPI_Read(void)
 * Function Name: SPI_ReadArray
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ReadArray() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ReadArray() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_ReadArray(void *rxBuf, uint32_t size)
@@ -303,7 +256,7 @@ __STATIC_INLINE uint32_t SPI_ReadArray(void *rxBuf, uint32_t size)
 * Function Name: SPI_GetRxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetRxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetRxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetRxFifoStatus(void)
@@ -316,7 +269,7 @@ __STATIC_INLINE uint32_t SPI_GetRxFifoStatus(void)
 * Function Name: SPI_ClearRxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ClearRxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ClearRxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_ClearRxFifoStatus(uint32_t clearMask)
@@ -329,7 +282,7 @@ __STATIC_INLINE void SPI_ClearRxFifoStatus(uint32_t clearMask)
 * Function Name: SPI_GetNumInRxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_GetNumInRxFifo() PDL driver function. 
+* Invokes the Cy_SCB_GetNumInRxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetNumInRxFifo(void)
@@ -342,7 +295,7 @@ __STATIC_INLINE uint32_t SPI_GetNumInRxFifo(void)
 * Function Name: SPI_ClearRxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ClearRxFifo() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ClearRxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_ClearRxFifo(void)
@@ -355,7 +308,7 @@ __STATIC_INLINE void SPI_ClearRxFifo(void)
 * Function Name: SPI_Write
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Write() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Write() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_Write(uint32_t data)
@@ -368,7 +321,7 @@ __STATIC_INLINE uint32_t SPI_Write(uint32_t data)
 * Function Name: SPI_WriteArray
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_WriteArray() PDL driver function. 
+* Invokes the Cy_SCB_SPI_WriteArray() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_WriteArray(void *txBuf, uint32_t size)
@@ -381,7 +334,7 @@ __STATIC_INLINE uint32_t SPI_WriteArray(void *txBuf, uint32_t size)
 * Function Name: SPI_WriteArrayBlocking
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_WriteArrayBlocking() PDL driver function. 
+* Invokes the Cy_SCB_SPI_WriteArrayBlocking() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_WriteArrayBlocking(void *txBuf, uint32_t size)
@@ -394,7 +347,7 @@ __STATIC_INLINE void SPI_WriteArrayBlocking(void *txBuf, uint32_t size)
 * Function Name: SPI_GetTxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetTxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetTxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetTxFifoStatus(void)
@@ -407,7 +360,7 @@ __STATIC_INLINE uint32_t SPI_GetTxFifoStatus(void)
 * Function Name: SPI_ClearTxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ClearTxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ClearTxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_ClearTxFifoStatus(uint32_t clearMask)
@@ -420,7 +373,7 @@ __STATIC_INLINE void SPI_ClearTxFifoStatus(uint32_t clearMask)
 * Function Name: SPI_GetNumInTxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetNumInTxFifo() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetNumInTxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetNumInTxFifo(void)
@@ -433,7 +386,7 @@ __STATIC_INLINE uint32_t SPI_GetNumInTxFifo(void)
 * Function Name: SPI_IsTxComplete
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_IsTxComplete() PDL driver function. 
+* Invokes the Cy_SCB_SPI_IsTxComplete() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE bool SPI_IsTxComplete(void)
@@ -446,7 +399,7 @@ __STATIC_INLINE bool SPI_IsTxComplete(void)
 * Function Name: SPI_ClearTxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ClearTxFifo() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ClearTxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_ClearTxFifo(void)
@@ -459,7 +412,7 @@ __STATIC_INLINE void SPI_ClearTxFifo(void)
 * Function Name: SPI_GetSlaveMasterStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetSlaveMasterStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetSlaveMasterStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetSlaveMasterStatus(void)
@@ -472,7 +425,7 @@ __STATIC_INLINE uint32_t SPI_GetSlaveMasterStatus(void)
 * Function Name: SPI_ClearSlaveMasterStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_ClearSlaveMasterStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_ClearSlaveMasterStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_ClearSlaveMasterStatus(uint32_t clearMask)
@@ -485,7 +438,7 @@ __STATIC_INLINE void SPI_ClearSlaveMasterStatus(uint32_t clearMask)
 * Function Name: SPI_Transfer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Transfer() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Transfer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_scb_spi_status_t SPI_Transfer(void *txBuf, void *rxBuf, uint32_t size)
@@ -497,7 +450,7 @@ __STATIC_INLINE cy_en_scb_spi_status_t SPI_Transfer(void *txBuf, void *rxBuf, ui
 * Function Name: SPI_AbortTransfer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_AbortTransfer() PDL driver function. 
+* Invokes the Cy_SCB_SPI_AbortTransfer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_AbortTransfer(void)
@@ -510,7 +463,7 @@ __STATIC_INLINE void SPI_AbortTransfer(void)
 * Function Name: SPI_GetTransferStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetTransferStatus() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetTransferStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetTransferStatus(void)
@@ -523,7 +476,7 @@ __STATIC_INLINE uint32_t SPI_GetTransferStatus(void)
 * Function Name: SPI_GetNumTransfered
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_GetNumTransfered() PDL driver function. 
+* Invokes the Cy_SCB_SPI_GetNumTransfered() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t SPI_GetNumTransfered(void)
@@ -536,20 +489,12 @@ __STATIC_INLINE uint32_t SPI_GetNumTransfered(void)
 * Function Name: SPI_Interrupt
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_SPI_Interrupt() PDL driver function. 
+* Invokes the Cy_SCB_SPI_Interrupt() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void SPI_Interrupt(void)
 {
-#if defined (SPI_INTERRUPT_ENTRY_CALLBACK)
-    SPI_InterruptEntryCallback();
-#endif /* SPI_INTERRUPT_ENTRY_CALLBACK */
-
     Cy_SCB_SPI_Interrupt(SPI_HW, &SPI_context);
-    
-#if defined (SPI_INTERRUPT_EXIT_CALLBACK)
-    SPI_InterruptEntryCallback();
-#endif /* SPI_INTERRUPT_EXIT_CALLBACK */   
 }
 
 

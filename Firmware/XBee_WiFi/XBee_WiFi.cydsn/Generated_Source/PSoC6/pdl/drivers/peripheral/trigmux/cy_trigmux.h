@@ -1,6 +1,6 @@
 /*******************************************************************************
 * \file cy_trigmux.h
-* \version 1.0
+* \version 1.10
 *
 *  This file provides constants and parameter values for the Trigger multiplexer driver.
 *
@@ -23,7 +23,11 @@
 * The Trigger multiplexer block consists of multiple trigger multiplexers. 
 * These trigger multiplexers are grouped in trigger groups. All the trigger 
 * multiplexers in the trigger group share similar input options. The trigger 
-* multiplexer groups are either reduction multiplexers or distribution multiplexers. 
+* multiplexer groups are either reduction multiplexers or distribution multiplexers.
+* Figure below illustrates a generic trigger multiplexer block implementation 
+* with a reduction multiplexer layer of N trigger groups and a distribution multiplexer
+* layer of M trigger groups.
+* \image html trigmux_architecture.png
 * The reduction multiplexer groups have input options that are the trigger outputs 
 * coming from the different peripheral blocks and the reduction multiplexer groups 
 * route them to intermediate signals. The distribution multiplexer groups have input 
@@ -47,7 +51,7 @@
 * connected using the multiplexer.
 *
 * These parameters are represented in the following format:
-* \image html trigmux/docs/trigmux_parameter.png
+* \image html trigmux_parameter_30.png
 * In addition, the Cy_TrigMux_connect() function also has an invert and trigger type parameter.
 * Refer to the API reference for a detailed description of this parameter. 
 * All the constants associated with the different trigger signals in the system 
@@ -111,9 +115,17 @@
 *     <td>Initial version</td>
 *     <td></td>
 *   </tr>
+*   <tr>
+*     <td>1.10</td>
+*     <td>The input/output bit in the trigLine parameter of the 
+*         Cy_TrigMux_SwTrigger() function is changed to 30.<br>
+*         The invert parameter type is changed to bool.<br>
+*         Added input parameter validation to the API functions.</td>
+*     <td></td>
+*   </tr>
 * </table>
 *
-* \defgroup group_trigmux_macro Macro
+* \defgroup group_trigmux_macros Macros
 * \defgroup group_trigmux_functions Functions
 * \defgroup group_trigmux_enums Enumerated Types
 */
@@ -124,12 +136,16 @@
 #include "cy_device_headers.h"
 #include "syslib/cy_syslib.h"
 
+#ifndef CY_IP_MXPERI_TR
+    #error "The TRIGMUX driver is not supported on this device"
+#endif
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 /**
-* \addtogroup group_trigmux_macro
+* \addtogroup group_trigmux_macros
 * \{
 */
 
@@ -137,26 +153,40 @@ extern "C" {
 #define CY_TRIGMUX_DRV_VERSION_MAJOR       1
 
 /** The driver minor version */
-#define CY_TRIGMUX_DRV_VERSION_MINOR       0
+#define CY_TRIGMUX_DRV_VERSION_MINOR       10
 
 /**< TRIGMUX PDL ID */
 #define CY_TRIGMUX_ID                       CY_PDL_DRV_ID(0x33u) /**< The trigger multiplexer driver identifier */
 
-#define CY_TR_MUX_TR_INV_ENABLE            (0x01u)               /**< Enable trigger invert  */
-#define CY_TR_MUX_TR_INV_DISABLE           (0x00u)               /**< Disable trigger invert */
+/**< TRIGMUX values for the cycles parameter in the Cy_TrigMux_SwTrigger() function */
+#define CY_TRIGGER_INFINITE                 (255u) /**< The trigger will be active until the user clears it or a hardware deactivates it. */
+#define CY_TRIGGER_DEACTIVATE               (0u)   /**< Use this parameter value to deactivate the trigger. */
 
 /** \cond */
 
+/******************************************************************************
+ * Macros
+ *****************************************************************************/
+
+#define CY_TR_MUX_TR_INV_ENABLE            (0x01u)
+#define CY_TR_MUX_TR_INV_DISABLE           (0x00u)
+#define CY_TR_ACTIVATE_DISABLE             (0x00u)
 #define CY_TR_ACTIVATE_ENABLE              (0x01u)
 #define CY_TR_GROUP_MASK                   (0x0F00u)
 #define CY_TR_MASK                         (0x007Fu)
 #define CY_TR_GROUP_SHIFT                  (0x08u)
-#define CY_TR_OUT_CTL_MASK                 (0x1000u)
-#define CY_TR_OUT_CTL_SHIFT                (12u)
+#define CY_TR_OUT_CTL_MASK                 (0x40000000uL)
+#define CY_TR_OUT_CTL_SHIFT                (30u)
+#define CY_TR_PARAM_MASK                   (CY_TR_OUT_CTL_MASK | CY_TR_GROUP_MASK | CY_TR_MASK)
+#define CY_TR_CYCLES_MIN                   (0u)
+#define CY_TR_CYCLES_MAX                   (255u)
+
+#define CY_LPCOMP_IS_TRIGTYPE_VALID(trigType)  (((trigType) == TRIGGER_TYPE_EDGE) || \
+                                                ((trigType) == TRIGGER_TYPE_LEVEL))
 
 /** \endcond */
 
-/** \} group_trigmux_macro */
+/** \} group_trigmux_macros */
 
 
 /**
@@ -183,7 +213,7 @@ typedef enum
 * \{
 */
 
-cy_en_trigmux_status_t Cy_TrigMux_Connect(uint32_t inTrig, uint32_t outTrig, uint32_t invert, en_trig_type_t trigType);
+cy_en_trigmux_status_t Cy_TrigMux_Connect(uint32_t inTrig, uint32_t outTrig, bool invert, en_trig_type_t trigType);
 cy_en_trigmux_status_t Cy_TrigMux_SwTrigger(uint32_t trigLine, uint32_t cycles);
 
 /** \} group_trigmux_functions */

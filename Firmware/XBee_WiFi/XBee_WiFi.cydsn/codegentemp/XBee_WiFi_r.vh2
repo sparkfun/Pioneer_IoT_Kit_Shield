@@ -1,23 +1,19 @@
 -- Project:   XBee_WiFi
--- Generated: 10/23/2017 09:05:31
--- PSoC Creator  4.1
+-- Generated: 12/04/2017 09:52:00
+-- PSoC Creator  4.2
 
 ENTITY XBee_WiFi IS
     PORT(
         Pin_CM0p_Writing(0)_PAD : OUT std_ulogic;
         Pin_CM0p_Reading(0)_PAD : OUT std_ulogic;
-        White_Btn(0)_PAD : IN std_ulogic;
-        Yellow_Btn(0)_PAD : IN std_ulogic;
+        D9(0)_PAD : IN std_ulogic;
+        D7(0)_PAD : IN std_ulogic;
         Pin_CM4_Writing(0)_PAD : OUT std_ulogic;
         Pin_CM4_Reading(0)_PAD : OUT std_ulogic;
         \UART:tx(0)_PAD\ : OUT std_ulogic;
         \UART:rx(0)_PAD\ : IN std_ulogic;
         Red_LED(0)_PAD : OUT std_ulogic;
-        Blue_LED(0)_PAD : OUT std_ulogic;
-        \SPI:miso_s(0)_PAD\ : OUT std_ulogic;
-        \SPI:mosi_s(0)_PAD\ : OUT std_ulogic;
-        \SPI:ss_s(0)_PAD\ : OUT std_ulogic;
-        \SPI:sclk_s(0)_PAD\ : OUT std_ulogic);
+        Blue_LED(0)_PAD : OUT std_ulogic);
     ATTRIBUTE voltage_VBACKUP OF __DEFAULT__ : ENTITY IS 3.3e0;
     ATTRIBUTE voltage_VDD_NS OF __DEFAULT__ : ENTITY IS 3.3e0;
     ATTRIBUTE voltage_VDDA_CSD OF __DEFAULT__ : ENTITY IS 3.3e0;
@@ -35,60 +31,40 @@ END XBee_WiFi;
 
 ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
     SIGNAL Blue_LED(0)__PA : bit;
-    SIGNAL CPUSS_SWJ_SWCLK_TCLK(0)__PA : bit;
-    SIGNAL CPUSS_SWJ_SWDIO_TMS(0)__PA : bit;
     SIGNAL CPUSS_swj_swclk_tclk : bit;
     SIGNAL CPUSS_swj_swdio_tms : bit;
+    SIGNAL CY_CPUSS_SWJ_SWCLK_TCLK(0)__PA : bit;
+    SIGNAL CY_CPUSS_SWJ_SWDIO_TMS(0)__PA : bit;
     SIGNAL ClockBlock_AltHF : bit;
     SIGNAL ClockBlock_ECO : bit;
     SIGNAL ClockBlock_ExtClk : bit;
     SIGNAL ClockBlock_FLL : bit;
     SIGNAL ClockBlock_FastClk : bit;
     SIGNAL ClockBlock_HFClk0 : bit;
-    ATTRIBUTE global_signal OF ClockBlock_HFClk0 : SIGNAL IS true;
     SIGNAL ClockBlock_HFClk1 : bit;
-    ATTRIBUTE global_signal OF ClockBlock_HFClk1 : SIGNAL IS true;
     SIGNAL ClockBlock_HFClk2 : bit;
-    ATTRIBUTE global_signal OF ClockBlock_HFClk2 : SIGNAL IS true;
     SIGNAL ClockBlock_HFClk3 : bit;
-    ATTRIBUTE global_signal OF ClockBlock_HFClk3 : SIGNAL IS true;
     SIGNAL ClockBlock_HFClk4 : bit;
-    ATTRIBUTE global_signal OF ClockBlock_HFClk4 : SIGNAL IS true;
     SIGNAL ClockBlock_ILO : bit;
     SIGNAL ClockBlock_IMO : bit;
     SIGNAL ClockBlock_LFClk : bit;
     SIGNAL ClockBlock_PLL0 : bit;
     SIGNAL ClockBlock_PeriClk : bit;
+    ATTRIBUTE global_signal OF ClockBlock_PeriClk : SIGNAL IS true;
     SIGNAL ClockBlock_SlowClk : bit;
     SIGNAL ClockBlock_WCO : bit;
+    SIGNAL D7(0)__PA : bit;
+    SIGNAL D9(0)__PA : bit;
     SIGNAL Net_24 : bit;
     SIGNAL Net_25 : bit;
-    SIGNAL Net_37 : bit;
-    SIGNAL Net_38 : bit;
     SIGNAL Pin_CM0p_Reading(0)__PA : bit;
     SIGNAL Pin_CM0p_Writing(0)__PA : bit;
     SIGNAL Pin_CM4_Reading(0)__PA : bit;
     SIGNAL Pin_CM4_Writing(0)__PA : bit;
     SIGNAL Red_LED(0)__PA : bit;
-    SIGNAL White_Btn(0)__PA : bit;
-    SIGNAL Yellow_Btn(0)__PA : bit;
-    SIGNAL \SPI:Net_141\ : bit;
-    SIGNAL \SPI:Net_142\ : bit;
-    SIGNAL \SPI:Net_218\ : bit;
-    SIGNAL \SPI:Net_227\ : bit;
-    SIGNAL \SPI:Net_228\ : bit;
-    SIGNAL \SPI:Net_476\ : bit;
-    SIGNAL \SPI:Net_847_ff0\ : bit;
-    ATTRIBUTE global_signal OF \SPI:Net_847_ff0\ : SIGNAL IS true;
-    SIGNAL \SPI:intr_wire\ : bit;
-    SIGNAL \\\SPI:miso_s(0)\\__PA\ : bit;
-    SIGNAL \SPI:miso_s_wire\ : bit;
-    SIGNAL \\\SPI:mosi_s(0)\\__PA\ : bit;
-    SIGNAL \\\SPI:sclk_s(0)\\__PA\ : bit;
-    SIGNAL \\\SPI:ss_s(0)\\__PA\ : bit;
     SIGNAL \UART:Net_1172\ : bit;
-    SIGNAL \UART:Net_847_ff1\ : bit;
-    ATTRIBUTE global_signal OF \UART:Net_847_ff1\ : SIGNAL IS true;
+    SIGNAL \UART:Net_847_ff0\ : bit;
+    ATTRIBUTE global_signal OF \UART:Net_847_ff0\ : SIGNAL IS true;
     SIGNAL \UART:Net_99\ : bit;
     SIGNAL \UART:intr_wire\ : bit;
     SIGNAL \UART:rts_wire\ : bit;
@@ -106,26 +82,20 @@ ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
     ATTRIBUTE Location OF ClockGenBlock : LABEL IS "F(CLK_GEN,0)";
     ATTRIBUTE Location OF ClockBlock : LABEL IS "F(Clock,0)";
     ATTRIBUTE Location OF CPUSS : LABEL IS "F(CPUSS,0)";
-    ATTRIBUTE Location OF CPUSS_SWJ_SWCLK_TCLK(0) : LABEL IS "P6[7]";
-    ATTRIBUTE Location OF CPUSS_SWJ_SWDIO_TMS(0) : LABEL IS "P6[6]";
+    ATTRIBUTE Location OF CY_CPUSS_SWJ_SWCLK_TCLK(0) : LABEL IS "P6[7]";
+    ATTRIBUTE Location OF CY_CPUSS_SWJ_SWDIO_TMS(0) : LABEL IS "P6[6]";
     ATTRIBUTE Location OF Pin_CM0p_Writing(0) : LABEL IS "P0[0]";
     ATTRIBUTE Location OF Pin_CM0p_Reading(0) : LABEL IS "P0[1]";
-    ATTRIBUTE Location OF White_Btn(0) : LABEL IS "P13[1]";
-    ATTRIBUTE Location OF Yellow_Btn(0) : LABEL IS "P0[2]";
+    ATTRIBUTE Location OF D9(0) : LABEL IS "P13[1]";
+    ATTRIBUTE Location OF D7(0) : LABEL IS "P0[2]";
     ATTRIBUTE Location OF Pin_CM4_Writing(0) : LABEL IS "P0[4]";
     ATTRIBUTE Location OF Pin_CM4_Reading(0) : LABEL IS "P0[5]";
     ATTRIBUTE Location OF \UART:tx(0)\ : LABEL IS "P5[1]";
     ATTRIBUTE Location OF \UART:rx(0)\ : LABEL IS "P5[0]";
     ATTRIBUTE Location OF Red_LED(0) : LABEL IS "P0[3]";
     ATTRIBUTE Location OF Blue_LED(0) : LABEL IS "P11[1]";
-    ATTRIBUTE Location OF \SPI:miso_s(0)\ : LABEL IS "P12[1]";
-    ATTRIBUTE Location OF \SPI:mosi_s(0)\ : LABEL IS "P12[0]";
-    ATTRIBUTE Location OF \SPI:ss_s(0)\ : LABEL IS "P12[3]";
-    ATTRIBUTE Location OF \SPI:sclk_s(0)\ : LABEL IS "P12[2]";
     ATTRIBUTE Location OF \UART:SCB\ : LABEL IS "F(SCB,5)";
-    ATTRIBUTE Location OF \UART:SCB_IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(38)]";
-    ATTRIBUTE Location OF \SPI:SCB\ : LABEL IS "F(SCB,6)";
-    ATTRIBUTE Location OF \SPI:SCB_IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(39)]";
+    ATTRIBUTE Location OF \UART:SCB_IRQ\ : LABEL IS "[IntrContainer=(0)][IntrId=(46)]";
     COMPONENT CLK_GEN
         PORT (
             gen_clk_in_0 : IN std_ulogic;
@@ -357,7 +327,8 @@ ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
             dsi_in_12 : IN std_ulogic;
             dsi_in_13 : IN std_ulogic;
             dsi_in_14 : IN std_ulogic;
-            dsi_in_15 : IN std_ulogic);
+            dsi_in_15 : IN std_ulogic;
+            periclk_App : OUT std_ulogic);
     END COMPONENT;
     COMPONENT CPUSS
         PORT (
@@ -408,6 +379,7 @@ ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
             tr_fault_1 : OUT std_ulogic;
             fault_out_0 : OUT std_ulogic;
             fault_out_1 : OUT std_ulogic;
+            zero : OUT std_ulogic;
             swj_trstn : IN std_ulogic;
             swj_swdoe_tdi : IN std_ulogic;
             swj_swclk_tclk : IN std_ulogic;
@@ -427,11 +399,11 @@ ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
     END COMPONENT;
     COMPONENT iocell
         PORT (
-            pin_input : IN std_ulogic;
             oe : IN std_ulogic;
             fb : OUT std_ulogic;
-            pad_in : IN std_ulogic;
             pa_out : OUT std_ulogic;
+            pin_input : IN std_ulogic;
+            pad_in : IN std_ulogic;
             pad_out : OUT std_ulogic;
             oe_reg : OUT std_ulogic;
             oe_internal : IN std_ulogic;
@@ -459,7 +431,7 @@ ARCHITECTURE __DEFAULT__ OF XBee_WiFi IS
             uart_rx : IN std_ulogic;
             uart_tx : OUT std_ulogic;
             uart_rts : OUT std_ulogic;
-            uart_cts : IN std_ulogic;
+            uart_cts : OUT std_ulogic;
             i2c_scl : IN std_ulogic;
             i2c_sda : IN std_ulogic;
             spi_clk : OUT std_ulogic;
@@ -498,24 +470,22 @@ BEGIN
             wco => ClockBlock_WCO,
             lfclk => ClockBlock_LFClk,
             ff_div_0 => open,
-            ff_div_1 => open,
-            ff_div_5 => \UART:Net_847_ff1\,
-            ff_div_6 => \SPI:Net_847_ff0\);
+            ff_div_5 => \UART:Net_847_ff0\);
 
     CPUSS:CPUSS
         PORT MAP(
             swj_swclk_tclk => CPUSS_swj_swclk_tclk,
             swj_swdio_tms => CPUSS_swj_swdio_tms);
 
-    CPUSS_SWJ_SWCLK_TCLK:logicalport
+    CY_CPUSS_SWJ_SWCLK_TCLK:logicalport
         GENERIC MAP(
             cy_registers => "",
             drive_mode => "000",
             drive_strength => "0",
             hotswap_needed => "0",
             i2c_mode => "0",
-            ibuf_enabled => "0",
-            id => "6fdcaf9d-f46a-518f-82f6-9f549c96f9ab",
+            ibuf_enabled => "1",
+            id => "d826214c-0a68-56b5-a19d-2a8920570cd5",
             init_dr_st => "0",
             input_sync => "0",
             intr_mode => "00",
@@ -542,16 +512,16 @@ BEGIN
             out_clken_mode => 1,
             out_rst_inv => 0);
 
-    CPUSS_SWJ_SWCLK_TCLK(0):iocell
+    CY_CPUSS_SWJ_SWCLK_TCLK(0):iocell
         GENERIC MAP(
             in_sync_mode => 0,
             out_sync_mode => 0,
             oe_sync_mode => 0,
-            logicalport => "CPUSS_SWJ_SWCLK_TCLK",
+            logicalport => "CY_CPUSS_SWJ_SWCLK_TCLK",
             logicalport_pin_id => 0,
             io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
         PORT MAP(
-            pa_out => CPUSS_SWJ_SWCLK_TCLK(0)__PA,
+            pa_out => CY_CPUSS_SWJ_SWCLK_TCLK(0)__PA,
             fb => CPUSS_swj_swclk_tclk,
             in_clock => open,
             in_clock_en => open,
@@ -560,15 +530,15 @@ BEGIN
             out_clock_en => open,
             out_reset => open);
 
-    CPUSS_SWJ_SWDIO_TMS:logicalport
+    CY_CPUSS_SWJ_SWDIO_TMS:logicalport
         GENERIC MAP(
             cy_registers => "",
             drive_mode => "000",
             drive_strength => "0",
             hotswap_needed => "0",
             i2c_mode => "0",
-            ibuf_enabled => "0",
-            id => "feab14b1-5bc2-52a1-9e05-c63fba666c4a",
+            ibuf_enabled => "1",
+            id => "f0e756f0-7e27-5933-a1ce-582a0eb56b8b",
             init_dr_st => "0",
             input_sync => "0",
             intr_mode => "00",
@@ -595,16 +565,16 @@ BEGIN
             out_clken_mode => 1,
             out_rst_inv => 0);
 
-    CPUSS_SWJ_SWDIO_TMS(0):iocell
+    CY_CPUSS_SWJ_SWDIO_TMS(0):iocell
         GENERIC MAP(
             in_sync_mode => 0,
             out_sync_mode => 0,
             oe_sync_mode => 0,
-            logicalport => "CPUSS_SWJ_SWDIO_TMS",
+            logicalport => "CY_CPUSS_SWJ_SWDIO_TMS",
             logicalport_pin_id => 0,
             io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
         PORT MAP(
-            pa_out => CPUSS_SWJ_SWDIO_TMS(0)__PA,
+            pa_out => CY_CPUSS_SWJ_SWDIO_TMS(0)__PA,
             fb => CPUSS_swj_swdio_tms,
             in_clock => open,
             in_clock_en => open,
@@ -721,7 +691,7 @@ BEGIN
             out_clock_en => open,
             out_reset => open);
 
-    White_Btn:logicalport
+    D9:logicalport
         GENERIC MAP(
             cy_registers => "",
             drive_mode => "000",
@@ -756,18 +726,18 @@ BEGIN
             out_clken_mode => 1,
             out_rst_inv => 0);
 
-    White_Btn(0):iocell
+    D9(0):iocell
         GENERIC MAP(
             in_sync_mode => 0,
             out_sync_mode => 0,
             oe_sync_mode => 0,
-            logicalport => "White_Btn",
+            logicalport => "D9",
             logicalport_pin_id => 0,
             io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
         PORT MAP(
-            pa_out => White_Btn(0)__PA,
+            pa_out => D9(0)__PA,
             oe => open,
-            pad_in => White_Btn(0)_PAD,
+            pad_in => D9(0)_PAD,
             in_clock => open,
             in_clock_en => open,
             in_reset => open,
@@ -775,7 +745,7 @@ BEGIN
             out_clock_en => open,
             out_reset => open);
 
-    Yellow_Btn:logicalport
+    D7:logicalport
         GENERIC MAP(
             cy_registers => "",
             drive_mode => "000",
@@ -810,18 +780,18 @@ BEGIN
             out_clken_mode => 1,
             out_rst_inv => 0);
 
-    Yellow_Btn(0):iocell
+    D7(0):iocell
         GENERIC MAP(
             in_sync_mode => 0,
             out_sync_mode => 0,
             oe_sync_mode => 0,
-            logicalport => "Yellow_Btn",
+            logicalport => "D7",
             logicalport_pin_id => 0,
             io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
         PORT MAP(
-            pa_out => Yellow_Btn(0)__PA,
+            pa_out => D7(0)__PA,
             oe => open,
-            pad_in => Yellow_Btn(0)_PAD,
+            pad_in => D7(0)_PAD,
             in_clock => open,
             in_clock_en => open,
             in_reset => open,
@@ -1156,238 +1126,11 @@ BEGIN
             out_clock_en => open,
             out_reset => open);
 
-    \SPI:miso_s\:logicalport
-        GENERIC MAP(
-            cy_registers => "",
-            drive_mode => "110",
-            drive_strength => "0",
-            hotswap_needed => "0",
-            i2c_mode => "0",
-            ibuf_enabled => "0",
-            id => "f033aeb8-ea50-4b1f-ad2e-59929dc26729/0a930181-2e64-4a82-8a40-9b2b28b43bbd",
-            init_dr_st => "1",
-            input_sync => "0",
-            intr_mode => "00",
-            io_voltage => "",
-            max_frequency => "100",
-            oe_conn => "0",
-            oe_sync => "0",
-            output_conn => "1",
-            output_current_cap => "8",
-            output_sync => "0",
-            pin_aliases => "",
-            pin_mode => "B",
-            sio_grp_cnt => 0,
-            slew_rate => "0",
-            use_annotation => "0",
-            vtrip => "00",
-            width => 1,
-            in_clk_inv => 0,
-            in_clken_inv => 0,
-            in_clken_mode => 1,
-            in_rst_inv => 0,
-            out_clk_inv => 0,
-            out_clken_inv => 0,
-            out_clken_mode => 1,
-            out_rst_inv => 0);
-
-    \SPI:miso_s(0)\:iocell
-        GENERIC MAP(
-            in_sync_mode => 0,
-            out_sync_mode => 0,
-            oe_sync_mode => 0,
-            logicalport => "\SPI:miso_s\",
-            logicalport_pin_id => 0,
-            io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
-        PORT MAP(
-            pa_out => \\\SPI:miso_s(0)\\__PA\,
-            oe => open,
-            pin_input => \SPI:miso_s_wire\,
-            pad_out => \SPI:miso_s(0)_PAD\,
-            pad_in => \SPI:miso_s(0)_PAD\,
-            in_clock => open,
-            in_clock_en => open,
-            in_reset => open,
-            out_clock => open,
-            out_clock_en => open,
-            out_reset => open);
-
-    \SPI:mosi_s\:logicalport
-        GENERIC MAP(
-            cy_registers => "",
-            drive_mode => "000",
-            drive_strength => "0",
-            hotswap_needed => "0",
-            i2c_mode => "0",
-            ibuf_enabled => "1",
-            id => "f033aeb8-ea50-4b1f-ad2e-59929dc26729/8f4708f1-0b2c-4336-9e75-e7c7aefab2aa",
-            init_dr_st => "1",
-            input_sync => "0",
-            intr_mode => "00",
-            io_voltage => "",
-            max_frequency => "100",
-            oe_conn => "0",
-            oe_sync => "0",
-            output_conn => "0",
-            output_current_cap => "8",
-            output_sync => "0",
-            pin_aliases => "",
-            pin_mode => "B",
-            sio_grp_cnt => 0,
-            slew_rate => "0",
-            use_annotation => "0",
-            vtrip => "00",
-            width => 1,
-            in_clk_inv => 0,
-            in_clken_inv => 0,
-            in_clken_mode => 1,
-            in_rst_inv => 0,
-            out_clk_inv => 0,
-            out_clken_inv => 0,
-            out_clken_mode => 1,
-            out_rst_inv => 0);
-
-    \SPI:mosi_s(0)\:iocell
-        GENERIC MAP(
-            in_sync_mode => 0,
-            out_sync_mode => 0,
-            oe_sync_mode => 0,
-            logicalport => "\SPI:mosi_s\",
-            logicalport_pin_id => 0,
-            io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
-        PORT MAP(
-            pa_out => \\\SPI:mosi_s(0)\\__PA\,
-            oe => open,
-            fb => open,
-            pad_out => \SPI:mosi_s(0)_PAD\,
-            pin_input => \SPI:Net_218\,
-            pad_in => \SPI:mosi_s(0)_PAD\,
-            in_clock => open,
-            in_clock_en => open,
-            in_reset => open,
-            out_clock => open,
-            out_clock_en => open,
-            out_reset => open);
-
-    \SPI:ss_s\:logicalport
-        GENERIC MAP(
-            cy_registers => "",
-            drive_mode => "000",
-            drive_strength => "0",
-            hotswap_needed => "0",
-            i2c_mode => "0",
-            ibuf_enabled => "1",
-            id => "f033aeb8-ea50-4b1f-ad2e-59929dc26729/03f04a47-adae-4c9c-a21b-5634a8d80609",
-            init_dr_st => "1",
-            input_sync => "0",
-            intr_mode => "00",
-            io_voltage => "",
-            max_frequency => "100",
-            oe_conn => "0",
-            oe_sync => "0",
-            output_conn => "0",
-            output_current_cap => "8",
-            output_sync => "0",
-            pin_aliases => "",
-            pin_mode => "B",
-            sio_grp_cnt => 0,
-            slew_rate => "0",
-            use_annotation => "0",
-            vtrip => "00",
-            width => 1,
-            in_clk_inv => 0,
-            in_clken_inv => 0,
-            in_clken_mode => 1,
-            in_rst_inv => 0,
-            out_clk_inv => 0,
-            out_clken_inv => 0,
-            out_clken_mode => 1,
-            out_rst_inv => 0);
-
-    \SPI:ss_s(0)\:iocell
-        GENERIC MAP(
-            in_sync_mode => 0,
-            out_sync_mode => 0,
-            oe_sync_mode => 0,
-            logicalport => "\SPI:ss_s\",
-            logicalport_pin_id => 0,
-            io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
-        PORT MAP(
-            pa_out => \\\SPI:ss_s(0)\\__PA\,
-            oe => open,
-            fb => open,
-            pad_out => \SPI:ss_s(0)_PAD\,
-            pin_input => \SPI:Net_227\,
-            pad_in => \SPI:ss_s(0)_PAD\,
-            in_clock => open,
-            in_clock_en => open,
-            in_reset => open,
-            out_clock => open,
-            out_clock_en => open,
-            out_reset => open);
-
-    \SPI:sclk_s\:logicalport
-        GENERIC MAP(
-            cy_registers => "",
-            drive_mode => "000",
-            drive_strength => "0",
-            hotswap_needed => "0",
-            i2c_mode => "0",
-            ibuf_enabled => "1",
-            id => "f033aeb8-ea50-4b1f-ad2e-59929dc26729/5e598102-29fc-4a47-9e8e-eb30e3a76e5d",
-            init_dr_st => "1",
-            input_sync => "0",
-            intr_mode => "00",
-            io_voltage => "",
-            max_frequency => "100",
-            oe_conn => "0",
-            oe_sync => "0",
-            output_conn => "0",
-            output_current_cap => "8",
-            output_sync => "0",
-            pin_aliases => "",
-            pin_mode => "B",
-            sio_grp_cnt => 0,
-            slew_rate => "0",
-            use_annotation => "0",
-            vtrip => "00",
-            width => 1,
-            in_clk_inv => 0,
-            in_clken_inv => 0,
-            in_clken_mode => 1,
-            in_rst_inv => 0,
-            out_clk_inv => 0,
-            out_clken_inv => 0,
-            out_clken_mode => 1,
-            out_rst_inv => 0);
-
-    \SPI:sclk_s(0)\:iocell
-        GENERIC MAP(
-            in_sync_mode => 0,
-            out_sync_mode => 0,
-            oe_sync_mode => 0,
-            logicalport => "\SPI:sclk_s\",
-            logicalport_pin_id => 0,
-            io_capabilities => "0000000000000000000000000000000000000000000000000000000000000001")
-        PORT MAP(
-            pa_out => \\\SPI:sclk_s(0)\\__PA\,
-            oe => open,
-            fb => open,
-            pad_out => \SPI:sclk_s(0)_PAD\,
-            pin_input => \SPI:Net_228\,
-            pad_in => \SPI:sclk_s(0)_PAD\,
-            in_clock => open,
-            in_clock_en => open,
-            in_reset => open,
-            out_clock => open,
-            out_clock_en => open,
-            out_reset => open);
-
     \UART:SCB\:SCB
         GENERIC MAP(
             cy_registers => "")
         PORT MAP(
-            clock => \UART:Net_847_ff1\,
+            clock => \UART:Net_847_ff0\,
             uart_rx => \UART:Net_1172\,
             uart_tx => \UART:tx_wire\,
             uart_rts => \UART:rts_wire\,
@@ -1411,36 +1154,6 @@ BEGIN
             int_type => "10")
         PORT MAP(
             interrupt => \UART:intr_wire\,
-            clock => ClockBlock_HFClk0);
-
-    \SPI:SCB\:SCB
-        GENERIC MAP(
-            cy_registers => "")
-        PORT MAP(
-            clock => \SPI:Net_847_ff0\,
-            uart_rx => open,
-            uart_tx => \SPI:Net_141\,
-            uart_rts => \SPI:Net_142\,
-            uart_cts => open,
-            spi_clk => \SPI:Net_228\,
-            spi_select_3 => open,
-            spi_select_2 => open,
-            spi_select_1 => open,
-            spi_select_0 => \SPI:Net_227\,
-            spi_mosi => \SPI:Net_218\,
-            spi_miso => \SPI:miso_s_wire\,
-            interrupt => \SPI:intr_wire\,
-            tr_tx_req => Net_38,
-            tr_rx_req => Net_37,
-            tr_i2c_scl_filtered => \SPI:Net_476\);
-
-    \SPI:SCB_IRQ\:interrupt
-        GENERIC MAP(
-            cy_registers => "",
-            deepsleep_required => 0,
-            int_type => "10")
-        PORT MAP(
-            interrupt => \SPI:intr_wire\,
-            clock => ClockBlock_HFClk0);
+            clock => ClockBlock_PeriClk);
 
 END __DEFAULT__;

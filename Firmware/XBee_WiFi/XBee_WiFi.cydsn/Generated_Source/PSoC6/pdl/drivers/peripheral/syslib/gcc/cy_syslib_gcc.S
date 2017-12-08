@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file cy_syslib_core_armcc.s
-* \version 1.0
+* \version 2.0
 *
 * \brief Assembly routines for GNU as.
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2016-2017, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.

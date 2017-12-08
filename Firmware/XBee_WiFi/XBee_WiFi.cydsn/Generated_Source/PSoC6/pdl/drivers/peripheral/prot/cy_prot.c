@@ -58,7 +58,7 @@ cy_en_prot_status_t Cy_Prot_ConfigBusMaster(en_prot_master_t busMaster, bool pri
 {
     cy_en_prot_status_t status = CY_PROT_SUCCESS;
     uint32_t regVal;
-    uint32_t * addrMsCtl = (uint32_t *)(PROT_BASE + (uint32_t)(busMaster << CY_PROT_MSX_CTL_SHIFT));
+    uint32_t * addrMsCtl = (uint32_t *)(PROT_BASE + (uint32_t)((uint32_t)busMaster << CY_PROT_MSX_CTL_SHIFT));
 
     if((uint32_t)(pcMask & CY_PROT_MPU_PC_LIMIT_MASK) != 0UL) 
     {
@@ -109,15 +109,15 @@ cy_en_prot_status_t Cy_Prot_SetActivePC(en_prot_master_t busMaster, uint32_t pc)
     cy_en_prot_status_t status = CY_PROT_SUCCESS;
     PROT_MPU_Type* addrMpu = (PROT_MPU_Type*)(&PROT->CYMPU[busMaster]);
     
-    if(pc >= (uint32_t)CPUSS_PROT_SMPU_MS0_PC_NR_MINUS1) 
+    if(pc >= (uint32_t)CY_PROT_MS_PC_NR_MAX) 
     {
         /* Invalid PC value - not supported in device */
         status = CY_PROT_BAD_PARAM;
     }
     else
     {
-        addrMpu->MS_CTL = _VAL2FLD(PROT_MPU_MS_CTL_PC, pc);
-        status = (addrMpu->MS_CTL != pc) ? CY_PROT_FAILURE : CY_PROT_SUCCESS;
+        addrMpu->MS_CTL = _VAL2FLD(PROT_MPU_MS_CTL_PC, pc) | _VAL2FLD(PROT_MPU_MS_CTL_PC_SAVED, pc);
+        status = (_FLD2VAL(PROT_MPU_MS_CTL_PC, addrMpu->MS_CTL) != pc) ? CY_PROT_FAILURE : CY_PROT_SUCCESS;
     }
     
     return status;

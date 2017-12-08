@@ -1,59 +1,131 @@
 /***************************************************************************//**
-* \file
-* \version 1.0 
+* \file cy_ipc_pipe.c
+* \version 1.10
 *
 *  Description:
 *   IPC Pipe Driver - This source file includes code for the Pipe layer on top
-*   of the IPC driver.  
+*   of the IPC driver.
 *
 ********************************************************************************
 * Copyright 2016-2017, Cypress Semiconductor Corporation.  All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions, 
-* disclaimers, and limitations in the end user license agreement accompanying 
+* You may use this file only in accordance with the license, terms, conditions,
+* disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
 *******************************************************************************/
 
 #include "cy_ipc_pipe.h"
 
 /* Define a pointer to array of endPoints. */
-cy_stc_ipc_pipe_ep_t * cy_ipc_pipe_epArray;  
+static cy_stc_ipc_pipe_ep_t * cy_ipc_pipe_epArray = NULL;
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_Config
+* Function Name: Cy_IPC_Pipe_Config
 ****************************************************************************//**
 *
-* This function stores a copy of a pointer to the array of endpoints.  All 
+* This function stores a copy of a pointer to the array of endpoints.  All
 * access to endpoints will be via the index of the endpoint in this array.
 *
 * \param theEpArray
 * This is the pointer to an array of endpoint structures that the designer
 * created and will be used to reference all endpoints.
 *
-*
-*  \return
-*   void
-*  
 *******************************************************************************/
-void Cy_IPC_PIPE_Config(cy_stc_ipc_pipe_ep_t * theEpArray)
+void Cy_IPC_Pipe_Config(cy_stc_ipc_pipe_ep_t * theEpArray)
 {
     /* Keep copy of this endpoint */
-	cy_ipc_pipe_epArray = theEpArray;
+    if (cy_ipc_pipe_epArray == NULL)
+    {
+        cy_ipc_pipe_epArray = theEpArray;
+    }
 }
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_Init
+* Function Name: Cy_IPC_Pipe_Init
 ****************************************************************************//**
 *
-* This function initializes the endpoint of a pipe for the current CPU. An
-* endpoint of a pipe is IPC channel that receives a message for the current
-* CPU.  The current CPU is the CPU that is executing the code.  
+* Initializes the system pipes. The system pipes are used by BLE.
+* \note The function should be called on all CPUs.
+*
+* \param config
+* This is the pointer to the pipe configuration structure
+*
+*******************************************************************************/
+void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
+{
+    /* Create the interrupt structures and arrays needed */
+
+    cy_stc_sysint_t                 ipc_intr_cypipeConfig;
+
+    cy_stc_ipc_pipe_ep_config_t        epConfigDataA;
+    cy_stc_ipc_pipe_ep_config_t        epConfigDataB;
+
+    /* Parameters checking begin */
+    CY_ASSERT_L1(NULL != config);
+    #if (CY_CPU_CORTEX_M0P)
+    CY_ASSERT_L2((uint32_t)(1UL << __NVIC_PRIO_BITS) > config->ep0ConfigData.ipcNotifierPriority);
+    #else
+    CY_ASSERT_L2((uint32_t)(1UL << __NVIC_PRIO_BITS) > config->ep1ConfigData.ipcNotifierPriority);
+    #endif
+    CY_ASSERT_L1(NULL != config->endpointsCallbacksArray);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > config->ep0ConfigData.epAddress);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > config->ep1ConfigData.epAddress);
+    CY_ASSERT_L1(NULL != config->userPipeIsrHandler);
+    /* Parameters checking end */
+
+#if (CY_CPU_CORTEX_M0P)
+
+    /* Receiver endpoint = EP0, Sender endpoint = EP1 */
+    epConfigDataA = config->ep0ConfigData;
+    epConfigDataB = config->ep1ConfigData;
+
+    /* Configure CM0 interrupts */
+    ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type)epConfigDataA.ipcNotifierMuxNumber;
+    ipc_intr_cypipeConfig.cm0pSrc          = (cy_en_intr_t)((int32_t)cpuss_interrupts_ipc_0_IRQn + (int32_t)epConfigDataA.ipcNotifierNumber);
+    ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
+
+#else
+
+    /* Receiver endpoint = EP1, Sender endpoint = EP0 */
+    epConfigDataA = config->ep1ConfigData;
+    epConfigDataB = config->ep0ConfigData;
+
+    /* Configure interrupts */
+    ipc_intr_cypipeConfig.intrSrc          = (IRQn_Type)(cpuss_interrupts_ipc_0_IRQn + epConfigDataA.ipcNotifierNumber);
+    ipc_intr_cypipeConfig.intrPriority     = epConfigDataA.ipcNotifierPriority;
+
+#endif
+
+    /* Initialize the pipe endpoints */
+    Cy_IPC_Pipe_EndpointInit(epConfigDataA.epAddress,
+                             config->endpointsCallbacksArray,
+                             config->endpointClientsCount,
+                             epConfigDataA.epConfig,
+                             &ipc_intr_cypipeConfig);
+
+    /* Create the endpoints for the CM4 just for reference */
+    Cy_IPC_Pipe_EndpointInit(epConfigDataB.epAddress, NULL, 0ul, epConfigDataB.epConfig, NULL);
+
+    (void)Cy_SysInt_Init(&ipc_intr_cypipeConfig, config->userPipeIsrHandler);
+
+    /* Enable the interrupts */
+    NVIC_EnableIRQ(ipc_intr_cypipeConfig.intrSrc);
+}
+
+/*******************************************************************************
+* Function Name: Cy_IPC_Pipe_EndpointInit
+****************************************************************************//**
+*
+* This function initializes the endpoint of a pipe for the current CPU.  The
+* current CPU is the CPU that is executing the code. An endpoint of a pipe
+* is for the IPC channel that receives a message for the current CPU.
+*
 * After this function is called, the callbackArray needs to be populated
-* with the callback functions for that endpoint using the Cy_IPC_PIPE_RegisterCallback()
-* function. 
+* with the callback functions for that endpoint using the
+* Cy_IPC_Pipe_RegisterCallback() function.
 *
 * \param epAddr
-* This parameter is the address (or index in the array of endpoint structure) 
-* that designates the endpoint in which you want to initialize.
+* This parameter is the address (or index in the array of endpoint structures)
+* that designates the endpoint you want to initialize.
 *
 * \param cbArray
 * This is a pointer to the callback function array.  Based on the client ID, one
@@ -65,55 +137,65 @@ void Cy_IPC_PIPE_Config(cy_stc_ipc_pipe_ep_t * theEpArray)
 * \param epConfig
 * This value defines the IPC channel, IPC interrupt number, and the interrupt
 * mask for the entire pipe.
-* The format of the endPoint configuration
+* The format of the endpoint configuration
 *    Bits[31:16] Interrupt Mask
 *    Bits[15:8 ] IPC interrupt
 *    Bits[ 7:0 ] IPC channel
 *
-*  \return
-*   void
-*  
+* \param epInterrupt
+* This is a pointer to the endpoint interrupt description structure.
+*
 *******************************************************************************/
-void Cy_IPC_PIPE_Init(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray, uint32_t cbCnt, uint32_t epConfig)
+void Cy_IPC_Pipe_EndpointInit(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray,
+                              uint32_t cbCnt, uint32_t epConfig, cy_stc_sysint_t const *epInterrupt)
 {
-	cy_stc_ipc_pipe_ep_t * endPoint;
-	
-	endPoint = &cy_ipc_pipe_epArray[epAddr];
-	
-    /* Extract the channel, interrupt and interrupt mask */
-	endPoint->ipcChan     = (epConfig & CY_IPC_PIPE_CFG_CHAN_MASK)  >> CY_IPC_PIPE_CFG_CHAN_SHIFT ;
-	endPoint->intrChan    = (epConfig & CY_IPC_PIPE_CFG_INTR_MASK)  >> CY_IPC_PIPE_CFG_INTR_SHIFT;
-	endPoint->pipeIntMask = (epConfig & CY_IPC_PIPE_CFG_IMASK_MASK) >> CY_IPC_PIPE_CFG_IMASK_SHIFT;
+    cy_stc_ipc_pipe_ep_t * endpoint;
 
-	/* Assign IPC channel to this endpoint */
-    endPoint->ipcPtr   = Cy_IPC_DRV_GetIpcBaseAddress (endPoint->ipcChan);  
-	
-	/* Assign interrupt structure to endpoint and Initialize the interrupt mask for this endpoint */
-    endPoint->ipcIntrPtr = Cy_IPC_DRV_GetIntrBaseAddr(endPoint->intrChan);
-	endPoint->ipcIntrPtr->INTR_MASK = endPoint->pipeIntMask | (endPoint->pipeIntMask << 16); /* Only allow notify and release interrupts */
-	                                                                                          /* from endpoints in this pipe.         */
-	/* Save the Client count and the callback array pointer */
-    endPoint->clientCount   = cbCnt;
-    endPoint->callbackArray = cbArray;  
-	endPoint->busy = CY_IPC_PIPE_ENDPOINT_NOTBUSY;
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
+
+    endpoint = &cy_ipc_pipe_epArray[epAddr];
+
+    /* Extract the channel, interrupt and interrupt mask */
+    endpoint->ipcChan         = _FLD2VAL(CY_IPC_PIPE_CFG_CHAN,  epConfig);
+    endpoint->intrChan        = _FLD2VAL(CY_IPC_PIPE_CFG_INTR,  epConfig);
+    endpoint->pipeIntMask     = _FLD2VAL(CY_IPC_PIPE_CFG_IMASK, epConfig);
+
+    /* Assign IPC channel to this endpoint */
+    endpoint->ipcPtr   = Cy_IPC_Drv_GetIpcBaseAddress (endpoint->ipcChan);
+
+    /* Assign interrupt structure to endpoint and Initialize the interrupt mask for this endpoint */
+    endpoint->ipcIntrPtr = Cy_IPC_Drv_GetIntrBaseAddr(endpoint->intrChan);
+
+    /* Only allow notify and release interrupts from endpoints in this pipe. */
+    Cy_IPC_Drv_SetInterruptMask(endpoint->ipcIntrPtr, endpoint->pipeIntMask, endpoint->pipeIntMask);
+
+    /* Save the Client count and the callback array pointer */
+    endpoint->clientCount   = cbCnt;
+    endpoint->callbackArray = cbArray;
+    endpoint->busy = CY_IPC_PIPE_ENDPOINT_NOTBUSY;
+
+    if (NULL != epInterrupt)
+    {
+        endpoint->pipeIntrSrc     = epInterrupt->intrSrc;
+    }
 }
 
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_SendMessage
+* Function Name: Cy_IPC_Pipe_SendMessage
 ****************************************************************************//**
 *
 * This function is used to send a message from one endpoint to another.  It
-* generates an interrupt on the endpoint that receives the message and a 
+* generates an interrupt on the endpoint that receives the message and a
 * release interrupt to the sender to acknowledge the message has been processed.
 *
 * \param toAddr
-* This parameter is the address (or index in the array of endpoint structures) 
+* This parameter is the address (or index in the array of endpoint structures)
 * of the endpoint to which you are sending the message.
 *
 * \param fromAddr
-* This parameter is the address (or index in the array of endpoint structures) 
-* of the endpoint to which the message is being sent.
+* This parameter is the address (or index in the array of endpoint structures)
+* of the endpoint from which the message is being sent.
 *
 * \param msgPtr
 * Pointer to the message structure to be sent.
@@ -121,224 +203,312 @@ void Cy_IPC_PIPE_Init(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray,
 * \param callBackPtr
 * Pointer to the Release callback function.
 *
-*
 *  \return
-*    CY_IPC_PIPE_SUCCESS:     Message was sent to the other end of the pipe
-*    CY_IPC_PIPE_BAD_HANDLE:  The handle provided for the pipe was not valid
-*    CY_IPC_PIPE_SEND_BUSY:   The pipe is already busy sending a message
-*    CY_IPC_PIPE_DIR_ERROR:   Tried to send on the "to" end of a unidirectional pipe
+*    CY_IPC_PIPE_SUCCESS:          Message was sent to the other end of the pipe
+*    CY_IPC_PIPE_ERROR_BAD_HANDLE: The handle provided for the pipe was not valid
+*    CY_IPC_PIPE_ERROR_SEND_BUSY:  The pipe is already busy sending a message
+*
 *******************************************************************************/
-cy_en_ipc_pipe_status_t Cy_IPC_PIPE_SendMessage(uint32_t toAddr, uint32_t fromAddr, void * msgPtr, cy_ipc_pipe_relcallback_ptr_t callBackPtr)
+cy_en_ipc_pipe_status_t Cy_IPC_Pipe_SendMessage(uint32_t toAddr, uint32_t fromAddr,
+                                                void * msgPtr, cy_ipc_pipe_relcallback_ptr_t callBackPtr)
 {
     cy_en_ipc_pipe_status_t  returnStatus;
     uint32_t releaseMask;
-	uint32_t notifyMask;
+    uint32_t notifyMask;
 
-	cy_stc_ipc_pipe_ep_t * fromEp;
-	cy_stc_ipc_pipe_ep_t * toEp;
-	
-	toEp   = &(cy_ipc_pipe_epArray[toAddr]);
-	fromEp = &cy_ipc_pipe_epArray[fromAddr];
+    cy_stc_ipc_pipe_ep_t * fromEp;
+    cy_stc_ipc_pipe_ep_t * toEp;
+
+    CY_ASSERT_L1(NULL != msgPtr);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > toAddr);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > fromAddr);
+
+    toEp   = &(cy_ipc_pipe_epArray[toAddr]);
+    fromEp = &cy_ipc_pipe_epArray[fromAddr];
+
+    /* Create the release mask for the "fromAddr" channel's interrupt channel */
+    releaseMask =  (uint32_t)(1ul << (fromEp->intrChan));
+
+    /* Shift into position */
+    releaseMask = _VAL2FLD(CY_IPC_PIPE_MSG_RELEASE, releaseMask);
+
+    /* Create the notify mask for the "toAddr" channel's interrupt channel */
+    notifyMask  =  (uint32_t)(1ul << (toEp->intrChan));
 
     /* Check if IPC channel valid */
-    if( toEp->ipcPtr != (void *)0u)
+    if( toEp->ipcPtr != NULL)
     {
-		if(fromEp->busy == CY_IPC_PIPE_ENDPOINT_NOTBUSY)
-		{
-			/* Attempt to acquire the channel */
-			if( CY_IPC_DRV_SUCCESS == Cy_IPC_DRV_LockAcquire(toEp->ipcPtr) )
-			{
-				/* Create the release mask for the "fromAddr" channel's interrupt channel */
-				releaseMask =  (0x0001 << fromEp->intrChan);
-			
-				* (uint32_t *) msgPtr &= ~(CY_IPC_PIPE_MSG_RELEASE_MASK);                /* Mask out the release mask area */
-				releaseMask = ((releaseMask << CY_IPC_PIPE_MSG_RELEASE_SHIFT) & CY_IPC_PIPE_MSG_RELEASE_MASK);   /* shift into position */
-				* (uint32_t *) msgPtr |= releaseMask;    /* OR in the release mask */
-			
-				 /* If the channel was acquired, write the message.   */
-				toEp->ipcPtr->DATA = (uint32_t) msgPtr;
-		
-				/* The last thing to do is create the notify event that causes the interrupt */
-				/* Create the notify mask for the "toAddr" channel's interrupt channel */
-				notifyMask =  (0x0001 << toEp->intrChan);
-			
-				fromEp->busy = CY_IPC_PIPE_ENDPOINT_BUSY;  /* Set the busy flag.  The ISR clears this after the release */
+        if(fromEp->busy == CY_IPC_PIPE_ENDPOINT_NOTBUSY)
+        {
+            /* Attempt to acquire the channel */
+            if( CY_IPC_DRV_SUCCESS == Cy_IPC_Drv_LockAcquire(toEp->ipcPtr) )
+            {
+                /* Mask out the release mask area */
+                * (uint32_t *) msgPtr &= ~(CY_IPC_PIPE_MSG_RELEASE_Msk);
 
-				/* Setup release callback function */
-				fromEp->releaseCallbackPtr = callBackPtr;               /* Set the callback function  */
-				
-				/* Cause notify event/interrupt */
-				toEp->ipcPtr->NOTIFY = (IPC_STRUCT_NOTIFY_INTR_NOTIFY_Msk & notifyMask);
-				returnStatus = CY_IPC_PIPE_SUCCESS;
-			}
-			else
-			{
-				/* Channel was already acquired, return Error */
-				returnStatus = CY_IPC_PIPE_ERROR_SEND_BUSY;
-			}
-		}
-		else
-		{
+                * (uint32_t *) msgPtr |= releaseMask;
+
+                /* If the channel was acquired, write the message.   */
+                Cy_IPC_Drv_WriteDataValue(toEp->ipcPtr, (uint32_t) msgPtr);
+
+                /* Set the busy flag.  The ISR clears this after the release */
+                fromEp->busy = CY_IPC_PIPE_ENDPOINT_BUSY;
+
+                /* Setup release callback function */
+                fromEp->releaseCallbackPtr = callBackPtr;
+
+                /* Cause notify event/interrupt */
+                Cy_IPC_Drv_AcquireNotify(toEp->ipcPtr, notifyMask);
+
+                returnStatus = CY_IPC_PIPE_SUCCESS;
+            }
+            else
+            {
+                /* Channel was already acquired, return Error */
+                returnStatus = CY_IPC_PIPE_ERROR_SEND_BUSY;
+            }
+        }
+        else
+        {
             /* Channel may not be acquired, but the release interrupt has not executed yet */
             returnStatus = CY_IPC_PIPE_ERROR_SEND_BUSY;
-		}
+        }
     }
     else
     {
         /* Null pipe handle. */
-        returnStatus = CY_IPC_PIPE_ERROR_BAD_HANDLE;  
+        returnStatus = CY_IPC_PIPE_ERROR_BAD_HANDLE;
     }
-    return(returnStatus);
+    return (returnStatus);
 }
 
 
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_RegisterCallback
+* Function Name: Cy_IPC_Pipe_RegisterCallback
 ****************************************************************************//**
 *
-* This function registers a callback when a message is received on a pipe.  
-* The client_ID is the same as the index of the callback function array.  The callback
-* may be a real function pointer or NULL if no callback is required.
+* This function registers a callback that is called when a message is received
+* on a pipe.
+* The client_ID is the same as the index of the callback function array.
+* The callback may be a real function pointer or NULL if no callback is required.
 *
 * \param epAddr
-* This parameter is the address (or index in the array of endpoint structures) 
+* This parameter is the address (or index in the array of endpoint structures)
 * that designates the endpoint to which you want to add callback functions.
 *
 * \param callBackPtr
 * Pointer to the callback function called when the endpoint has received a message.
-*  
-* \param clientId 
+*
+* \param clientId
 * The index in the callback array (Client ID) where the function pointer is saved.
-*  
 *
 *  \return
 *    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
-*    CY_IPC_PIPE_ERROR_BAD_CLIENT:  Client ID out of range, callback not registered.       
+*    CY_IPC_PIPE_ERROR_BAD_CLIENT:  Client ID out of range, callback not registered.
 *******************************************************************************/
-cy_en_ipc_pipe_status_t Cy_IPC_PIPE_RegisterCallback(uint32_t epAddr, cy_ipc_pipe_callback_ptr_t callBackPtr,  uint32_t clientId)
+cy_en_ipc_pipe_status_t Cy_IPC_Pipe_RegisterCallback(uint32_t epAddr, cy_ipc_pipe_callback_ptr_t callBackPtr,  uint32_t clientId)
 {
-    cy_en_ipc_pipe_status_t returnStatus;   /* Return Status */
-	cy_stc_ipc_pipe_ep_t * thisEp;
-	
-	thisEp = &cy_ipc_pipe_epArray[epAddr];
+    cy_en_ipc_pipe_status_t returnStatus;
+    cy_stc_ipc_pipe_ep_t * thisEp;
+
+    CY_ASSERT_L1(NULL != callBackPtr);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
+
+    thisEp = &cy_ipc_pipe_epArray[epAddr];
 
     /* Check if clientId is between 0 and less than client count */
-    if(clientId <= thisEp->clientCount)
+    if (clientId < thisEp->clientCount)
     {
         /* Copy callback function into callback function pointer array */
         thisEp->callbackArray[clientId] = callBackPtr;
+
         returnStatus = CY_IPC_PIPE_SUCCESS;
     }
     else
     {
         returnStatus = CY_IPC_PIPE_ERROR_BAD_CLIENT;
     }
-    return(returnStatus);
+    return (returnStatus);
 }
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_RegisterRecvCallbackRel
+* Function Name: Cy_IPC_Pipe_RegisterCallbackRel
 ****************************************************************************//**
 *
-* This function registers a default callback if a release interrupt 
-* is generated but the current release callback function is null.  
+* This function registers a default callback if a release interrupt
+* is generated but the current release callback function is null.
 *
 *
 * \param epAddr
-* This parameter is the address (or index in the array of endpoint structures) 
-* that designates the endpoint to which you want to add a release callback function. 
+* This parameter is the address (or index in the array of endpoint structures)
+* that designates the endpoint to which you want to add a release callback function.
 *
 * \param callBackPtr
 * Pointer to the callback executed when the endpoint has received a message.
 *
 *  \return
-*    None      
+*    None
 *******************************************************************************/
-void Cy_IPC_PIPE_RegisterCallbackRel(uint32_t epAddr, cy_ipc_pipe_relcallback_ptr_t callBackPtr)
+void Cy_IPC_Pipe_RegisterCallbackRel(uint32_t epAddr, cy_ipc_pipe_relcallback_ptr_t callBackPtr)
 {
-	cy_stc_ipc_pipe_ep_t * endPoint;
-	
-	endPoint = &cy_ipc_pipe_epArray[epAddr];
+    cy_stc_ipc_pipe_ep_t * endpoint;
+
+    CY_ASSERT_L1(NULL != callBackPtr);
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
+
+    endpoint = &cy_ipc_pipe_epArray[epAddr];
+
     /* Copy callback function into callback function pointer array */
-    endPoint->defaultReleaseCbPtr = callBackPtr;
+    endpoint->defaultReleaseCallbackPtr = callBackPtr;
 }
 
 /*******************************************************************************
-* Function Name: Cy_IPC_PIPE_ExecCallback
+* Function Name: Cy_IPC_Pipe_ExecCallback
 ****************************************************************************//**
 *
 * This function is called by the ISR for a given pipe endpoint to dispatch
 * the appropriate callback function based on the client ID for that endpoint.
 *
-* \param endPoint
-* Pointer to endpoint structure. 
+* \param endpoint
+* Pointer to endpoint structure.
 *
 *  \return
 *  None
 *******************************************************************************/
-void Cy_IPC_PIPE_ExecCallback(cy_stc_ipc_pipe_ep_t * endPoint)
+void Cy_IPC_Pipe_ExecCallback(cy_stc_ipc_pipe_ep_t * endpoint)
 {
-    uint32_t * msgPtr = (void *)0uL;
+    uint32_t *msgPtr = NULL;
     uint32_t clientID;
-	uint32_t shadowIntr;
-	uint32_t releaseMask = (uint32_t)0;
+    uint32_t shadowIntr;
+    uint32_t releaseMask = (uint32_t)0;
+
     cy_ipc_pipe_callback_ptr_t callbackPtr;
 
+    /* Parameters checking begin */
+    CY_ASSERT_L1(NULL != endpoint);
+    CY_ASSERT_L1(NULL != endpoint->ipcPtr);
+    CY_ASSERT_L1(NULL != endpoint->ipcIntrPtr);
+    CY_ASSERT_L1(NULL != endpoint->callbackArray);
+    /* Parameters checking end */
+
+    shadowIntr = Cy_IPC_Drv_GetInterruptStatusMasked(endpoint->ipcIntrPtr);
+
     /* Check to make sure the interrupt was a notify interrupt */
-	shadowIntr = endPoint->ipcIntrPtr->INTR_MASKED;
-    if( 0 != (shadowIntr & IPC_INTR_STRUCT_INTR_MASK_NOTIFY_Msk))  
+    if (0ul != Cy_IPC_Drv_ExtractAcquireMask(shadowIntr))
     {
         /* Clear the notify interrupt.  */
-        endPoint->ipcIntrPtr->INTR = (shadowIntr & IPC_INTR_STRUCT_INTR_MASK_NOTIFY_Msk);  
+        Cy_IPC_Drv_ClearInterrupt(endpoint->ipcIntrPtr, CY_IPC_NO_NOTIFICATION, Cy_IPC_Drv_ExtractAcquireMask(shadowIntr));
 
-        if( CY_IPC_DRV_LOCKED == Cy_IPC_DRV_GetLockStatus (endPoint->ipcPtr) )
-		{
+        if ( Cy_IPC_Drv_IsLockAcquired (endpoint->ipcPtr) )
+        {
             /* Extract Client ID  */
-            if( CY_IPC_DRV_SUCCESS == Cy_IPC_DRV_ReadMsgPtr (endPoint->ipcPtr, (void **)&msgPtr))
+            if( CY_IPC_DRV_SUCCESS == Cy_IPC_Drv_ReadMsgPtr (endpoint->ipcPtr, (void **)&msgPtr))
             {
-			    /* Get release mask */
-			    releaseMask = (uint32_t)((*msgPtr & CY_IPC_PIPE_MSG_RELEASE_MASK) >> CY_IPC_PIPE_MSG_RELEASE_SHIFT);
-			
-                clientID = *msgPtr & CY_IPC_PIPE_MSG_CLIENT_MASK;
-                /* Make sure client ID is within valid range */    
-                if(endPoint->clientCount > clientID)
+                /* Get release mask */
+                releaseMask = _FLD2VAL(CY_IPC_PIPE_MSG_RELEASE, *msgPtr);
+                clientID    = _FLD2VAL(CY_IPC_PIPE_MSG_CLIENT,  *msgPtr);
+
+                /* Make sure client ID is within valid range */
+                if (endpoint->clientCount > clientID)
                 {
-                    callbackPtr = endPoint->callbackArray[clientID];  /* Get the callback function */
-                    if(callbackPtr != (void *)0)
+                    callbackPtr = endpoint->callbackArray[clientID];  /* Get the callback function */
+
+                    if (callbackPtr != NULL)
                     {
-                      callbackPtr(msgPtr);   /* Call the function pointer for "clientID" */
+                        callbackPtr(msgPtr);   /* Call the function pointer for "clientID" */
                     }
                 }
-			}
-			/* Must always release the IPC channel */
-		    Cy_IPC_DRV_Release (endPoint->ipcPtr, releaseMask);
+            }
+
+            /* Must always release the IPC channel */
+            (void)Cy_IPC_Drv_LockRelease (endpoint->ipcPtr, releaseMask);
         }
     }
-	/* Check to make sure the interrupt was a release interrupt */
-	if( 0 != (shadowIntr & IPC_INTR_STRUCT_INTR_MASK_RELEASE_Msk))  /* Check for a Release interrupt */
-	{
-	    /* Clear the release callback function  */
-        endPoint->ipcIntrPtr->INTR = (shadowIntr & IPC_INTR_STRUCT_INTR_MASK_RELEASE_Msk); 
 
-        if(endPoint->releaseCallbackPtr != (void *)0)
+    /* Check to make sure the interrupt was a release interrupt */
+    if (0ul != Cy_IPC_Drv_ExtractReleaseMask(shadowIntr))  /* Check for a Release interrupt */
+    {
+        /* Clear the release interrupt  */
+        Cy_IPC_Drv_ClearInterrupt(endpoint->ipcIntrPtr, Cy_IPC_Drv_ExtractReleaseMask(shadowIntr), CY_IPC_NO_NOTIFICATION);
+
+        if (endpoint->releaseCallbackPtr != NULL)
         {
-            endPoint->releaseCallbackPtr();   
+            endpoint->releaseCallbackPtr();
 
-			/* Clear the pointer after it was called */
-			endPoint->releaseCallbackPtr = (void *)0;
+            /* Clear the pointer after it was called */
+            endpoint->releaseCallbackPtr = NULL;
         }
-		else if( endPoint->defaultReleaseCbPtr != (void *)0)
-		{
-            endPoint->defaultReleaseCbPtr(); 
-		}
-		/* Clear the busy flag when release is detected */
-		endPoint->busy = CY_IPC_PIPE_ENDPOINT_NOTBUSY;
-	}
+        else
+        {
+            if (endpoint->defaultReleaseCallbackPtr != NULL)
+            {
+                endpoint->defaultReleaseCallbackPtr();
+            }
+        }
 
-	(void)endPoint->ipcIntrPtr->INTR;
+        /* Clear the busy flag when release is detected */
+        endpoint->busy = CY_IPC_PIPE_ENDPOINT_NOTBUSY;
+    }
+
+    (void)Cy_IPC_Drv_GetInterruptStatus(endpoint->ipcIntrPtr);
 }
 
+/*******************************************************************************
+* Function Name: Cy_IPC_Pipe_EndpointPause
+****************************************************************************//**
+*
+* This function sets the receiver endpoint to paused state.
+*
+* \param epAddr
+* This parameter is the address (or index in the array of endpoint structures)
+* that designates the endpoint to pause.
+*
+*  \return
+*    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
+*
+*******************************************************************************/
+cy_en_ipc_pipe_status_t Cy_IPC_Pipe_EndpointPause(uint32_t epAddr)
+{
+    cy_stc_ipc_pipe_ep_t * endpoint;
+
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
+
+    endpoint = &cy_ipc_pipe_epArray[epAddr];
+
+    /* Disable the interrupts */
+    NVIC_DisableIRQ(endpoint->pipeIntrSrc);
+
+    return (CY_IPC_PIPE_SUCCESS);
+}
+
+/*******************************************************************************
+* Function Name: Cy_IPC_Pipe_EndpointResume
+****************************************************************************//**
+*
+* This function sets the receiver endpoint to active state.
+*
+* \param epAddr
+* This parameter is the address (or index in the array of endpoint structures)
+* that designates the endpoint to resume.
+*
+*  \return
+*    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
+*
+*******************************************************************************/
+cy_en_ipc_pipe_status_t Cy_IPC_Pipe_EndpointResume(uint32_t epAddr)
+{
+    cy_stc_ipc_pipe_ep_t * endpoint;
+
+    CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
+
+    endpoint = &cy_ipc_pipe_epArray[epAddr];
+
+    /* Enable the interrupts */
+    NVIC_EnableIRQ(endpoint->pipeIntrSrc);
+
+    return (CY_IPC_PIPE_SUCCESS);
+}
 
 
 /* [] END OF FILE */

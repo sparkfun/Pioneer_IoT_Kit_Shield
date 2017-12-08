@@ -17,9 +17,10 @@
 
 #include <stdint.h>
 
-#if ((defined(__GNUC__)        &&  (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
-     (defined (__ICCARM__)     &&  (__CORE__ == __ARM6M__))  || \
-     (defined(__ARMCC_VERSION) &&  (__TARGET_ARCH_THUMB == 3)))
+#if ((defined(__GNUC__)        && (__ARM_ARCH == 6) && (__ARM_ARCH_6M__ == 1)) || \
+     (defined(__ICCARM__)      && (__CORE__ == __ARM6M__)) || \
+     (defined(__ARMCC_VERSION) && (__TARGET_ARCH_THUMB == 3)) || \
+     (defined(__ghs__)         && defined(__CORE_CORTEXM0PLUS__)))
 #include "core_cm0plus.h"
 #else
 #include "core_cm4.h"

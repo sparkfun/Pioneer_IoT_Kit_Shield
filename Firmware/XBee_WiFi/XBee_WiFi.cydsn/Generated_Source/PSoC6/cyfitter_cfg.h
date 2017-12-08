@@ -1,7 +1,7 @@
 /*******************************************************************************
 * File Name: cyfitter_cfg.h
 * 
-* PSoC Creator  4.1
+* PSoC Creator  4.2
 *
 * Description:
 * This file provides basic startup and mux configuration settings
@@ -17,7 +17,7 @@
 #ifndef CYFITTER_CFG_H
 #define CYFITTER_CFG_H
 
-
+#include "syslib/cy_syslib.h"
 
 extern void Cy_SystemInit(void);
 

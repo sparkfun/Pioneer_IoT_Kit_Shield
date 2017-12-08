@@ -3,8 +3,8 @@
 
 /* Global shared variable is static within this file. The address of this
    variable is given to the CM4 via an IPC channel. */
-static uint8_t yellowButton;
-static uint8_t whiteButton;
+static uint8_t D9Button;
+static uint8_t D7Button;
 
 static volatile cy_en_ipcdrv_status_t mySysError;  /* general-purpose status/error code */
 
@@ -27,7 +27,7 @@ void HandleError(void)
     /* for now, just halt on error */
     while(1)
     {
-      Cy_GPIO_Clr(Red_LED_0);
+      Cy_GPIO_Clr(Red_LED_0_PORT, Red_LED_0_NUM);
     }
 }
 
@@ -48,14 +48,14 @@ void HandleError(void)
 *******************************************************************************/
 int main(void)
 {
-  IPC_STRUCT_Type *yellowIpcHandle; /* handle for the IPC channel being used */
-  IPC_STRUCT_Type *whiteIpcHandle; /* handle for the IPC channel being used */
+  IPC_STRUCT_Type *D9IpcHandle; /* handle for the IPC channel being used */
+  IPC_STRUCT_Type *D7IpcHandle; /* handle for the IPC channel being used */
   
   /* Always use lock/release functions to access the shared variable; do
      computations on a local copy of the shared variable. */
   uint8_t copy;
   uint32 gpioRes;
-  Cy_GPIO_Set(Red_LED_0);
+  Cy_GPIO_Set(Red_LED_0_PORT, Red_LED_0_NUM);
   UART_Start();
 
   __enable_irq(); /* Enable global interrupts. */
@@ -70,47 +70,45 @@ int main(void)
 
   /* Initialize the IPC lock subsystem. A call to this function may not be needed
      in future IPC driver revisions. */
-  if (Cy_IPC_LOCK_Init(LOCK_COUNT, myArray) != CY_IPC_LOCK_SUCCESS) HandleError();
+  //if (Cy_IPC_LOCK_Init(LOCK_COUNT, myArray) != CY_IPC_LOCK_SUCCESS) HandleError();
   
   /* Get the handle for the IPC channel to be used. */
-  yellowIpcHandle = Cy_IPC_DRV_GetIpcBaseAddress(MY_IPC_CHANNEL);
-  whiteIpcHandle = Cy_IPC_DRV_GetIpcBaseAddress(MY_IPC_CHANNEL);
+  D9IpcHandle = Cy_IPC_Drv_GetIpcBaseAddress(MY_IPC_CHANNEL);
+  D7IpcHandle = Cy_IPC_Drv_GetIpcBaseAddress(MY_IPC_CHANNEL);
   /* Notify the CM4 with the shared memory address. There is no interrupt
      associated with this notification.
      Wait for channel to be available, then acquire the lock for it, in a
      single atomic operation; and send the address. */
-  while(Cy_IPC_DRV_SendMsgPtr(yellowIpcHandle, CY_IPC_NO_NOTIFIFICATION, &yellowButton) != CY_IPC_DRV_SUCCESS);
+  while(Cy_IPC_Drv_SendMsgPtr(D9IpcHandle, CY_IPC_NO_NOTIFICATION, &D9Button) != CY_IPC_DRV_SUCCESS);
   /* Wait for release, which indicates other CPU has read the pointer value. */
-  while(Cy_IPC_DRV_GetLockStatus(yellowIpcHandle) == CY_IPC_DRV_LOCKED);
-  while(Cy_IPC_DRV_SendMsgPtr(whiteIpcHandle, CY_IPC_NO_NOTIFIFICATION, &whiteButton) != CY_IPC_DRV_SUCCESS);
+  while(Cy_IPC_Drv_IsLockAcquired(D9IpcHandle));
+  while(Cy_IPC_Drv_SendMsgPtr(D7IpcHandle, CY_IPC_NO_NOTIFICATION, &D7Button) != CY_IPC_DRV_SUCCESS);
   /* Wait for release, which indicates other CPU has read the pointer value. */
-  while(Cy_IPC_DRV_GetLockStatus(whiteIpcHandle) == CY_IPC_DRV_LOCKED);
+  while(Cy_IPC_Drv_IsLockAcquired(D7IpcHandle));
 
   for(;;)
   {
-    gpioRes = Cy_GPIO_Read(Yellow_Btn_0);
+    gpioRes = Cy_GPIO_Read(D9_0_PORT, D9_0_NUM);
     if (gpioRes == 0)
     {
       copy = 0x01;
-      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&yellowButton, copy);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D9Button, copy);
       CyDelay(50);
       while (gpioRes == 0)
       {
-        gpioRes = Cy_GPIO_Read(Yellow_Btn_0);
+        gpioRes = Cy_GPIO_Read(D9_0_PORT, D9_0_NUM);
       }
-      //if (mySysError != (cy_en_ipcdrv_status_t)CY_IPC_LOCK_SUCCESS) HandleError();
     } 
-    gpioRes = Cy_GPIO_Read(White_Btn_0);
+    gpioRes = Cy_GPIO_Read(D7_0_PORT, D7_0_NUM);
     if (gpioRes == 0)
     {
       copy = 0x10;
-      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&whiteButton, copy);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D7Button, copy);
       CyDelay(50);
       while (gpioRes == 0)
       {
-        gpioRes = Cy_GPIO_Read(White_Btn_0);
+        gpioRes = Cy_GPIO_Read(D7_0_PORT, D7_0_NUM);
       }
-      //if (mySysError != (cy_en_ipcdrv_status_t)CY_IPC_LOCK_SUCCESS) HandleError();
     } 
   }
 }

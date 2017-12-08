@@ -7,6 +7,10 @@
   </Group>
   <Data key="DataVersionKey" value="2" />
   <Group key="DWRInstGuidMapping">
+    <Group key="Clock">
+      <Data key="e0283817-d2ee-40d3-b906-0ced61bf98af/b68e5b9d-7828-482d-a282-930f990e3b3e" value="UART_SCBCLK" />
+      <Data key="f033aeb8-ea50-4b1f-ad2e-59929dc26729/b68e5b9d-7828-482d-a282-930f990e3b3e" value="SPI_SCBCLK" />
+    </Group>
     <Group key="Pin">
       <Data key="0b9b2640-fbca-4216-bdd8-73e3e4673132" value="White_Btn" />
       <Data key="1c5e5cb7-eea4-4b75-b453-bcdbd5ab3497" value="Yellow_Btn" />
@@ -28,6 +32,54 @@
     </Group>
   </Group>
   <Group key="M0S8Clock">
+    <Group key="LocalClks">
+      <Group key="e0283817-d2ee-40d3-b906-0ced61bf98af/b68e5b9d-7828-482d-a282-930f990e3b3e">
+        <Data key="check_tolerance" value="True" />
+        <Data key="derive_type" value="AUTO" />
+        <Data key="desired_freq" value="115.2" />
+        <Data key="desired_unit" value="3" />
+        <Data key="divider" value="434" />
+        <Data key="enabled" value="True" />
+        <Data key="fract_divider_denominator" value="0" />
+        <Data key="fract_divider_numerator" value="0" />
+        <Data key="minus_tolerance" value="5" />
+        <Data key="name" value="UART_SCBCLK" />
+        <Data key="netlist_name" value="\UART:SCBCLK\" />
+        <Data key="ph_align_clock_id" value="" />
+        <Data key="ph_align_clock_name" value="" />
+        <Data key="plus_tolerance" value="5" />
+        <Data key="scope" value="LOCAL" />
+        <Data key="sourceClk_minus_acuracy_name" value="0.25" />
+        <Data key="sourceClk_plus_acuracy_name" value="0.25" />
+        <Data key="src_clk_id" value="2FB4EC85-8328-4C5A-9ED9-8B63060178EB" />
+        <Data key="src_clk_name" value="PeriClk" />
+        <Data key="start_on_reset" value="True" />
+        <Data key="uses_fract_divider" value="False" />
+      </Group>
+      <Group key="f033aeb8-ea50-4b1f-ad2e-59929dc26729/b68e5b9d-7828-482d-a282-930f990e3b3e">
+        <Data key="check_tolerance" value="True" />
+        <Data key="derive_type" value="AUTO" />
+        <Data key="desired_freq" value="6.4748199999999994" />
+        <Data key="desired_unit" value="6" />
+        <Data key="divider" value="7" />
+        <Data key="enabled" value="True" />
+        <Data key="fract_divider_denominator" value="0" />
+        <Data key="fract_divider_numerator" value="0" />
+        <Data key="minus_tolerance" value="1" />
+        <Data key="name" value="SPI_SCBCLK" />
+        <Data key="netlist_name" value="\SPI:SCBCLK\" />
+        <Data key="ph_align_clock_id" value="" />
+        <Data key="ph_align_clock_name" value="" />
+        <Data key="plus_tolerance" value="1000" />
+        <Data key="scope" value="LOCAL" />
+        <Data key="sourceClk_minus_acuracy_name" value="0.25" />
+        <Data key="sourceClk_plus_acuracy_name" value="0.25" />
+        <Data key="src_clk_id" value="2FB4EC85-8328-4C5A-9ED9-8B63060178EB" />
+        <Data key="src_clk_name" value="PeriClk" />
+        <Data key="start_on_reset" value="True" />
+        <Data key="uses_fract_divider" value="False" />
+      </Group>
+    </Group>
     <Group key="SystemClks">
       <Group key="0A08FE05-F885-497B-A02E-BF29CD90D1E9">
         <Data key="check_tolerance" value="False" />
@@ -105,10 +157,6 @@
       <Group key="3A033BA1-EB59-48AA-A483-E956063B58F7">
         <Data key="accuracy_display_unit" value="0" />
         <Data key="check_tolerance" value="False" />
-        <Data key="csv_enabled" value="False" />
-        <Data key="csv_fault_action" value="NONE" />
-        <Data key="csv_loss_window" value="CYCLE_4" />
-        <Data key="csv_supervisor" value="ILO" />
         <Data key="derive_type" value="BUILTIN" />
         <Data key="desired_freq" value="32768" />
         <Data key="desired_unit" value="0" />
@@ -164,16 +212,6 @@
       </Group>
       <Group key="5C4F238B-1818-4FC7-84C6-4E205116253D">
         <Data key="check_tolerance" value="False" />
-        <Data key="csv_loss_action" value="NONE" />
-        <Data key="csv_loss_detection_enable" value="False" />
-        <Data key="csv_loss_window" value="CYCLE_4" />
-        <Data key="csv_range_detection_enable" value="False" />
-        <Data key="csv_range_fault_action" value="NONE" />
-        <Data key="csv_range_measure_time_us" value="100" />
-        <Data key="csv_range_minus_tolerance_percent" value="5" />
-        <Data key="csv_range_plus_tolerance_percent" value="5" />
-        <Data key="csv_range_tolerance_unit" value="1" />
-        <Data key="csv_supervisor" value="IMO" />
         <Data key="derive_type" value="BUILTIN" />
         <Data key="desired_freq" value="0" />
         <Data key="desired_unit" value="0" />
@@ -222,22 +260,12 @@
         <Data key="scope" value="BUILTIN" />
         <Data key="sourceClk_minus_acuracy_name" value="0.25" />
         <Data key="sourceClk_plus_acuracy_name" value="0.25" />
-        <Data key="src_clk_id" value="30F7C581-E9BB-4075-AE9E-3D10352921CE" />
-        <Data key="src_clk_name" value="HFClk0" />
+        <Data key="src_clk_id" value="343F3593-1AA2-4B14-BFF9-C9A56BDE27C9" />
+        <Data key="src_clk_name" value="FLL" />
         <Data key="start_on_reset" value="True" />
       </Group>
       <Group key="30F7C581-E9BB-4075-AE9E-3D10352921CE">
         <Data key="check_tolerance" value="False" />
-        <Data key="csv_loss_action" value="NONE" />
-        <Data key="csv_loss_detection_enable" value="False" />
-        <Data key="csv_loss_window" value="CYCLE_4" />
-        <Data key="csv_range_detection_enable" value="False" />
-        <Data key="csv_range_fault_action" value="NONE" />
-        <Data key="csv_range_measure_time_us" value="100" />
-        <Data key="csv_range_minus_tolerance_percent" value="5" />
-        <Data key="csv_range_plus_tolerance_percent" value="5" />
-        <Data key="csv_range_tolerance_unit" value="1" />
-        <Data key="csv_supervisor" value="IMO" />
         <Data key="derive_type" value="BUILTIN" />
         <Data key="desired_freq" value="100" />
         <Data key="desired_unit" value="6" />
@@ -451,6 +479,7 @@
         <Data key="divider" value="0" />
         <Data key="enabled" value="False" />
         <Data key="FEEDBACK" value="22" />
+        <Data key="LOW_FREQUENCY" value="False" />
         <Data key="MANUAL" value="False" />
         <Data key="minus_tolerance" value="0" />
         <Data key="name" value="PLL0" />
@@ -538,6 +567,42 @@
         <Data key="minus_tolerance" value="0" />
         <Data key="name" value="TimerClk" />
         <Data key="netlist_name" value="TimerClk" />
+        <Data key="plus_tolerance" value="0" />
+        <Data key="scope" value="BUILTIN" />
+        <Data key="sourceClk_minus_acuracy_name" value="1" />
+        <Data key="sourceClk_plus_acuracy_name" value="1" />
+        <Data key="src_clk_id" value="0A08FE05-F885-497B-A02E-BF29CD90D1E9" />
+        <Data key="src_clk_name" value="IMO" />
+        <Data key="start_on_reset" value="True" />
+      </Group>
+      <Group key="D75D74B8-A7D4-4EDE-81F8-A16DF63D7E1D">
+        <Data key="check_tolerance" value="False" />
+        <Data key="derive_type" value="BUILTIN" />
+        <Data key="desired_freq" value="8" />
+        <Data key="desired_unit" value="6" />
+        <Data key="divider" value="0" />
+        <Data key="enabled" value="True" />
+        <Data key="minus_tolerance" value="0" />
+        <Data key="name" value="PathMux4" />
+        <Data key="netlist_name" value="PathMux4" />
+        <Data key="plus_tolerance" value="0" />
+        <Data key="scope" value="BUILTIN" />
+        <Data key="sourceClk_minus_acuracy_name" value="1" />
+        <Data key="sourceClk_plus_acuracy_name" value="1" />
+        <Data key="src_clk_id" value="0A08FE05-F885-497B-A02E-BF29CD90D1E9" />
+        <Data key="src_clk_name" value="IMO" />
+        <Data key="start_on_reset" value="True" />
+      </Group>
+      <Group key="DA284A0E-4F7B-459E-94F0-90A7FE6053BD">
+        <Data key="check_tolerance" value="False" />
+        <Data key="derive_type" value="BUILTIN" />
+        <Data key="desired_freq" value="8" />
+        <Data key="desired_unit" value="6" />
+        <Data key="divider" value="0" />
+        <Data key="enabled" value="True" />
+        <Data key="minus_tolerance" value="0" />
+        <Data key="name" value="PathMux3" />
+        <Data key="netlist_name" value="PathMux3" />
         <Data key="plus_tolerance" value="0" />
         <Data key="scope" value="BUILTIN" />
         <Data key="sourceClk_minus_acuracy_name" value="1" />
@@ -657,13 +722,17 @@
     <Data key="CYDEV_FLASH_BOOT_SECURE_DATA0" value="" />
     <Data key="CYDEV_FLASH_BOOT_SECURE_DATA1" value="" />
     <Data key="CYDEV_FLASH_BOOT_SECURE_DATA2" value="" />
+    <Data key="CYDEV_PMIC_MODE" value="DISABLED" />
     <Data key="CYDEV_POWER_MODE" value="LDO_LINEAR_REG_1_1V" />
     <Data key="CYDEV_SECURITY_IMAGE" value="" />
     <Data key="CYDEV_SECURITY_KEYS" value="" />
+    <Data key="CYDEV_SYSTEM_AREF_CURRENT" value="HIGH" />
     <Data key="CYDEV_SYSTEM_AREF_DEEPSLEEP" value="False" />
     <Data key="CYDEV_SYSTEM_AREF_SOURCE" value="0" />
+    <Data key="CYDEV_TEMPERATURE" value="-40C" />
     <Data key="CYDEV_TRACE_ENABLED" value="False" />
     <Data key="CYDEV_VARIABLE_VDDA" value="False" />
+    <Data key="CYDEV_VBAC_SUPPLY" value="VDDD" />
     <Data key="CYDEV_VBACKUP" value="3.3" />
     <Data key="CYDEV_VDD_NS" value="3.3" />
     <Data key="CYDEV_VDDA" value="3.3" />

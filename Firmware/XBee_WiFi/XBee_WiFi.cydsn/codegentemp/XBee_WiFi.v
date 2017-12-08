@@ -1,6 +1,6 @@
 // ======================================================================
 // XBee_WiFi.v generated from TopDesign.cysch
-// 10/23/2017 at 09:05
+// 12/04/2017 at 09:51
 // This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 // ======================================================================
 
@@ -33,66 +33,72 @@
 `define CYDEV_CHIP_REVISION_4U_PRODUCTION 0
 `define CYDEV_CHIP_MEMBER_4E 6
 `define CYDEV_CHIP_REVISION_4E_PRODUCTION 0
+`define CYDEV_CHIP_REVISION_4E_CCG2_NO_USBPD 0
 `define CYDEV_CHIP_MEMBER_4O 7
 `define CYDEV_CHIP_REVISION_4O_PRODUCTION 0
 `define CYDEV_CHIP_MEMBER_4R 8
 `define CYDEV_CHIP_REVISION_4R_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4N 9
+`define CYDEV_CHIP_MEMBER_4T 9
+`define CYDEV_CHIP_REVISION_4T_PRODUCTION 0
+`define CYDEV_CHIP_MEMBER_4N 10
 `define CYDEV_CHIP_REVISION_4N_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4S 10
+`define CYDEV_CHIP_MEMBER_4S 11
 `define CYDEV_CHIP_REVISION_4S_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4Q 11
+`define CYDEV_CHIP_MEMBER_4Q 12
 `define CYDEV_CHIP_REVISION_4Q_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4D 12
+`define CYDEV_CHIP_MEMBER_4D 13
 `define CYDEV_CHIP_REVISION_4D_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4J 13
+`define CYDEV_CHIP_MEMBER_4J 14
 `define CYDEV_CHIP_REVISION_4J_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4K 14
+`define CYDEV_CHIP_MEMBER_4K 15
 `define CYDEV_CHIP_REVISION_4K_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4H 15
+`define CYDEV_CHIP_MEMBER_4V 16
+`define CYDEV_CHIP_REVISION_4V_PRODUCTION 0
+`define CYDEV_CHIP_MEMBER_4H 17
 `define CYDEV_CHIP_REVISION_4H_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4A 16
+`define CYDEV_CHIP_MEMBER_4A 18
 `define CYDEV_CHIP_REVISION_4A_PRODUCTION 17
 `define CYDEV_CHIP_REVISION_4A_ES0 17
-`define CYDEV_CHIP_MEMBER_4F 17
+`define CYDEV_CHIP_MEMBER_4F 19
 `define CYDEV_CHIP_REVISION_4F_PRODUCTION 0
 `define CYDEV_CHIP_REVISION_4F_PRODUCTION_256K 0
 `define CYDEV_CHIP_REVISION_4F_PRODUCTION_256DMA 0
-`define CYDEV_CHIP_MEMBER_4P 18
+`define CYDEV_CHIP_MEMBER_4P 20
 `define CYDEV_CHIP_REVISION_4P_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4M 19
+`define CYDEV_CHIP_MEMBER_4M 21
 `define CYDEV_CHIP_REVISION_4M_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4L 20
+`define CYDEV_CHIP_MEMBER_4L 22
 `define CYDEV_CHIP_REVISION_4L_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_4I 21
+`define CYDEV_CHIP_MEMBER_4I 23
 `define CYDEV_CHIP_REVISION_4I_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_6A 22
-`define CYDEV_CHIP_REVISION_6A_PRODUCTION 0
-`define CYDEV_CHIP_REVISION_6A_NO_UDB 0
-`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE1 23
+`define CYDEV_CHIP_MEMBER_6A 24
+`define CYDEV_CHIP_REVISION_6A_ES 17
+`define CYDEV_CHIP_REVISION_6A_PRODUCTION 33
+`define CYDEV_CHIP_REVISION_6A_NO_UDB 33
+`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE1 25
 `define CYDEV_CHIP_REVISION_PDL_FM0P_TYPE1_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE2 24
+`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE2 26
 `define CYDEV_CHIP_REVISION_PDL_FM0P_TYPE2_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE3 25
+`define CYDEV_CHIP_MEMBER_PDL_FM0P_TYPE3 27
 `define CYDEV_CHIP_REVISION_PDL_FM0P_TYPE3_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_FM3 26
+`define CYDEV_CHIP_MEMBER_FM3 28
 `define CYDEV_CHIP_REVISION_FM3_PRODUCTION 0
-`define CYDEV_CHIP_MEMBER_FM4 27
+`define CYDEV_CHIP_MEMBER_FM4 29
 `define CYDEV_CHIP_REVISION_FM4_PRODUCTION 0
 `define CYDEV_CHIP_FAMILY_USED 4
-`define CYDEV_CHIP_MEMBER_USED 22
-`define CYDEV_CHIP_REVISION_USED 0
+`define CYDEV_CHIP_MEMBER_USED 24
+`define CYDEV_CHIP_REVISION_USED 33
 // Component: cy_virtualmux_v1_0
 `ifdef CY_BLK_DIR
 `undef CY_BLK_DIR
 `endif
 
 `ifdef WARP
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\cy_virtualmux_v1_0"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\cy_virtualmux_v1_0\cy_virtualmux_v1_0.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_virtualmux_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_virtualmux_v1_0\cy_virtualmux_v1_0.v"
 `else
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\cy_virtualmux_v1_0"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\cy_virtualmux_v1_0\cy_virtualmux_v1_0.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_virtualmux_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\cy_virtualmux_v1_0\cy_virtualmux_v1_0.v"
 `endif
 
 // Component: ZeroTerminal
@@ -101,11 +107,11 @@
 `endif
 
 `ifdef WARP
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\ZeroTerminal"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\ZeroTerminal\ZeroTerminal.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\ZeroTerminal"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\ZeroTerminal\ZeroTerminal.v"
 `else
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\ZeroTerminal"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\ZeroTerminal\ZeroTerminal.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\ZeroTerminal"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\ZeroTerminal\ZeroTerminal.v"
 `endif
 
 // Component: or_v1_0
@@ -114,14 +120,14 @@
 `endif
 
 `ifdef WARP
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0\or_v1_0.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\or_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\or_v1_0\or_v1_0.v"
 `else
-`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0"
-`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.1\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\or_v1_0\or_v1_0.v"
+`define CY_BLK_DIR "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\or_v1_0"
+`include "C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\CyPrimitives\cyprimitives.cylib\or_v1_0\or_v1_0.v"
 `endif
 
-// SCB_UART_PDL_v1_0(BaudRate=9600, BitsOrder=0, BreakSignalBits=11, BufferMinSize=64, ByteMode=true, ClkFreqDes=115.2, ClkMinusTolerance=5, ClkPlusTolerance=5, ClockFromTerm=false, ComMode=0, CtsPolarity=0, CtsTermEnable=false, DataWidth=8, Direction=3, DropOnFrameErr=false, DropOnParityErr=false, EnableCts=false, EnableInputFilter=false, EnableMultiProc=false, EnableRts=false, EnableRxOutput=false, EnableTxOutput=false, InterruptMode=1, InterruptTermEnable=false, IntrRxBreakDetected=false, IntrRxFrameErr=false, IntrRxFull=false, IntrRxNotEmpty=false, IntrRxOverflow=false, IntrRxParityErr=false, IntrRxTrigger=false, IntrRxUnderflow=false, IntrTxEmpty=false, IntrTxNotFull=false, IntrTxOverflow=false, IntrTxTrigger=false, IntrTxUartDone=false, IntrTxUartLostArb=false, IntrTxUartNack=false, IntrTxUnderflow=false, IrdaLowPower=false, IrdaPolarity=0, IsCtsPinAllowed=true, IsDmaCapable=true, IsMultiprocessorModeAvailable=false, IsRtsPinAllowed=true, MaxFifoLevel=127, MpRxAcceptAddress=false, MpRxAddress=0, MpRxAddressMask=255, OvsFactor=12, ParityType=0, RemoveCtsPin=true, RemoveIntr=false, RemoveRtsPin=true, RemoveRxPin=false, RemoveRxTxPin=true, RemoveTxPin=false, RtsPolarity=0, RtsTermEnable=false, RtsTriggerLevel=63, RxIntrMask=0, RxTermEnable=false, RxTriggerLevel=63, RxTxTermEnable=false, ShowTerminals=false, SmCardRetryOnNack=false, StopBits=2, SymbolShape=0, TriggerOutputEnable=false, TxIntrMask=0, TxTermEnable=false, TxTriggerLevel=63, UseIntr=true, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMMENT=, CY_COMPONENT_NAME=SCB_UART_PDL_v1_0, CY_CONST_CONFIG=true, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=UART, CY_INSTANCE_SHORT_NAME=UART, CY_MAJOR_VERSION=1, CY_MINOR_VERSION=0, CY_PDL_DRIVER_NAME=scb, CY_PDL_DRIVER_REQ_VERSION=1.0.0, CY_PDL_DRIVER_SUBGROUP=, CY_PDL_DRIVER_VARIANT=, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  4.1, INSTANCE_NAME=UART, )
+// SCB_UART_PDL_v1_0(BaudRate=9600, BitsOrder=0, BreakSignalBits=11, BufferMinSize=64, ByteMode=true, ClkFreqDes=115.2, ClkMinusTolerance=5, ClkPlusTolerance=5, ClockFromTerm=false, ComMode=0, CtsPolarity=0, CtsTermEnable=false, DataWidth=8, Direction=3, DropOnFrameErr=false, DropOnParityErr=false, EnableCts=false, EnableInputFilter=false, EnableMultiProc=false, EnableRts=false, EnableRxOutput=false, EnableTxOutput=false, InterruptMode=1, InterruptTermEnable=false, IntrRxBreakDetected=false, IntrRxFrameErr=false, IntrRxFull=false, IntrRxNotEmpty=false, IntrRxOverflow=false, IntrRxParityErr=false, IntrRxTrigger=false, IntrRxUnderflow=false, IntrTxEmpty=false, IntrTxNotFull=false, IntrTxOverflow=false, IntrTxTrigger=false, IntrTxUartDone=false, IntrTxUartLostArb=false, IntrTxUartNack=false, IntrTxUnderflow=false, IrdaLowPower=false, IrdaPolarity=0, IsCtsPinAllowed=true, IsDmaCapable=true, IsEnableInputFilterVisible=true, IsMultiprocessorModeAvailable=false, IsRtsPinAllowed=true, IsRtsTriggerLevelVisible=false, IsRxIntrSourcesVisible=false, IsRxTriggerLevelVisible=false, IsTxIntrSourcesVisible=false, IsTxTriggerLevelVisible=false, MaxFifoLevel=127, MpRxAcceptAddress=false, MpRxAddress=0, MpRxAddressMask=255, OvsFactor=12, ParityType=0, RemoveCtsPin=true, RemoveIntr=false, RemoveRtsPin=true, RemoveRxPin=false, RemoveRxTxPin=true, RemoveTxPin=false, RtsPolarity=0, RtsTermEnable=false, RtsTriggerLevel=63, RxIntrMask=0, RxTermEnable=false, RxTriggerLevel=63, RxTxTermEnable=false, ShowTerminals=false, SmCardRetryOnNack=false, StopBits=2, SymbolShape=0, TriggerOutputEnable=false, TxIntrMask=0, TxTermEnable=false, TxTriggerLevel=63, UseIntr=true, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMMENT=, CY_COMPONENT_NAME=SCB_UART_PDL_v1_0, CY_CONST_CONFIG=true, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=UART, CY_INSTANCE_SHORT_NAME=UART, CY_MAJOR_VERSION=1, CY_MINOR_VERSION=0, CY_PDL_DRIVER_NAME=scb, CY_PDL_DRIVER_REQ_VERSION=1.0.0, CY_PDL_DRIVER_SUBGROUP=, CY_PDL_DRIVER_VARIANT=, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  4.2, INSTANCE_NAME=UART, )
 module SCB_UART_PDL_v1_0_0 (
     cts_in,
     tx_out,
@@ -306,307 +312,9 @@ module SCB_UART_PDL_v1_0_0 (
 
 endmodule
 
-// SCB_SPI_PDL_v1_0(BitsOrder=1, BufferMinSize=64, ByteMode=true, ClkDesFrequency=6651.885, ClkMinusTolerance=2, ClkPlusTolerance=1000, ClockFromTerm=false, DataRate=1000, DeassertSelectLine=false, EnableFreeRunSclk=false, EnableInputFilter=false, EnableInterruptTerm=false, EnableLateMisoSample=false, EnableRxOutput=false, EnableSpimMisoTerm=false, EnableSpimMosiTerm=false, EnableSpimSclkTerm=false, EnableSpimSs0Term=false, EnableSpimSs1Term=false, EnableSpimSs2Term=false, EnableSpimSs3Term=false, EnableSpisMisoTerm=false, EnableSpisMosiTerm=false, EnableSpisSclkTerm=false, EnableSpisSsTerm=false, EnableTriggerOutput=false, EnableTxOutput=false, EnableWakeup=false, InterruptMode=1, IntrMasterSlaveMask=0, IntrMasterSpiDone=false, IntrRxFull=false, IntrRxMask=0, IntrRxNotEmpty=false, IntrRxOverflow=false, IntrRxTrigger=false, IntrRxUnderflow=false, IntrSlaveBusError=false, IntrTxEmpty=false, IntrTxMask=0, IntrTxNotFull=false, IntrTxOverflow=false, IntrTxTrigger=false, IntrTxUnderflow=false, IsDmaCapable=true, MasterMode=false, MaxFifoLevel=127, Mode=0, OvsFactor=16, RemoveIntr=false, RemoveMasterMiso=true, RemoveMasterMosi=true, RemoveMasterSclk=true, RemoveMasterSs0Pin=true, RemoveMasterSs1Pin=true, RemoveMasterSs2Pin=true, RemoveMasterSs3Pin=true, RemoveMiso=false, RemoveMosi=false, RemoveSclk=false, RemoveSlaveMiso=false, RemoveSlaveMosi=false, RemoveSlaveSclk=false, RemoveSlaveSS=false, RxDataWidth=4, RxTriggerLevel=63, SclkMode=0, SelectLinesNumber=1, ShowTerminals=false, Ss0Polarity=0, Ss1Polarity=0, Ss2Polarity=0, Ss3Polarity=0, SubMode=0, SymbolShape=0, TxDataWidth=4, TxTriggerLevel=63, UseIntr=true, CY_API_CALLBACK_HEADER_INCLUDE=#include "cyapicallbacks.h", CY_COMMENT=, CY_COMPONENT_NAME=SCB_SPI_PDL_v1_0, CY_CONST_CONFIG=true, CY_CONTROL_FILE=<:default:>, CY_DATASHEET_FILE=<:default:>, CY_FITTER_NAME=SPI, CY_INSTANCE_SHORT_NAME=SPI, CY_MAJOR_VERSION=1, CY_MINOR_VERSION=0, CY_PDL_DRIVER_NAME=scb, CY_PDL_DRIVER_REQ_VERSION=1.0.0, CY_PDL_DRIVER_SUBGROUP=, CY_PDL_DRIVER_VARIANT=, CY_REMOVE=false, CY_SUPPRESS_API_GEN=false, CY_VERSION=PSoC Creator  4.1, INSTANCE_NAME=SPI, )
-module SCB_SPI_PDL_v1_0_1 (
-    interrupt,
-    clock,
-    rx_dma,
-    tx_dma,
-    s_mosi,
-    s_sclk,
-    s_ss,
-    m_miso,
-    m_mosi,
-    m_sclk,
-    m_ss0,
-    m_ss1,
-    m_ss2,
-    m_ss3,
-    s_miso);
-    output      interrupt;
-    input       clock;
-    output      rx_dma;
-    output      tx_dma;
-    input       s_mosi;
-    input       s_sclk;
-    input       s_ss;
-    input       m_miso;
-    output      m_mosi;
-    output      m_sclk;
-    output      m_ss0;
-    output      m_ss1;
-    output      m_ss2;
-    output      m_ss3;
-    output      s_miso;
-
-
-          wire  mosi_s_wire;
-          wire  clock_wire;
-          wire  intr_wire;
-          wire  mosi_m_wire;
-          wire  sclk_m_wire;
-          wire  miso_m_wire;
-          wire  miso_s_wire;
-          wire [3:0] select_m_wire;
-          wire  sclk_s_wire;
-          wire  select_s_wire;
-          wire  Net_476;
-          wire  Net_142;
-          wire  Net_141;
-          wire  Net_147;
-          wire  Net_146;
-          wire  Net_145;
-          wire  Net_144;
-          wire  Net_29;
-          wire  Net_28;
-          wire  Net_228;
-          wire  Net_227;
-          wire  Net_218;
-          wire  Net_216;
-          wire  Net_138;
-          wire  Net_847;
-
-
-	cy_clock_v1_0
-		#(.id("f033aeb8-ea50-4b1f-ad2e-59929dc26729/b68e5b9d-7828-482d-a282-930f990e3b3e"),
-		  .source_clock_id(""),
-		  .divisor(0),
-		  .period("150333326.568334"),
-		  .is_direct(0),
-		  .is_digital(0))
-		SCBCLK
-		 (.clock_out(Net_847));
-
-
-	wire [0:0] tmpFB_0__miso_s_net;
-	wire [0:0] tmpIO_0__miso_s_net;
-	electrical [0:0] tmpSIOVREF__miso_s_net;
-
-	cy_mxs40_gpio_v1_0
-		#(.id("f033aeb8-ea50-4b1f-ad2e-59929dc26729/0a930181-2e64-4a82-8a40-9b2b28b43bbd"),
-		  .width(1),
-		  .sio_grp_cnt(0),
-		  .drive_mode("6"),
-		  .ibuf_enabled("0"),
-		  .init_dr_st("1"),
-		  .input_sync("0"),
-		  .intr_mode("0"),
-		  .io_voltage(""),
-		  .output_conn("1"),
-		  .oe_conn("0"),
-		  .output_sync("0"),
-		  .oe_sync("0"),
-		  .drive_strength("0"),
-		  .max_frequency("100"),
-		  .i2c_mode("0"),
-		  .output_current_cap("8"),
-		  .pin_aliases(""),
-		  .pin_mode("O"),
-		  .slew_rate("0"),
-		  .vtrip("0"),
-		  .use_annotation("0"),
-		  .hotswap_needed("0"))
-		miso_s
-		 (.oe({1'b1}),
-		  .y({miso_s_wire}),
-		  .fb({tmpFB_0__miso_s_net[0:0]}),
-		  .io({tmpIO_0__miso_s_net[0:0]}),
-		  .siovref(tmpSIOVREF__miso_s_net));
-
-
-	wire [0:0] tmpIO_0__mosi_s_net;
-	electrical [0:0] tmpSIOVREF__mosi_s_net;
-
-	cy_mxs40_gpio_v1_0
-		#(.id("f033aeb8-ea50-4b1f-ad2e-59929dc26729/8f4708f1-0b2c-4336-9e75-e7c7aefab2aa"),
-		  .width(1),
-		  .sio_grp_cnt(0),
-		  .drive_mode("0"),
-		  .ibuf_enabled("1"),
-		  .init_dr_st("1"),
-		  .input_sync("0"),
-		  .intr_mode("0"),
-		  .io_voltage(""),
-		  .output_conn("0"),
-		  .oe_conn("0"),
-		  .output_sync("0"),
-		  .oe_sync("0"),
-		  .drive_strength("0"),
-		  .max_frequency("100"),
-		  .i2c_mode("0"),
-		  .output_current_cap("8"),
-		  .pin_aliases(""),
-		  .pin_mode("I"),
-		  .slew_rate("0"),
-		  .vtrip("0"),
-		  .use_annotation("0"),
-		  .hotswap_needed("0"))
-		mosi_s
-		 (.oe({1'b1}),
-		  .y({1'b0}),
-		  .fb({Net_218}),
-		  .io({tmpIO_0__mosi_s_net[0:0]}),
-		  .siovref(tmpSIOVREF__mosi_s_net));
-
-
-	wire [0:0] tmpIO_0__ss_s_net;
-	electrical [0:0] tmpSIOVREF__ss_s_net;
-
-	cy_mxs40_gpio_v1_0
-		#(.id("f033aeb8-ea50-4b1f-ad2e-59929dc26729/03f04a47-adae-4c9c-a21b-5634a8d80609"),
-		  .width(1),
-		  .sio_grp_cnt(0),
-		  .drive_mode("0"),
-		  .ibuf_enabled("1"),
-		  .init_dr_st("1"),
-		  .input_sync("0"),
-		  .intr_mode("0"),
-		  .io_voltage(""),
-		  .output_conn("0"),
-		  .oe_conn("0"),
-		  .output_sync("0"),
-		  .oe_sync("0"),
-		  .drive_strength("0"),
-		  .max_frequency("100"),
-		  .i2c_mode("0"),
-		  .output_current_cap("8"),
-		  .pin_aliases(""),
-		  .pin_mode("I"),
-		  .slew_rate("0"),
-		  .vtrip("0"),
-		  .use_annotation("0"),
-		  .hotswap_needed("0"))
-		ss_s
-		 (.oe({1'b1}),
-		  .y({1'b0}),
-		  .fb({Net_227}),
-		  .io({tmpIO_0__ss_s_net[0:0]}),
-		  .siovref(tmpSIOVREF__ss_s_net));
-
-
-	wire [0:0] tmpIO_0__sclk_s_net;
-	electrical [0:0] tmpSIOVREF__sclk_s_net;
-
-	cy_mxs40_gpio_v1_0
-		#(.id("f033aeb8-ea50-4b1f-ad2e-59929dc26729/5e598102-29fc-4a47-9e8e-eb30e3a76e5d"),
-		  .width(1),
-		  .sio_grp_cnt(0),
-		  .drive_mode("0"),
-		  .ibuf_enabled("1"),
-		  .init_dr_st("1"),
-		  .input_sync("0"),
-		  .intr_mode("0"),
-		  .io_voltage(""),
-		  .output_conn("0"),
-		  .oe_conn("0"),
-		  .output_sync("0"),
-		  .oe_sync("0"),
-		  .drive_strength("0"),
-		  .max_frequency("100"),
-		  .i2c_mode("0"),
-		  .output_current_cap("8"),
-		  .pin_aliases(""),
-		  .pin_mode("I"),
-		  .slew_rate("0"),
-		  .vtrip("0"),
-		  .use_annotation("0"),
-		  .hotswap_needed("0"))
-		sclk_s
-		 (.oe({1'b1}),
-		  .y({1'b0}),
-		  .fb({Net_228}),
-		  .io({tmpIO_0__sclk_s_net[0:0]}),
-		  .siovref(tmpSIOVREF__sclk_s_net));
-
-
-	// clock_VM (cy_virtualmux_v1_0)
-	assign clock_wire = Net_847;
-
-    ZeroTerminal ZeroTerminal_7 (
-        .z(Net_28));
-
-
-    assign Net_29 = Net_28 | Net_847;
-
-    cy_mxs40_scb_v1_0 SCB (
-        .clock(clock_wire),
-        .uart_rx(1'b0),
-        .uart_cts(1'b0),
-        .i2c_scl(Net_146),
-        .i2c_sda(Net_147),
-        .spi_clk_s(sclk_s_wire),
-        .spi_select_s(select_s_wire),
-        .spi_miso_m(miso_m_wire),
-        .spi_mosi_s(mosi_s_wire),
-        .uart_tx(Net_141),
-        .uart_rts(Net_142),
-        .spi_clk_m(sclk_m_wire),
-        .spi_select_m(select_m_wire[3:0]),
-        .spi_mosi_m(mosi_m_wire),
-        .spi_miso_s(miso_s_wire),
-        .interrupt(intr_wire),
-        .tr_tx_req(tx_dma),
-        .tr_rx_req(rx_dma),
-        .tr_i2c_scl_filtered(Net_476));
-
-	// select_s_VM (cy_virtualmux_v1_0)
-	assign select_s_wire = Net_227;
-
-	// sclk_s_VM (cy_virtualmux_v1_0)
-	assign sclk_s_wire = Net_228;
-
-	// mosi_s_VM (cy_virtualmux_v1_0)
-	assign mosi_s_wire = Net_218;
-
-	// miso_m_VM (cy_virtualmux_v1_0)
-	assign miso_m_wire = m_miso;
-
-
-	cy_mxs40_isr_v1_0
-		#(.deepsleep_required(0),
-		  .int_type(2'b10))
-		SCB_IRQ
-		 (.int_signal(intr_wire));
-
-
-
-    assign interrupt = intr_wire;
-
-    assign m_mosi = mosi_m_wire;
-
-    assign m_sclk = sclk_m_wire;
-
-    assign m_ss0 = select_m_wire[0];
-
-    assign m_ss1 = select_m_wire[1];
-
-    assign m_ss2 = select_m_wire[2];
-
-    assign m_ss3 = select_m_wire[3];
-
-    assign s_miso = miso_s_wire;
-
-
-endmodule
-
 // top
 module top ;
 
-          wire  Net_49;
-          wire  Net_48;
-          wire  Net_47;
-          wire  Net_46;
-          wire  Net_45;
-          wire  Net_44;
-          wire  Net_43;
-          wire  Net_42;
-          wire  Net_41;
-          wire  Net_40;
-          wire  Net_39;
-          wire  Net_38;
-          wire  Net_37;
-          wire  Net_36;
-          wire  Net_35;
           wire  Net_27;
           wire  Net_26;
           wire  Net_25;
@@ -723,9 +431,9 @@ module top ;
     defparam SW_3.port_names = "T1, T2";
     defparam SW_3.width = 2;
 
-	wire [0:0] tmpFB_0__White_Btn_net;
-	wire [0:0] tmpIO_0__White_Btn_net;
-	electrical [0:0] tmpSIOVREF__White_Btn_net;
+	wire [0:0] tmpFB_0__D9_net;
+	wire [0:0] tmpIO_0__D9_net;
+	electrical [0:0] tmpSIOVREF__D9_net;
 
 	cy_mxs40_gpio_v1_0
 		#(.id("66af83b4-6877-4ae7-acea-15730a647ab6"),
@@ -751,17 +459,17 @@ module top ;
 		  .vtrip("0"),
 		  .use_annotation("0"),
 		  .hotswap_needed("0"))
-		White_Btn
+		D9
 		 (.oe({1'b1}),
 		  .y({1'b0}),
-		  .fb({tmpFB_0__White_Btn_net[0:0]}),
-		  .io({tmpIO_0__White_Btn_net[0:0]}),
-		  .siovref(tmpSIOVREF__White_Btn_net));
+		  .fb({tmpFB_0__D9_net[0:0]}),
+		  .io({tmpIO_0__D9_net[0:0]}),
+		  .siovref(tmpSIOVREF__D9_net));
 
 
-	wire [0:0] tmpFB_0__Yellow_Btn_net;
-	wire [0:0] tmpIO_0__Yellow_Btn_net;
-	electrical [0:0] tmpSIOVREF__Yellow_Btn_net;
+	wire [0:0] tmpFB_0__D7_net;
+	wire [0:0] tmpIO_0__D7_net;
+	electrical [0:0] tmpSIOVREF__D7_net;
 
 	cy_mxs40_gpio_v1_0
 		#(.id("4cca878b-77b5-471d-8aeb-ad6925202455"),
@@ -787,12 +495,12 @@ module top ;
 		  .vtrip("0"),
 		  .use_annotation("0"),
 		  .hotswap_needed("0"))
-		Yellow_Btn
+		D7
 		 (.oe({1'b1}),
 		  .y({1'b0}),
-		  .fb({tmpFB_0__Yellow_Btn_net[0:0]}),
-		  .io({tmpIO_0__Yellow_Btn_net[0:0]}),
-		  .siovref(tmpSIOVREF__Yellow_Btn_net));
+		  .fb({tmpFB_0__D7_net[0:0]}),
+		  .io({tmpIO_0__D7_net[0:0]}),
+		  .siovref(tmpSIOVREF__D7_net));
 
 
 	wire [0:0] tmpFB_0__Pin_CM4_Writing_net;
@@ -969,23 +677,6 @@ module top ;
 		  .io({tmpIO_0__Blue_LED_net[0:0]}),
 		  .siovref(tmpSIOVREF__Blue_LED_net));
 
-
-    SCB_SPI_PDL_v1_0_1 SPI (
-        .interrupt(Net_35),
-        .clock(1'b0),
-        .rx_dma(Net_37),
-        .tx_dma(Net_38),
-        .s_mosi(1'b0),
-        .s_sclk(1'b0),
-        .s_ss(1'b0),
-        .m_miso(1'b0),
-        .m_mosi(Net_43),
-        .m_sclk(Net_44),
-        .m_ss0(Net_45),
-        .m_ss1(Net_46),
-        .m_ss2(Net_47),
-        .m_ss3(Net_48),
-        .s_miso(Net_49));
 
 
 

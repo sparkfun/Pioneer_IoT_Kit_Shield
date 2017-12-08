@@ -22,13 +22,11 @@
 extern "C" {
 #endif
 
-
 /***************************************
 *   Initial Parameter Constants
 ****************************************/
 
 #define UART_DIRECTION  (3U)
-#define UART_USE_IRQ    (1U != 0U)
 #define UART_ENABLE_RTS (0U)
 #define UART_ENABLE_CTS (0U)
 
@@ -38,16 +36,6 @@ extern "C" {
 
 #define UART_ENABLE_RX  (0UL != (UART_DIRECTION & UART_RX))
 #define UART_ENABLE_TX  (0UL != (UART_DIRECTION & UART_TX))
-
-
-/***************************************
-*       Additional includes
-***************************************/
-
-#if (UART_USE_IRQ)
-    #include "UART_SCB_IRQ.h"
-    #include "cyapicallbacks.h"
-#endif
 
 
 /***************************************
@@ -62,12 +50,12 @@ void UART_Start(void);
 
 /* Basic functions */
 __STATIC_INLINE cy_en_scb_uart_status_t UART_Init(cy_stc_scb_uart_config_t const *config);
-__STATIC_INLINE void     UART_DeInit(void);
-__STATIC_INLINE void     UART_Enable(void);
-__STATIC_INLINE void     UART_Disable(void);
+__STATIC_INLINE void UART_DeInit(void);
+__STATIC_INLINE void UART_Enable(void);
+__STATIC_INLINE void UART_Disable(void);
 
 /* Register callback. */
-__STATIC_INLINE void     UART_RegisterCallback(scb_uart_handle_events_t callback);
+__STATIC_INLINE void UART_RegisterCallback(scb_uart_handle_events_t callback);
 
 /* Configuration change. */
 #if (UART_ENABLE_CTS)
@@ -80,8 +68,8 @@ __STATIC_INLINE void     UART_SetRtsFifoLevel(uint32_t rxFifoLevel);
 __STATIC_INLINE uint32_t UART_GetRtsFifoLevel(void);
 #endif /* (UART_ENABLE_RTS) */
 
-__STATIC_INLINE void     UART_EnableSkipStart(void);
-__STATIC_INLINE void     UART_DisableSkipStart(void);
+__STATIC_INLINE void UART_EnableSkipStart(void);
+__STATIC_INLINE void UART_DisableSkipStart(void);
 
 #if (UART_ENABLE_RX)
 /* Low level: Receive direction. */
@@ -106,7 +94,7 @@ __STATIC_INLINE uint32_t UART_GetNumInTxFifo(void);
 __STATIC_INLINE bool     UART_IsTxComplete(void);
 __STATIC_INLINE void     UART_ClearTxFifo(void);
 #endif /* (UART_ENABLE_TX) */
-    
+
 #if (UART_ENABLE_RX)
 /* High level: Ring buffer functions. */
 __STATIC_INLINE void     UART_StartRingBuffer(void *ringBuffer, uint32_t size);
@@ -155,7 +143,7 @@ extern cy_stc_scb_uart_context_t UART_context;
 * @{
 */
 /** The pointer to the base address of the hardware */
-#define UART_HW         ((CySCB_Type *) UART_SCB__HW)
+#define UART_HW     ((CySCB_Type *) UART_SCB__HW)
 /** @} group_macros */
 
 
@@ -167,7 +155,7 @@ extern cy_stc_scb_uart_context_t UART_context;
 * Function Name: UART_Init
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Init() PDL driver function. 
+* Invokes the Cy_SCB_UART_Init() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_scb_uart_status_t UART_Init(cy_stc_scb_uart_config_t const *config)
@@ -180,7 +168,7 @@ __STATIC_INLINE cy_en_scb_uart_status_t UART_Init(cy_stc_scb_uart_config_t const
 * Function Name: UART_DeInit
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_DeInit() PDL driver function. 
+* Invokes the Cy_SCB_UART_DeInit() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_DeInit(void)
@@ -193,7 +181,7 @@ __STATIC_INLINE void UART_DeInit(void)
 * Function Name: UART_Enable
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Enable() PDL driver function. 
+* Invokes the Cy_SCB_UART_Enable() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_Enable(void)
@@ -206,7 +194,7 @@ __STATIC_INLINE void UART_Enable(void)
 * Function Name: UART_Disable
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Disable() PDL driver function. 
+* Invokes the Cy_SCB_UART_Disable() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_Disable(void)
@@ -219,7 +207,7 @@ __STATIC_INLINE void UART_Disable(void)
 * Function Name: UART_RegisterCallback
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_RegisterCallback() PDL driver function. 
+* Invokes the Cy_SCB_UART_RegisterCallback() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_RegisterCallback(scb_uart_handle_events_t callback)
@@ -233,7 +221,7 @@ __STATIC_INLINE void UART_RegisterCallback(scb_uart_handle_events_t callback)
 * Function Name: UART_EnableCts
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_EnableCts() PDL driver function. 
+* Invokes the Cy_SCB_UART_EnableCts() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_EnableCts(void)
@@ -246,7 +234,7 @@ __STATIC_INLINE void UART_EnableCts(void)
 * Function Name: Cy_SCB_UART_DisableCts
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_DisableCts() PDL driver function. 
+* Invokes the Cy_SCB_UART_DisableCts() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_DisableCts(void)
@@ -261,7 +249,7 @@ __STATIC_INLINE void UART_DisableCts(void)
 * Function Name: UART_SetRtsFifoLevel
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_SetRtsFifoLevel() PDL driver function. 
+* Invokes the Cy_SCB_UART_SetRtsFifoLevel() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_SetRtsFifoLevel(uint32_t rxFifoLevel)
@@ -274,7 +262,7 @@ __STATIC_INLINE void UART_SetRtsFifoLevel(uint32_t rxFifoLevel)
 * Function Name: UART_GetRtsFifoLevel
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetRtsFifoLevel() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetRtsFifoLevel() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetRtsFifoLevel(void)
@@ -288,7 +276,7 @@ __STATIC_INLINE uint32_t UART_GetRtsFifoLevel(void)
 * Function Name: UART_EnableSkipStart
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_EnableSkipStart() PDL driver function. 
+* Invokes the Cy_SCB_UART_EnableSkipStart() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_EnableSkipStart(void)
@@ -301,7 +289,7 @@ __STATIC_INLINE void UART_EnableSkipStart(void)
 * Function Name: UART_DisableSkipStart
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_DisableSkipStart() PDL driver function. 
+* Invokes the Cy_SCB_UART_DisableSkipStart() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_DisableSkipStart(void)
@@ -315,7 +303,7 @@ __STATIC_INLINE void UART_DisableSkipStart(void)
 * Function Name: UART_Get
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Get() PDL driver function. 
+* Invokes the Cy_SCB_UART_Get() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_Get(void)
@@ -328,7 +316,7 @@ __STATIC_INLINE uint32_t UART_Get(void)
 * Function Name: UART_GetArray
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetArray() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetArray() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetArray(void *rxBuf, uint32_t size)
@@ -341,7 +329,7 @@ __STATIC_INLINE uint32_t UART_GetArray(void *rxBuf, uint32_t size)
 * Function Name: UART_GetArrayBlocking
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetArrayBlocking() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetArrayBlocking() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_GetArrayBlocking(void *rxBuf, uint32_t size)
@@ -354,7 +342,7 @@ __STATIC_INLINE void UART_GetArrayBlocking(void *rxBuf, uint32_t size)
 * Function Name: UART_GetRxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetRxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetRxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetRxFifoStatus(void)
@@ -367,7 +355,7 @@ __STATIC_INLINE uint32_t UART_GetRxFifoStatus(void)
 * Function Name: UART_ClearRxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_ClearRxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_ClearRxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_ClearRxFifoStatus(uint32_t clearMask)
@@ -380,7 +368,7 @@ __STATIC_INLINE void UART_ClearRxFifoStatus(uint32_t clearMask)
 * Function Name: UART_GetNumInRxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetNumInRxFifo() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetNumInRxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetNumInRxFifo(void)
@@ -393,7 +381,7 @@ __STATIC_INLINE uint32_t UART_GetNumInRxFifo(void)
 * Function Name: UART_ClearRxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_ClearRxFifo() PDL driver function. 
+* Invokes the Cy_SCB_UART_ClearRxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_ClearRxFifo(void)
@@ -408,7 +396,7 @@ __STATIC_INLINE void UART_ClearRxFifo(void)
 * Function Name: UART_Put
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Put() PDL driver function. 
+* Invokes the Cy_SCB_UART_Put() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_Put(uint32_t data)
@@ -421,7 +409,7 @@ __STATIC_INLINE uint32_t UART_Put(uint32_t data)
 * Function Name: UART_PutArray
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_PutArray() PDL driver function. 
+* Invokes the Cy_SCB_UART_PutArray() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_PutArray(void *txBuf, uint32_t size)
@@ -434,7 +422,7 @@ __STATIC_INLINE uint32_t UART_PutArray(void *txBuf, uint32_t size)
 * Function Name: UART_PutArrayBlocking
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_PutArrayBlocking() PDL driver function. 
+* Invokes the Cy_SCB_UART_PutArrayBlocking() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_PutArrayBlocking(void *txBuf, uint32_t size)
@@ -447,7 +435,7 @@ __STATIC_INLINE void UART_PutArrayBlocking(void *txBuf, uint32_t size)
 * Function Name: UART_PutString
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_PutString() PDL driver function. 
+* Invokes the Cy_SCB_UART_PutString() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_PutString(char string[])
@@ -460,7 +448,7 @@ __STATIC_INLINE void UART_PutString(char string[])
 * Function Name: UART_GetTxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetTxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetTxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetTxFifoStatus(void)
@@ -473,7 +461,7 @@ __STATIC_INLINE uint32_t UART_GetTxFifoStatus(void)
 * Function Name: UART_ClearTxFifoStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_ClearTxFifoStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_ClearTxFifoStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_ClearTxFifoStatus(uint32_t clearMask)
@@ -486,7 +474,7 @@ __STATIC_INLINE void UART_ClearTxFifoStatus(uint32_t clearMask)
 * Function Name: UART_GetNumInTxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetNumInTxFifo() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetNumInTxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetNumInTxFifo(void)
@@ -499,7 +487,7 @@ __STATIC_INLINE uint32_t UART_GetNumInTxFifo(void)
 * Function Name: UART_IsTxComplete
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_IsTxComplete() PDL driver function. 
+* Invokes the Cy_SCB_UART_IsTxComplete() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE bool UART_IsTxComplete(void)
@@ -512,7 +500,7 @@ __STATIC_INLINE bool UART_IsTxComplete(void)
 * Function Name: UART_ClearTxFifo
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_ClearTxFifo() PDL driver function. 
+* Invokes the Cy_SCB_UART_ClearTxFifo() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_ClearTxFifo(void)
@@ -527,7 +515,7 @@ __STATIC_INLINE void UART_ClearTxFifo(void)
 * Function Name: UART_StartRingBuffer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_StartRingBuffer() PDL driver function. 
+* Invokes the Cy_SCB_UART_StartRingBuffer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_StartRingBuffer(void *ringBuffer, uint32_t size)
@@ -540,7 +528,7 @@ __STATIC_INLINE void UART_StartRingBuffer(void *ringBuffer, uint32_t size)
 * Function Name: UART_StopRingBuffer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_StopRingBuffer() PDL driver function. 
+* Invokes the Cy_SCB_UART_StopRingBuffer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_StopRingBuffer(void)
@@ -553,7 +541,7 @@ __STATIC_INLINE void UART_StopRingBuffer(void)
 * Function Name: UART_ClearRingBuffer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_ClearRingBuffer() PDL driver function. 
+* Invokes the Cy_SCB_UART_ClearRingBuffer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_ClearRingBuffer(void)
@@ -566,7 +554,7 @@ __STATIC_INLINE void UART_ClearRingBuffer(void)
 * Function Name: UART_GetNumInRingBuffer
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetNumInRingBuffer() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetNumInRingBuffer() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetNumInRingBuffer(void)
@@ -579,7 +567,7 @@ __STATIC_INLINE uint32_t UART_GetNumInRingBuffer(void)
 * Function Name: UART_Receive
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Receive() PDL driver function. 
+* Invokes the Cy_SCB_UART_Receive() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_scb_uart_status_t UART_Receive(void *rxBuf, uint32_t size)
@@ -592,7 +580,7 @@ __STATIC_INLINE cy_en_scb_uart_status_t UART_Receive(void *rxBuf, uint32_t size)
 * Function Name: UART_GetReceiveStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetReceiveStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetReceiveStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetReceiveStatus(void)
@@ -605,7 +593,7 @@ __STATIC_INLINE uint32_t UART_GetReceiveStatus(void)
 * Function Name: UART_AbortReceive
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_AbortReceive() PDL driver function. 
+* Invokes the Cy_SCB_UART_AbortReceive() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_AbortReceive(void)
@@ -618,7 +606,7 @@ __STATIC_INLINE void UART_AbortReceive(void)
 * Function Name: UART_GetNumReceived
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetNumReceived() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetNumReceived() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetNumReceived(void)
@@ -633,7 +621,7 @@ __STATIC_INLINE uint32_t UART_GetNumReceived(void)
 * Function Name: UART_Transmit
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Transmit() PDL driver function. 
+* Invokes the Cy_SCB_UART_Transmit() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_scb_uart_status_t UART_Transmit(void *txBuf, uint32_t size)
@@ -646,7 +634,7 @@ __STATIC_INLINE cy_en_scb_uart_status_t UART_Transmit(void *txBuf, uint32_t size
 * Function Name: UART_GetTransmitStatus
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetTransmitStatus() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetTransmitStatus() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetTransmitStatus(void)
@@ -659,7 +647,7 @@ __STATIC_INLINE uint32_t UART_GetTransmitStatus(void)
 * Function Name: UART_AbortTransmit
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_AbortTransmit() PDL driver function. 
+* Invokes the Cy_SCB_UART_AbortTransmit() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_AbortTransmit(void)
@@ -672,7 +660,7 @@ __STATIC_INLINE void UART_AbortTransmit(void)
 * Function Name: UART_GetNumLeftToTransmit
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_GetNumLeftToTransmit() PDL driver function. 
+* Invokes the Cy_SCB_UART_GetNumLeftToTransmit() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t UART_GetNumLeftToTransmit(void)
@@ -686,20 +674,12 @@ __STATIC_INLINE uint32_t UART_GetNumLeftToTransmit(void)
 * Function Name: UART_Interrupt
 ****************************************************************************//**
 *
-* Invokes the Cy_SCB_UART_Interrupt() PDL driver function. 
+* Invokes the Cy_SCB_UART_Interrupt() PDL driver function.
 *
 *******************************************************************************/
 __STATIC_INLINE void UART_Interrupt(void)
 {
-#if defined (UART_INTERRUPT_ENTRY_CALLBACK)
-    UART_InterruptEntryCallback();
-#endif /* UART_INTERRUPT_ENTRY_CALLBACK */
-
     Cy_SCB_UART_Interrupt(UART_HW, &UART_context);
-    
-#if defined (UART_INTERRUPT_EXIT_CALLBACK)
-    UART_InterruptExitCallback();
-#endif /* UART_INTERRUPT_EXIT_CALLBACK */    
 }
 
 #if defined(__cplusplus)

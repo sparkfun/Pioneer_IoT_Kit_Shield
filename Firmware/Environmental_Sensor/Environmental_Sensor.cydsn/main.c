@@ -1,46 +1,41 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
-*/
+/****************************************************************************
+main.c
+Main function
+Mike Hord @ SparkFun Electronics
+6 Dec 2017
 
+This is the main() function definition file. It was derived from project #35
+in the "100 projects in 100 days" series on Cypress.com. More info at
+http://www.cypress.com/blog/100-projects-100-days?page=3
+
+Development environment specifics:
+Originally developed in PSoC Creator 4.1
+Targets CY8CKIT-042-BLE development board with an IoT Shield and SparkFun
+  Environmental Combo QWIIC Board
+
+This code is beerware; if you see me (or any other SparkFun employee) at the
+local, and you've found our code helpful, please buy us a round!
+****************************************************************************/
 #include "main.h"
 #include "bme280.h"
+#include "sensors_config.h"
 
-uint8 wrBuf[I2C_WRITE_BUFFER_SIZE];
+// Program-wide buffer for data to be written via BLE
+uint8 wrBuf[WRITE_BUFFER_SIZE];
 
-uint8 sendNotifications_BME280_Temp;
-uint8 sendNotifications_BME280_Pressure;
-uint8 sendNotifications_BME280_Humidity;
-CYBLE_API_RESULT_T	apiResult;  /*  variable to store BLE component API return */
+// Program-wide device objects for BME280 and CCS811
+struct bme280_dev bme280;
+struct ccs811_dev ccs811;
 
-/*******************************************************************************
-* Function Name: main
-********************************************************************************
-* Summary:
-*        System entrance point. This calls the initializing function and
-* continuously process BLE and I2C events.
-*
-* Parameters:
-*  void
-*
-* Return:
-*  int
-*
+// Program-wide result storage for BLE API calls.
+CYBLE_API_RESULT_T	apiResult;
 
-*******************************************************************************/
 int main()
 {	
-	/* Enable the Global Interrupt */
+	// Enable the Global Interrupt
 	CyGlobalIntEnable;
 
-	/* Turn off all LEDS */
+	// Turn off all LEDS
 	ALL_LED_OFF();
   
   // Initialize the BLE stack
@@ -53,19 +48,27 @@ int main()
 		while(1);
 	}
 
+  // Initialize the hardware modules used in the system
 	UART_Start();
-  UART_UartPutString("Hello, world");
   I2C_Start();
-  bme280Init();
   
-	for(;;) /* Loop forever */
+  UART_UartPutString("Env Sensor Example\n");
+  
+  CyDelay(500); // CCS811 wants a brief delay before it starts up
+  
+  // Configure and enable the sensors
+  bme280_config(&bme280);
+  ccs811_config(&ccs811);
+  
+  // Loop forever
+	for(;;)
 	{
     
     handleLowPowerMode();
     
 		CyBle_ProcessEvents();
     
-		sendI2CNotification();
+		sendSensorNotification();
 		
 	}
 }

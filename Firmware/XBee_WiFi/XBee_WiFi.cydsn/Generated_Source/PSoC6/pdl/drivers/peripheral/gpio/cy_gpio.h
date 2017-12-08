@@ -50,32 +50,21 @@
 *    registers. These functions are not thread safe and care must be taken when
 *    called by the application.
 *
+* The whole gpio port can be updated using the port mask by direct port 
+* register writing. The code example below shows the different ways of 
+* manipulating Port#1 using the Port output data register, 
+* the Port output data set register, and the Port output data clear register:
+*
+* \snippet gpio_sut_01.cydsn/main_cm4.c Cy_GPIO_Snippet
+*
+*
 * \section group_gpio_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
 *
 * \section group_gpio_MISRA MISRA-C Compliance]
-* <table class="doxtable">
-*   <tr>
-*     <th>MISRA rule</th>
-*     <th>Rule Class (Required/Advisory)</th>
-*     <th>Rule Description</th>
-*     <th>Description of Deviation(s)</th>
-*   </tr>
-*   <tr>
-*     <td>14.1</td>
-*     <td>R</td>
-*     <td>Static Function '' is not used within this translation unit.</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>16.7</td>
-*     <td>R</td>
-*     <td>The object addressed by the pointer parameter 'base' is not modified
-*           and so the pointer could be of type 'pointer to const'.</td>
-*     <td></td>
-*   </tr>
-* </table>
+*
+* The gpio driver does not have any specific deviations.
 *
 * \section group_gpio_changelog Changelog
 * <table class="doxtable">
@@ -87,7 +76,7 @@
 *   </tr>
 * </table>
 *
-* \defgroup group_gpio_macro Macro
+* \defgroup group_gpio_macros Macros
 * \defgroup group_gpio_functions Functions
 * \{
 *   \defgroup group_gpio_functions_init       Initialization Functions
@@ -110,7 +99,7 @@
 extern "C" {
 #endif
 
-/** \addtogroup group_gpio_macro
+/** \addtogroup group_gpio_macros
 * \{
 */
 
@@ -123,7 +112,7 @@ extern "C" {
 /** GPIO driver ID */
 #define CY_GPIO_ID CY_PDL_DRV_ID(0x16u)
 
-/** \} group_gpio_macro */
+/** \} group_gpio_macros */
 
 
 /***************************************
@@ -246,7 +235,7 @@ typedef struct {
 ***************************************/
 
 /**
-* \addtogroup group_gpio_macro
+* \addtogroup group_gpio_macros
 * \{
 */
 
@@ -366,7 +355,7 @@ typedef struct {
 #define CY_SIO_VOH_4_16                        (0x07UL) /**< \brief Voh = 4.16 x Reference */
 /** \} */
 
-/** \} group_gpio_macro */
+/** \} group_gpio_macros */
 
 /***************************************
 *        Function Prototypes
@@ -449,24 +438,29 @@ __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptEdge(GPIO_PRT_Type* base, uint32_t 
 __STATIC_INLINE void Cy_GPIO_SetFilter(GPIO_PRT_Type* base, uint32_t value);
 __STATIC_INLINE uint32_t Cy_GPIO_GetFilter(GPIO_PRT_Type* base);
 
-#if (IOSS_GPIO_GPIO_PORT_NR_0_31 != 0)
+#if (IOSS_GPIO_GPIO_PORT_NR_0_31 != 0) || defined (CY_DOXYGEN)
 __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptCause0(void);
 #endif /* (IOSS_GPIO_GPIO_PORT_NR_0_31 != 0) */
 
-#if (IOSS_GPIO_GPIO_PORT_NR_32_63 != 0)
+#if (IOSS_GPIO_GPIO_PORT_NR_32_63 != 0) || defined (CY_DOXYGEN)
 __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptCause1(void);
 #endif /* (IOSS_GPIO_GPIO_PORT_NR_32_63 != 0) */
 
-#if (IOSS_GPIO_GPIO_PORT_NR_64_95 != 0)
+#if (IOSS_GPIO_GPIO_PORT_NR_64_95 != 0) || defined (CY_DOXYGEN)
 __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptCause2(void);
 #endif /* (IOSS_GPIO_GPIO_PORT_NR_64_95 != 0) */
 
-#if (IOSS_GPIO_GPIO_PORT_NR_96_127 != 0)
+#if (IOSS_GPIO_GPIO_PORT_NR_96_127 != 0) || defined (CY_DOXYGEN)
 __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptCause3(void);
 #endif /* (IOSS_GPIO_GPIO_PORT_NR_96_127 != 0) */
 
 /** \} group_gpio_functions_interrupt */
 
+
+/**
+* \addtogroup group_gpio_functions_init
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_GPIO_Pin_FastInit
@@ -683,6 +677,12 @@ __STATIC_INLINE GPIO_PRT_Type* Cy_GPIO_PortToAddr(uint32_t portNum)
     return (base);
 }
 
+/** \} group_gpio_functions_init */
+
+/**
+* \addtogroup group_gpio_functions_gpio
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_GPIO_Read
@@ -1064,6 +1064,12 @@ __STATIC_INLINE uint32_t Cy_GPIO_GetDriveSel(GPIO_PRT_Type* base, uint32_t pinNu
     return (base->CFG_OUT >> (pinNum + CY_GPIO_CFG_OUT_DRIVE_OFFSET)) & CY_GPIO_CFG_OUT_DRIVE_SEL_MASK;
 }
 
+/** \} group_gpio_functions_gpio */
+
+/**
+* \addtogroup group_gpio_functions_sio
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_GPIO_SetVregEn
@@ -1367,6 +1373,12 @@ __STATIC_INLINE uint32_t Cy_GPIO_GetVohSel(GPIO_PRT_Type* base, uint32_t pinNum)
     return (base->CFG_SIO >> (((pinNum & CY_GPIO_SIO_ODD_PIN_MASK) << CY_GPIO_CFG_SIO_OFFSET) + CY_GPIO_VOH_SEL_SHIFT)) & CY_GPIO_VOH_SEL_MASK;
 }
 
+/** \} group_gpio_functions_sio */
+
+/**
+* \addtogroup group_gpio_functions_interrupt
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_GPIO_GetInterruptStatus
@@ -1705,8 +1717,9 @@ __STATIC_INLINE uint32_t Cy_GPIO_GetInterruptCause3(void)
 
 #endif
 
-/** \} group_gpio_functions */
+/** \} group_gpio_functions_interrupt */
 
+/** \} group_gpio_functions */
 
 #if defined(__cplusplus)
 }

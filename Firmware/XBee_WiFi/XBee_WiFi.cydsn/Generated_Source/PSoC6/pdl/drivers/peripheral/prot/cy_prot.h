@@ -121,7 +121,7 @@
 *   </tr>
 * </table>
 *
-* \defgroup group_prot_macro Macro
+* \defgroup group_prot_macros Macros
 * \defgroup group_prot_functions Functions
 * \{
 *   \defgroup group_prot_functions_busmaster   Bus Master and PC Functions
@@ -147,7 +147,7 @@
 extern "C" {
 #endif
 
-/** \addtogroup group_prot_macro
+/** \addtogroup group_prot_macros
 * \{
 */
 
@@ -160,7 +160,7 @@ extern "C" {
 /** Prot driver ID */
 #define CY_PROT_ID CY_PDL_DRV_ID(0x30u)
 
-/** \} group_prot_macro */
+/** \} group_prot_macros */
 
 /**
 * \addtogroup group_prot_enums
@@ -292,18 +292,39 @@ enum cy_en_prot_pcmask_t
 
 /** \cond INTERNAL */
 
+/* Helper function for finding max */
+#define CY_PROT_MAX(x,y) (((x)>(y))?(x):(y))
+
 /* General Masks and shifts */
-#define	CY_PROT_MSX_CTL_SHIFT                 (0x02UL) /**< Shift for MSx_CTL register */
-#define	CY_PROT_STRUCT_ENABLE                 (0x01UL) /**< Enable protection unit struct */
+#define    CY_PROT_MSX_CTL_SHIFT                 (0x02UL) /**< Shift for MSx_CTL register */
+#define    CY_PROT_STRUCT_ENABLE                 (0x01UL) /**< Enable protection unit struct */
 #define CY_PROT_ADDR_SHIFT                    (8UL)    /**< Address shift for MPU, SMPU and PROG PPU structs */
 
 /* Permission masks and shifts */
-#define	CY_PROT_ATT_PERMISSION_MASK           (0x07UL) /**< Protection Unit attribute permission mask */
-#define	CY_PROT_ATT_USER_PERMISSION_SHIFT     (0x00UL) /**< Protection Unit user attribute permission shift */
-#define	CY_PROT_ATT_PRIV_PERMISSION_SHIFT     (0x03UL) /**< Protection Unit priliged attribute permission shift */
+#define    CY_PROT_ATT_PERMISSION_MASK           (0x07UL) /**< Protection Unit attribute permission mask */
+#define    CY_PROT_ATT_USER_PERMISSION_SHIFT     (0x00UL) /**< Protection Unit user attribute permission shift */
+#define    CY_PROT_ATT_PRIV_PERMISSION_SHIFT     (0x03UL) /**< Protection Unit priliged attribute permission shift */
+
+/* Maximum Master Protection Context */
+#define CY_PROT_MS_PC_NR_MAX                  CY_PROT_MAX(CPUSS_PROT_SMPU_MS0_PC_NR_MINUS1,     \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS1_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS2_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS3_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS4_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS5_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS6_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS7_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS8_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS9_PC_NR_MINUS1,   \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS10_PC_NR_MINUS1,  \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS11_PC_NR_MINUS1,  \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS12_PC_NR_MINUS1,  \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS13_PC_NR_MINUS1,  \
+                                                CY_PROT_MAX(CPUSS_PROT_SMPU_MS14_PC_NR_MINUS1,  \
+                                                            CPUSS_PROT_SMPU_MS15_PC_NR_MINUS1)))))))))))))))
 
 /* Protection Context limit masks */
-#define CY_PROT_MPU_PC_LIMIT_MASK             (0xFFFFFFFFUL << CPUSS_PROT_SMPU_MS0_PC_NR_MINUS1)
+#define CY_PROT_MPU_PC_LIMIT_MASK             (0xFFFFFFFFUL << CY_PROT_MS_PC_NR_MAX)
 #define CY_PROT_SMPU_PC_LIMIT_MASK            (0xFFFFFFFFUL << CPUSS_SMPU_STRUCT_PC_NR_MINUS1)
 #define CY_PROT_PPU_PROG_PC_LIMIT_MASK        (0xFFFFFFFFUL << PERI_PPU_PROG_STRUCT_PC_NR_MINUS1)
 #define CY_PROT_PPU_FIXED_PC_LIMIT_MASK       (0xFFFFFFFFUL << PERI_PPU_FIXED_STRUCT_PC_NR_MINUS1)
@@ -409,9 +430,9 @@ typedef struct
     uint8_t           subregions;       /**< Mask of the 8 subregions to disable (Only applicable to slave) */
     cy_en_prot_perm_t userPermission;   /**< User permissions for the region */
     cy_en_prot_perm_t privPermission;   /**< Privileged permissions for the region */
-    bool              secure;	        /**< Non Secure = 0, Secure = 1 */
+    bool              secure;            /**< Non Secure = 0, Secure = 1 */
     bool              pcMatch;          /**< Access evaluation = 0, Matching = 1  */
-    uint16_t          pcMask;	        /**< Mask of allowed protection context(s) */
+    uint16_t          pcMask;            /**< Mask of allowed protection context(s) */
 } cy_stc_ppu_prog_cfg_t;
 
 /** Configuration structure for Fixed Group (GR) PPU (PPU_GR) struct initialization */
@@ -419,19 +440,19 @@ typedef struct
 {
     cy_en_prot_perm_t userPermission;   /**< User permissions for the region */
     cy_en_prot_perm_t privPermission;   /**< Privileged permissions for the region */
-    bool              secure;	        /**< Non Secure = 0, Secure = 1 */
+    bool              secure;            /**< Non Secure = 0, Secure = 1 */
     bool              pcMatch;          /**< Access evaluation = 0, Matching = 1  */
-    uint16_t          pcMask;	        /**< Mask of allowed protection context(s) */
+    uint16_t          pcMask;            /**< Mask of allowed protection context(s) */
 } cy_stc_ppu_gr_cfg_t;
 
 /** Configuration structure for Fixed Slave (SL) PPU (PPU_SL) struct initialization */
 typedef struct 
 {
-	cy_en_prot_perm_t userPermission;   /**< User permissions for the region */
-	cy_en_prot_perm_t privPermission;   /**< Privileged permissions for the region */
-	bool              secure;	        /**< Non Secure = 0, Secure = 1 */
-	bool              pcMatch;          /**< Access evaluation = 0, Matching = 1  */
-    uint16_t          pcMask;	        /**< Mask of allowed protection context(s) */
+    cy_en_prot_perm_t userPermission;   /**< User permissions for the region */
+    cy_en_prot_perm_t privPermission;   /**< Privileged permissions for the region */
+    bool              secure;            /**< Non Secure = 0, Secure = 1 */
+    bool              pcMatch;          /**< Access evaluation = 0, Matching = 1  */
+    uint16_t          pcMask;            /**< Mask of allowed protection context(s) */
 } cy_stc_ppu_sl_cfg_t;
 
 /** Configuration structure for Fixed Region (RG) PPU (PPU_RG) struct initialization */
@@ -439,9 +460,9 @@ typedef struct
 {
     cy_en_prot_perm_t userPermission;  /**< User permissions for the region */
     cy_en_prot_perm_t privPermission;  /**< Privileged permissions for the region */
-    bool             secure;	       /**< Non Secure = 0, Secure = 1 */
+    bool             secure;           /**< Non Secure = 0, Secure = 1 */
     bool             pcMatch;          /**< Access evaluation = 0, Matching = 1  */
-    uint16_t         pcMask;	       /**< Mask of allowed protection context(s) */
+    uint16_t         pcMask;           /**< Mask of allowed protection context(s) */
 } cy_stc_ppu_rg_cfg_t;
 
 /** \} group_prot_data_structures */

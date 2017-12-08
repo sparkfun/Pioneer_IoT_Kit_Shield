@@ -14,47 +14,6 @@ net CPUSS_swj_swdio_tms
 	switch ":CPUSS[0]swj_swdio_tms_input_permute.CPUSS[0]swj_swdio_tms==>:CPUSScontainer:CPUSS[0].swj_swdio_tms"
 	term   ":CPUSScontainer:CPUSS[0].swj_swdio_tms"
 end CPUSS_swj_swdio_tms
-net \SPI:Net_218\
-	term   ":SCBcontainer:SCB[6].spi_mosi"
-	switch ":SCBcontainer:SCB[6].spi_mosi==>:ioport12:hsiomOut0.fixedIn0_ACT_8"
-	switch ":ioport12:hsiomOut0.hsiomOut0==>:ioport12:smartio_mux_in0.direct_out"
-	switch ":ioport12:smartio_mux_in0.smartio_mux_in==>:ioport12:pin0.pin_input"
-	term   ":ioport12:pin0.pin_input"
-end \SPI:Net_218\
-net \SPI:Net_227\
-	term   ":SCBcontainer:SCB[6].spi_select_0"
-	switch ":SCBcontainer:SCB[6].spi_select_0==>:SCBcontainer:SCB[6]_ss_permute.in_0"
-	switch ":SCBcontainer:SCB[6]_ss_permute.out_0==>:SCBcontainer:SCB[6]_ss_permute.out_0_limit"
-	switch ":SCBcontainer:SCB[6]_ss_permute.out_0_limit==>:ioport12:hsiomOut3.fixedIn3_ACT_8"
-	switch ":ioport12:hsiomOut3.hsiomOut3==>:ioport12:smartio_mux_in3.direct_out"
-	switch ":ioport12:smartio_mux_in3.smartio_mux_in==>:ioport12:pin3.pin_input"
-	term   ":ioport12:pin3.pin_input"
-end \SPI:Net_227\
-net \SPI:Net_228\
-	term   ":SCBcontainer:SCB[6].spi_clk"
-	switch ":SCBcontainer:SCB[6].spi_clk==>:ioport12:hsiomOut2.fixedIn2_ACT_8"
-	switch ":ioport12:hsiomOut2.hsiomOut2==>:ioport12:smartio_mux_in2.direct_out"
-	switch ":ioport12:smartio_mux_in2.smartio_mux_in==>:ioport12:pin2.pin_input"
-	term   ":ioport12:pin2.pin_input"
-end \SPI:Net_228\
-net \SPI:Net_847_ff0\
-	term   ":Clockcontainer:Clock[0].ff_div_6"
-	switch ":Clockcontainer:Clock[0].ff_div_6==>:Clockcontainer:ff_permute.ff_div_6"
-	switch ":Clockcontainer:ff_permute.Clock[0]ff_div_6==>:SCBcontainer:SCB[6].clock"
-	term   ":SCBcontainer:SCB[6].clock"
-end \SPI:Net_847_ff0\
-net \SPI:intr_wire\
-	term   ":SCBcontainer:SCB[6].interrupt"
-	switch ":SCBcontainer:SCB[6].interrupt==>:intc_0:interrupt39.interrupt"
-	term   ":intc_0:interrupt39.interrupt"
-end \SPI:intr_wire\
-net \SPI:miso_s_wire\
-	term   ":SCBcontainer:SCB[6].spi_miso"
-	switch ":SCBcontainer:SCB[6].spi_miso==>:ioport12:hsiomOut1.fixedIn1_ACT_8"
-	switch ":ioport12:hsiomOut1.hsiomOut1==>:ioport12:smartio_mux_in1.direct_out"
-	switch ":ioport12:smartio_mux_in1.smartio_mux_in==>:ioport12:pin1.pin_input"
-	term   ":ioport12:pin1.pin_input"
-end \SPI:miso_s_wire\
 net \UART:Net_1172\
 	term   ":ioport5:pin0.fb"
 	switch ":ioport5:pin0.fb==>:ioport5:smartio_mux_out0.direct_in"
@@ -63,16 +22,16 @@ net \UART:Net_1172\
 	switch ":SCB[5]uart_rx_input_permute.SCB[5]uart_rx==>:SCBcontainer:SCB[5].uart_rx"
 	term   ":SCBcontainer:SCB[5].uart_rx"
 end \UART:Net_1172\
-net \UART:Net_847_ff1\
+net \UART:Net_847_ff0\
 	term   ":Clockcontainer:Clock[0].ff_div_5"
 	switch ":Clockcontainer:Clock[0].ff_div_5==>:Clockcontainer:ff_permute.ff_div_5"
 	switch ":Clockcontainer:ff_permute.Clock[0]ff_div_5==>:SCBcontainer:SCB[5].clock"
 	term   ":SCBcontainer:SCB[5].clock"
-end \UART:Net_847_ff1\
+end \UART:Net_847_ff0\
 net \UART:intr_wire\
 	term   ":SCBcontainer:SCB[5].interrupt"
-	switch ":SCBcontainer:SCB[5].interrupt==>:intc_0:interrupt38.interrupt"
-	term   ":intc_0:interrupt38.interrupt"
+	switch ":SCBcontainer:SCB[5].interrupt==>:intc_0:interrupt46.interrupt"
+	term   ":intc_0:interrupt46.interrupt"
 end \UART:intr_wire\
 net \UART:tx_wire\
 	term   ":SCBcontainer:SCB[5].uart_tx"

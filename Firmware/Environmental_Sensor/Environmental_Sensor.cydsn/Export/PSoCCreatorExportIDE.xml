@@ -37,17 +37,24 @@
       <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn">
           <File BuildType="BUILD" Toolchain="">main.c</File>
-          <File BuildType="BUILD" Toolchain="">app_I2C.c</File>
+          <File BuildType="BUILD" Toolchain="">app_sensors.c</File>
           <File BuildType="BUILD" Toolchain="">app_Ble.c</File>
           <File BuildType="BUILD" Toolchain="">low_power.c</File>
           <File BuildType="BUILD" Toolchain="">bme280.c</File>
+          <File BuildType="BUILD" Toolchain="">ccs811.c</File>
+          <File BuildType="BUILD" Toolchain="">sensors_config.c</File>
+          <File BuildType="BUILD" Toolchain="">i2c_support.c</File>
           <File BuildType="BUILD" Toolchain="">LED.h</File>
           <File BuildType="BUILD" Toolchain="">app_Ble.h</File>
-          <File BuildType="BUILD" Toolchain="">app_I2C.h</File>
+          <File BuildType="BUILD" Toolchain="">app_sensors.h</File>
           <File BuildType="BUILD" Toolchain="">config.h</File>
           <File BuildType="BUILD" Toolchain="">main.h</File>
           <File BuildType="BUILD" Toolchain="">low_power.h</File>
           <File BuildType="BUILD" Toolchain="">bme280.h</File>
+          <File BuildType="BUILD" Toolchain="">bme280_defs.h</File>
+          <File BuildType="BUILD" Toolchain="">ccs811.h</File>
+          <File BuildType="BUILD" Toolchain="">sensors_config.h</File>
+          <File BuildType="BUILD" Toolchain="">i2c_support.h</File>
         </Files>
       </Folder>
       <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\Environmental_Sensor\Environmental_Sensor.cydsn\Generated_Source\PSoC4">

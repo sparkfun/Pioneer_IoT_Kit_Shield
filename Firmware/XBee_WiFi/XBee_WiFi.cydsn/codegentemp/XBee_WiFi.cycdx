@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <blockRegMap version="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cypress.com/xsd/cyblockregmap cyblockregmap.xsd" xmlns="http://cypress.com/xsd/cyblockregmap">
-  <block name="Red_LED" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="UART" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false">
     <block name="rx_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
     <block name="rx" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
@@ -14,31 +13,16 @@
     <block name="or_sclk" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   </block>
   <block name="Pin_CM4_Reading" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  <block name="D_1" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  <block name="SPI" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false">
-    <block name="select_s_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="SCB" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="or_sclk" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="sclk_s_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="SCB_IRQ" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="miso_m_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="mosi_s_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="mosi_s" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="miso_s" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="SCBCLK" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="ss_s" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="ZeroTerminal_7" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="clock_VM" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-    <block name="sclk_s" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  </block>
+  <block name="Pin_CM4_Writing" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
+  <block name="Red_LED" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="Blue_LED" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="D_2" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  <block name="Pin_CM4_Writing" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
+  <block name="D_1" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="GND_1" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="Pin_CM0p_Reading" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="Pin_CM0p_Writing" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="SW_2" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  <block name="Yellow_Btn" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
-  <block name="White_Btn" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
+  <block name="D7" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
+  <block name="D9" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
   <block name="SW_3" BASE="0x0" SIZE="0x0" desc="" visible="true" hidden="false" />
 </blockRegMap>

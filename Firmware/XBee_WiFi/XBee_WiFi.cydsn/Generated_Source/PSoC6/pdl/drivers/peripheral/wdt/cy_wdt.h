@@ -17,16 +17,16 @@
 * \defgroup group_wdt Watchdog Timer (WDT)
 * \{
 *
-* The Watchdog Timer is a 16-bit free-running up-counter that can issue 
-* interrupts and device reset if its interrupts are not handled.
-* Use the Watchdog Timer for two main purposes.<br>
+* The Watchdog timer (WDT) has a 16-bit free-running up-counter. The WDT can 
+* issue counter match interrupts, and a device reset if its interrupts are not 
+* handled. Use the Watchdog timer for two main purposes.<br>
 * The <b> First use case </b> is recovering from a CPU or firmware failure.
-* A timeout period is set up in the watchdog timer, and if a timeout occurs, the
+* A timeout period is set up in the Watchdog timer, and if a timeout occurs, the
 * device is reset (WRES). <br>
 * The <b>Second use case</b> is to generate periodic interrupts.
 *
 * A "reset cause" register exists, and the firmware should check this register 
-* at startup. An appropriate action can be taken if a WRES reset is detected.
+* at a start-up. An appropriate action can be taken if a WRES reset is detected.
 *
 * The user's firmware periodically resets the timeout period (clears or "feeds" 
 * the watchdog) before a timeout occurs. If the firmware fails to do so, that is
@@ -35,22 +35,27 @@
 * The WDT can generate an interrupt instead of a device reset. The Interrupt 
 * Service Routine (ISR) can handle the interrupt either as a periodic interrupt,
 * or as an early indication of a firmware failure and respond accordingly.
+* However, it is not recommended to use the WDT for periodic interrupt 
+* generation. The Multi-counter Watchdog Timers (MCWDT) can be used to generate 
+* periodic interrupts if such are presented in the device.
 *
 * <b> Functional Description </b> <br>
 * The WDT generates an interrupt when the count value in the counter equals the 
 * configured match value.
 *
-* It is important that the counter is not reset on a match. When the counter 
-* reaches a match value, it generates an interrupt and then keeps counting up 
-* till it overflows and rolls back to zero and reaches the match value again, at
-* which point another interrupt is generated.
+* Note that the counter is not reset on a match. In such case the WDT
+* reset period is:
+* WDT_Reset_Period = ILO_Period * (2*2^(16-IgnoreBits) + MatchValue);
+* When the counter reaches a match value, it generates an interrupt and then 
+* keeps counting up until it overflows and rolls back to zero and reaches the 
+* match value again, at which point another interrupt is generated.
 *
 * To use a WDT to generate a periodic interrupt, the match value should be 
 * incremented in the ISR. As a result, the next WDT interrupt is generated when 
 * the counter reaches a new match value.
 *
 * You can also reduce the entire WDT counter period by 
-* specifying the number of most significant bits that are cut-off in the WDT 
+* specifying the number of most significant bits that are ignored in the WDT 
 * counter. For example, if the Cy_WDT_SetIgnoreBits() function is called with
 * parameter 3, the WDT counter becomes a 13-bit free-running up-counter.
 *
@@ -64,24 +69,16 @@
 * In Active or LPActive mode, an interrupt request from the WDT is sent to the 
 * CPU via IRQ 22. In Sleep, LPSleep or Deep Sleep power mode, the CPU subsystem 
 * is powered down, so the interrupt request from the WDT is sent directly to the
-* WakeUp Interrupt Controller (WIC), which will then wake up the CPU. The 
+* WakeUp Interrupt Controller (WIC) which will then wake up the CPU. The 
 * CPU then acknowledges the interrupt request and executes the ISR.
 *
-* After waking from Deep Sleep, an internal timer value is set to zero until the
-* ILO loads the register with the correct value. This  can cause an increase in 
-* low-power mode current consumption. The work around is to wait for the first 
-* negative edge of the ILO clock before allowing the WDT_CNT register to be read
-* by the Cy_WDT_GetCount() function.
-*
 * <b> Clock Source </b> <br>
-* The WDT is clocked by the 32 kHz ILO. The WDT reset must be disabled 
-* before disabling the ILO. Otherwise, any register write to disable the ILO is
-* ignored. Enabling the WDT reset automatically enables the ILO.
-* According to the device datasheet, the ILO accuracy is +/-30% over voltage 
-* and temperature. This means that the timeout period may vary by 30% from the 
-* configured value. Appropriate margins should be added while configuring WDT 
-* intervals to make sure that unwanted device resets do not occur on some 
-* devices.
+* The WDT is clocked by the ILO. The WDT must be disabled before disabling 
+* the ILO. According to the device datasheet, the ILO accuracy is +/-30% over 
+* voltage and temperature. This means that the timeout period may vary by 30% 
+* from the configured value. Appropriate margins should be added while 
+* configuring WDT intervals to make sure that unwanted device resets do not 
+* occur on some devices.
 * 
 * Refer to the device datasheet for more information on the oscillator accuracy.
 *
@@ -93,14 +90,14 @@
 * Call the Cy_WDT_Unlock() function to allow WDT registers modification.
 *
 * <b> Clearing WDT </b> <br>
-* The ILO clock is asynchronous to the SysClk. As a result it generally 
+* The ILO clock is asynchronous to the SysClk. Therefore it generally 
 * takes three ILO cycles for WDT register changes to come into effect. It is 
 * important to remember that a WDT should be cleared at least four cycles 
 * (3 + 1 for sure) before a timeout occurs, especially when small 
 * match values / low-toggle bit numbers are used.
 *
-* \warning There is a risk of situations when WDT reset can be generated 
-* faster than device start-up. Be aware of such situations by calculating the 
+* \warning It may happen that a WDT reset can be generated 
+* faster than a device start-up. To prevent this, calculate the 
 * start-up time and WDT reset time. The WDT reset time should be always smaller 
 * than device start-up time.
 *
@@ -110,10 +107,10 @@
 *
 * <b> Interrupt Configuration </b> <br>
 * The Global Signal Reference and Interrupt components can be used for ISR 
-* configuration. If the WDT is configured to generate an interrupt, the pending 
+* configuration. If the WDT is configured to generate an interrupt, pending 
 * interrupts must be cleared within the ISR (otherwise, the interrupt will be 
 * generated continuously).
-* A pending interrupt to the WDT block must be cleared by the call to the 
+* A pending interrupt to the WDT block must be cleared by calling the 
 * Cy_WDT_ClearInterrupt() function. The call to the function will clear the 
 * unhandled WDT interrupt counter.
 *
@@ -121,19 +118,20 @@
 * and to change a next WDT match value.
 *
 * Ensure that the interrupts from the WDT are passed to the CPU to avoid 
-* unregistered interrupts. Unregistered WDT interrupts result in continuous 
-* device reset. To avoid a continuous device reset, call 
-* Cy_WDT_UnmaskInterrupt(). After that, call the WDT API functions for interrupt
+* unregistered interrupts. Unregistered WDT interrupts result in a continuous 
+* device reset. To avoid this, call Cy_WDT_UnmaskInterrupt().
+* After that, call the WDT API functions for interrupt
 * handling/clearing.
 *
 * \section group_wdt_configuration Configuration Considerations
 *
 * To start the WDT, make sure that ILO is enabled.
-* After the ILO is enabled, ensure that the WDT is unlocked and disabled by calling 
-* the Cy_WDT_Unlock() and Cy_WDT_Disable() functions. Set the WDT match value by
-* calling Cy_WDT_SetMatch() with the required match value. If needed, set the 
-* ignore bits for reducing the WDT counter period by calling Cy_WDT_SetIgnoreBits() 
-* function. After the WDT configuration is set, call Cy_WDT_Enable().
+* After the ILO is enabled, ensure that the WDT is unlocked and disabled by 
+* calling the Cy_WDT_Unlock() and Cy_WDT_Disable() functions. Set the WDT match 
+* value by calling Cy_WDT_SetMatch() with the required match value. If needed, 
+* set the ignore bits for reducing the WDT counter period by calling 
+* Cy_WDT_SetIgnoreBits() function. After the WDT configuration is set, 
+* call Cy_WDT_Enable().
 *
 * \note Enable a WDT if the power supply can produce
 * sudden brownout events that may compromise the CPU functionality. This 
@@ -171,7 +169,7 @@
 *   </tr>
 * </table>
 *
-* \defgroup group_wdt_macro Macro
+* \defgroup group_wdt_macros Macros
 * \defgroup group_wdt_functions Functions
 *
 */
@@ -188,6 +186,43 @@
 extern "C" {
 #endif
 
+
+/*******************************************************************************
+*       Function Constants
+*******************************************************************************/
+
+/**
+* \addtogroup group_wdt_macros
+* \{
+*/
+
+/** The driver major version */
+#define CY_WDT_DRV_VERSION_MAJOR                       1
+
+/** The driver minor version */
+#define CY_WDT_DRV_VERSION_MINOR                       0
+
+/** The internal define for the first iteration of WDT unlocking */
+#define CY_SRSS_WDT_LOCK_BIT0                           ((uint32_t)0x01u << 30u)
+
+/** The internal define for the second iteration of WDT unlocking */
+#define CY_SRSS_WDT_LOCK_BIT1                           ((uint32_t)0x01u << 31u)
+
+/** The WDT default match value */
+#define CY_SRSS_WDT_DEFAULT_MATCH_VALUE                 ((uint32_t) 4096u)
+
+/** The default match value of the WDT ignore bits */
+#define CY_SRSS_WDT_DEFAULT_IGNORE_BITS                 (0u)
+
+/** The default match value of the WDT ignore bits */
+#define CY_SRSS_WDT_LOCK_BITS                           (3u)
+
+/** The WDT driver identifier */
+#define CY_WDT_ID                                       CY_PDL_DRV_ID(0x34u)
+
+/** \} group_wdt_macros */
+
+
 /*******************************************************************************
 *        Function Prototypes
 *******************************************************************************/
@@ -196,58 +231,124 @@ extern "C" {
 * \addtogroup group_wdt_functions
 * @{
 */
-    /* WDT API */
-    void     Cy_WDT_Init(void);
-    void     Cy_WDT_Enable(void);
-    void     Cy_WDT_Disable(void);
-    void     Cy_WDT_Lock(void);
-    void     Cy_WDT_Unlock(void);
-    void     Cy_WDT_SetMatch(uint32_t match);
-    uint32_t Cy_WDT_GetMatch(void);
-    uint32_t Cy_WDT_GetCount(void);
-    void     Cy_WDT_SetIgnoreBits(uint32_t bitsNum);
-    uint32_t Cy_WDT_GetIgnoreBits(void);
-    void     Cy_WDT_ClearInterrupt(void);
-    void     Cy_WDT_MaskInterrupt(void);
-    void     Cy_WDT_UnmaskInterrupt(void);
-    void     Cy_WDT_ClearWatchdog(void);
-/** \} group_wdt_functions */
+/* WDT API */
+void Cy_WDT_Init(void);
+void Cy_WDT_Lock(void);
+void Cy_WDT_Unlock(void);
+void Cy_WDT_SetMatch(uint32_t match);
+void Cy_WDT_SetIgnoreBits(uint32_t bitsNum);
+void Cy_WDT_ClearInterrupt(void);
+void Cy_WDT_ClearWatchdog(void);
+
+__STATIC_INLINE void Cy_WDT_Enable(void);
+__STATIC_INLINE void Cy_WDT_Disable(void);
+__STATIC_INLINE uint32_t Cy_WDT_GetMatch(void);
+__STATIC_INLINE uint32_t Cy_WDT_GetCount(void);
+__STATIC_INLINE uint32_t Cy_WDT_GetIgnoreBits(void);
+__STATIC_INLINE void Cy_WDT_MaskInterrupt(void);
+__STATIC_INLINE void Cy_WDT_UnmaskInterrupt(void);
 
 
 /*******************************************************************************
-*       Function Constants
+* Function Name: Cy_WDT_Enable
+****************************************************************************//**
+*
+* Enables the Watchdog timer.
+*
 *******************************************************************************/
+__STATIC_INLINE void Cy_WDT_Enable(void)
+{
+    SRSS->WDT_CTL |= _VAL2FLD(SRSS_WDT_CTL_WDT_EN, 1u);
+}
 
-/**
-* \addtogroup group_wdt_macro
-* \{
-*/
 
-/** Driver major version */
-#define CY_WDT_DRV_VERSION_MAJOR                       1
+/*******************************************************************************
+* Function Name: Cy_WDT_Disable
+****************************************************************************//**
+*
+* Disables the Watchdog timer. The Watchdog timer should be unlocked before being
+* disabled. Call the Cy_WDT_Unlock() API to unlock the WDT.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_WDT_Disable(void)
+{
+    SRSS->WDT_CTL &= ((uint32_t) ~(_VAL2FLD(SRSS_WDT_CTL_WDT_EN, 1u)));
+}
 
-/** Driver minor version */
-#define CY_WDT_DRV_VERSION_MINOR                       0
 
-/** Internal define for first iteration of WDT unlocking */
-#define CY_SRSS_WDT_LOCK_BIT0                           ((uint32_t)0x01u << 30u)
+/*******************************************************************************
+* Function Name: Cy_WDT_GetMatch
+****************************************************************************//**
+*
+* Reads the WDT counter match comparison value.
+*
+* \return The counter match value.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_WDT_GetMatch(void)
+{
+    return ((uint32_t) _FLD2VAL(SRSS_WDT_MATCH_MATCH, SRSS->WDT_MATCH));
+}
 
-/** Internal define for second iteration of WDT unlocking */
-#define CY_SRSS_WDT_LOCK_BIT1                           ((uint32_t)0x01u << 31u)
 
-/** WDT default match value */
-#define CY_SRSS_WDT_DEFAULT_MATCH_VALUE                 ((uint32_t) 4096u)
+/*******************************************************************************
+* Function Name: Cy_WDT_GetCount
+****************************************************************************//**
+*
+* Reads the current WDT counter value.
+*
+* \return A live counter value.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_WDT_GetCount(void)
+{
+    return ((uint32_t) _FLD2VAL(SRSS_WDT_CNT_COUNTER, SRSS->WDT_CNT));
+}
 
-/** Default match value of WDT ignore bits */
-#define CY_SRSS_WDT_DEFAULT_IGNORE_BITS                 (0u)
 
-/** Default match value of WDT ignore bits */
-#define CY_SRSS_WDT_LOCK_BITS                           (3u)
+/*******************************************************************************
+* Function Name: Cy_WDT_GetIgnoreBits
+****************************************************************************//**
+*
+* Reads the number of the most significant bits of the Watchdog timer that are 
+* not checked against the match.
+*
+* \return The number of the most significant bits.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_WDT_GetIgnoreBits(void)
+{
+    return((uint32_t) _FLD2VAL(SRSS_WDT_MATCH_IGNORE_BITS ,SRSS->WDT_MATCH));
+}
 
-/** WDT driver identifier */
-#define CY_WDT_ID                                       CY_PDL_DRV_ID(0x34u)
 
-/** \} group_wdt_macro */
+/*******************************************************************************
+* Function Name: Cy_WDT_MaskInterrupt
+****************************************************************************//**
+*
+* After masking interrupts from the WDT, they are not passed to the CPU.
+* This function does not disable the WDT-reset generation.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_WDT_MaskInterrupt(void)
+{
+    SRSS->SRSS_INTR_MASK &= (uint32_t)(~ _VAL2FLD(SRSS_SRSS_INTR_MASK_WDT_MATCH, 1u));
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_WDT_UnmaskInterrupt
+****************************************************************************//**
+*
+* After unmasking interrupts from the WDT, they are passed to CPU.
+* This function does not impact the reset generation.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_WDT_UnmaskInterrupt(void)
+{
+    SRSS->SRSS_INTR_MASK |= _VAL2FLD(SRSS_SRSS_INTR_MASK_WDT_MATCH, 1u);
+}
+/** \} group_wdt_functions */
 
 #if defined(__cplusplus)
 }

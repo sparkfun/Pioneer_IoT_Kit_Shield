@@ -1,9 +1,9 @@
 /***************************************************************************//**
 * \file cy_sysint.h
-* \version 1.0
+* \version 1.10
 *
 * \brief
-* Provides an API declaration of the sysint driver
+* Provides an API declaration of the SysInt driver
 *
 ********************************************************************************
 * \copyright
@@ -17,7 +17,8 @@
 * \defgroup group_sysint System Interrupt (SysInt)
 * \{
 * The SysInt driver provides an API to configure the device peripheral interrupts.
-* It provides a lightweight interface to complement the CMSIS core NVIC API.
+* It provides a lightweight interface to complement
+* the <a href="https://www.keil.com/pack/doc/CMSIS/Core/html/group__NVIC__gr.html">CMSIS core NVIC API</a>.
 * The provided functions are applicable for all cores in a device and they can
 * be used to configure and connect device peripheral interrupts to one or more
 * cores.
@@ -25,42 +26,101 @@
 * \n
 * <b> Initialization </b>
 *
-* To configure an interrupt, call Cy_SysInt_Init().
-* Populate the configuration structure (cy_stc_sysint_t) and pass it as a parameter
+* Interrupt numbers are defined in a device-specific header file, such as 
+* cy8c68237bz_ble.h.
+*
+* To configure an interrupt, call Cy_SysInt_Init(). Populate
+* the configuration structure (cy_stc_sysint_t) and pass it as a parameter
 * along with the ISR address. This initializes the interrupt and
 * instructs the CPU to jump to the specified ISR vector upon a valid trigger.
 * 
-* Populating the interrupt configuration structure differs slightly for the CM0+ core.
-* This core supports only up to 32 peripheral interrupt channels. To allow all device
-* interrupts to be routable to the NVIC of this core, there exists a 240:1 multiplexer
-* at each of the 32 NVIC channels. Hence the configuration structure (cy_stc_sysint_t)
-* must specify the device interrupt source (intSrc) and the CM0+ NVIC mux (intrCm0p).
+* On the Cortex M4, system interrupt source 'n' is connected to the 
+* corresponding IRQn. Deep-sleep capable interrupts are allocated to deep-sleep
+* capable IRQn channels. 
+* 
+* The CM0+ core supports up to 32 interrupt channels (IRQn 0-31). To allow all device
+* interrupts to be routable to the NVIC of this core, there is a 240:1 multiplexer
+* at each of the 32 NVIC channels. The configuration structure (cy_stc_sysint_t)
+* must specify the device interrupt source (cm0pSrc) that feeds into the CM0+ NVIC
+* mux (intrSrc). CM0+ NVIC channels 0-2 and 30-31 are reserved for system use.
 *
+* In addition, on the CM0+ core, a deep-sleep capable interrupt must be routed 
+* to a deep-sleep capable IRQn channel. Otherwise it won't work. The device 
+* header file identifies which IRQn channels are deep-sleep capable.
+* 
 * \n
 * <b> Enable </b>
 * 
-* After initializing an interrupt, use the CMSIS Core NVIC_EnableIRQ() function to
-* enable it. The parameter used in this function call differs between the CM0+ cores
-* and non-CM0+ cores due to the previously mentioned architectural differences.
-* Given an initialization structure named config, the function should be called as
-* follows:
+* After initializing an interrupt, use the CMSIS Core
+* <a href="https://www.keil.com/pack/doc/CMSIS/Core/html/group__NVIC__gr.html#ga530ad9fda2ed1c8b70e439ecfe80591f">NVIC_EnableIRQ()</a> function
+* to enable it. Given an initialization structure named config,  
+* the function should be called as follows:
 *
-* - Non-CM0+ : NVIC_EnableIRQ(config.intrSrc)
-* - CM0+ : NVIC_EnableIRQ(config.intrCm0p)
+* NVIC_EnableIRQ(config.intrSrc)
+*
+* \n
+* <b>Writing an interrupt service routine</b>
+*
+* Servicing interrupts in the Peripheral Drivers should follow a prescribed
+* recipe to ensure all interrupts are serviced and duplicate interrupts are not
+* received. Any peripheral-specific register that must be written to clear the
+* source of the interrupt should be written as soon as possible in the interrupt
+* service routine. However, note that due to buffering on the output bus to the
+* peripherals, the write clearing the interrupt may be delayed. After performing
+* the normal interrupt service that should respond to the interrupting
+* condition, the interrupt register that was initially written to clear the
+* register should be read before returning from the interrupt service routine.
+* This read ensures that the initial write has been flushed out to the hardware.
+* Note, no additional processing should be performed based on the result of this
+* read, as this read is just intended to ensure the write operation is flushed.
+*
+* This final read may indicate a pending interrupt. What this means is that in
+* the interval between when the write actually happened at the peripheral and
+* when the read actually happened at the peripheral, an interrupting condition
+* occurred. This is ok and a return from the interrupt is still the correct
+* action. As soon as conditions warrant, meaning interrupts are enabled and
+* there are no higher priority interrupts pending, the interrupt will be
+* triggered again to service the additional condition.
 *
 * \section group_sysint_section_configuration_considerations Configuration Considerations
 *
-* For the Cortex-M0+ core, NVIC mux positions 28, 29, 30, and 31 are reserved for 
-* internal use by Cypress. These should not be used by the application code.
+* CM0+ <a href="https://www.keil.com/pack/doc/CMSIS/Core/html/group__NVIC__gr.html#ga7e1129cd8a196f4284d41db3e82ad5c8">NVIC IRQn</a>
+* channels 0-2 and 30-31 are reserved for system use, inter-processor communication,
+* and the crypto driver. Other IRQn channels (3-29) are available to the user application.
+*
+* Deep-sleep wakeup-capability is determined by the CPUSS_CM0_DPSLP_IRQ_NR 
+* parameter, where the first N number of muxes (NvicMux0 ... NvicMuxN-1) have the 
+* capability to trigger deep-sleep interrupts. A deep-sleep capable interrupt source 
+* must be connected to one of these muxes to be able to trigger in deep-sleep. 
+* Refer to the IRQn_Type definition in the device header.
 *
 * \section group_sysint_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
 *
-*
 * \section group_sysint_MISRA MISRA-C Compliance
-*
-* The sysint driver does not have any specific deviations.
+* <table class="doxtable">
+*   <tr>
+*     <th>MISRA Rule</th>
+*     <th>Rule Class (Required/Advisory)</th>
+*     <th>Rule Description</th>
+*     <th>Description of Deviation(s)</th>
+*   </tr>
+*   <tr>
+*     <td>2.3</td>
+*     <td>A</td>
+*     <td>Nested comments are not recognized in the ISO standard.</td>
+*     <td>
+*         The comments provide the useful WEB link to the additional documentation.</td>
+*   </tr>
+*   <tr>
+*     <td>8.12</td>
+*     <td>R</td>
+*     <td>Array declared with unknown size.</td>
+*     <td>
+*         __Vectors and __ramVectors arrays can have the different size depend on the selected device.</td>
+*   </tr>
+* </table>
 *
 * \section group_sysint_changelog Changelog
 * <table class="doxtable">
@@ -70,9 +130,14 @@
 *     <td>Initial version</td>
 *     <td></td>
 *   </tr>
+*   <tr>
+*     <td>1.10</td>
+*     <td>Cy_SysInt_GetState() function is redefined to call NVIC_GetEnableIRQ().</td>
+*     <td></td>
+*   </tr>
 * </table>
 *
-* \defgroup group_sysint_macro Macro
+* \defgroup group_sysint_macros Macros
 * \defgroup group_sysint_globals Global variables
 * \defgroup group_sysint_functions Functions
 * \defgroup group_sysint_data_structures Data structures
@@ -112,7 +177,7 @@ extern cy_israddress __ramVectors[]; /**< Relocated vector table in SRAM */
 ***************************************/
 
 /**
-* \addtogroup group_sysint_macro
+* \addtogroup group_sysint_macros
 * \{
 */
 
@@ -120,12 +185,12 @@ extern cy_israddress __ramVectors[]; /**< Relocated vector table in SRAM */
 #define CY_SYSINT_DRV_VERSION_MAJOR    1
 
 /** Driver minor version */
-#define CY_SYSINT_DRV_VERSION_MINOR    0
+#define CY_SYSINT_DRV_VERSION_MINOR    10
 
 /** SysInt driver ID */
 #define CY_SYSINT_ID CY_PDL_DRV_ID(0x15u)
 
-/** \} group_sysint_macro */
+/** \} group_sysint_macros */
 
 
 /***************************************
@@ -146,48 +211,6 @@ typedef enum
     CY_SYSINT_BAD_PARAM = CY_SYSINT_ID | CY_PDL_STATUS_ERROR | 0x01u, /**< Bad parameter was passed */
 } cy_en_sysint_status_t;
 
-/**
-* Enumeration values for Cortex-M0+ NVIC multiplexer selection.
-* Deep-sleep wakeup-capability is determined by the CPUSS_CM0_DPSLP_IRQ_NR 
-* parameter, where the first N number of muxes have the capability to trigger
-* deep-sleep interrupts. A deep-sleep capable interrupt source must be 
-* connected to one of these muxes to be able to trigger in deep-sleep.
-*/
-typedef enum {
-  NvicMux0  = 0,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 0 */
-  NvicMux1  = 1,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 1 */
-  NvicMux2  = 2,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 2 */
-  NvicMux3  = 3,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 3 */
-  NvicMux4  = 4,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 4 */
-  NvicMux5  = 5,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 5 */
-  NvicMux6  = 6,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 6 */
-  NvicMux7  = 7,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 7 */
-  NvicMux8  = 8,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 8 */
-  NvicMux9  = 9,    /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 9 */
-  NvicMux10 = 10,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 10 */
-  NvicMux11 = 11,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 11 */
-  NvicMux12 = 12,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 12 */
-  NvicMux13 = 13,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 13 */
-  NvicMux14 = 14,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 14 */
-  NvicMux15 = 15,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 15 */
-  NvicMux16 = 16,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 16 */
-  NvicMux17 = 17,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 17 */
-  NvicMux18 = 18,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 18 */
-  NvicMux19 = 19,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 19 */
-  NvicMux20 = 20,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 20 */
-  NvicMux21 = 21,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 21 */
-  NvicMux22 = 22,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 22 */
-  NvicMux23 = 23,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 23 */
-  NvicMux24 = 24,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 24 */
-  NvicMux25 = 25,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 25 */
-  NvicMux26 = 26,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 26 */
-  NvicMux27 = 27,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 27 */
-  NvicMux28 = 28,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 28 */
-  NvicMux29 = 29,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 29 */
-  NvicMux30 = 30,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 30 */
-  NvicMux31 = 31,   /**< NVIC Mux for mapping intrSrc to CM0+ NVIC input 31 */
-} IRQn_CM0P_Type;
-
 /** \} group_sysint_enums */
 
 
@@ -205,7 +228,9 @@ typedef enum {
 */
 typedef struct {
     IRQn_Type       intrSrc;        /**< Interrupt source */
-    IRQn_CM0P_Type  intrCm0p;       /**< (CM0+ only) Maps intrSrc to 32 available CM0+ NVIC inputs */
+#if (CY_CPU_CORTEX_M0P)
+    cy_en_intr_t    cm0pSrc;        /**< (CM0+ only) Maps cm0pSrc device interrupts to intrSrc */
+#endif
     uint32_t        intrPriority;   /**< Interrupt priority number (Refer to __NVIC_PRIO_BITS) */
 } cy_stc_sysint_t;
 
@@ -248,17 +273,26 @@ typedef struct {
 * \{
 */
 cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddress userIsr);
-uint32_t Cy_SysInt_GetState(const cy_stc_sysint_t* config);
-cy_israddress Cy_SysInt_SetVector(const cy_stc_sysint_t* config, cy_israddress userIsr);
-cy_israddress Cy_SysInt_GetVector(const cy_stc_sysint_t* config);
-__STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(const cy_stc_sysint_t* config);
-__STATIC_INLINE uint32_t Cy_SysInt_GetIntSourceNMI(void);
+cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr);
+cy_israddress Cy_SysInt_GetVector(IRQn_Type intrSrc);
+__STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(IRQn_Type intrSrc);
+__STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void);
 #if (CY_CPU_CORTEX_M0P)
-    void Cy_SysInt_SetIntSource(const cy_stc_sysint_t* config);
-    uint32_t Cy_SysInt_GetIntSource(IRQn_CM0P_Type muxSel);
+    void Cy_SysInt_SetIntSource(IRQn_Type intrSrc, cy_en_intr_t cm0pSrc);
+    cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc);
 #else
-    __STATIC_INLINE void Cy_SysInt_SoftwareTrig(const cy_stc_sysint_t* config);
+    __STATIC_INLINE void Cy_SysInt_SoftwareTrig(IRQn_Type intrSrc);
 #endif
+
+
+/*******************************************************************************
+* Function Name: Cy_SysInt_GetState
+****************************************************************************//**
+*
+* Invokes the NVIC_GetEnableIRQ NVIC function.
+*
+*******************************************************************************/
+#define Cy_SysInt_GetState NVIC_GetEnableIRQ
 
 
 /*******************************************************************************
@@ -267,22 +301,22 @@ __STATIC_INLINE uint32_t Cy_SysInt_GetIntSourceNMI(void);
 *
 * \brief Sets the interrupt source of NMI.
 *
-* Setting this value to 240 disconnects the interrupt source from the NMI. The
-* interrupt source must be a positive number.
+* The interrupt source must be a positive number. Setting the value to 
+* "unconnected_IRQn" (240) disconnects the interrupt source from the NMI. 
 *
-* For CM0+, this function sets the interrupt mux output feeding into the
-* NVIC as the source for NMI.
+* Note that for CM0+, this function sets the interrupt mux output feeding into 
+* the NVIC as the source for the NMI.
 *
-* \param config
-* Interrupt configuration structure
+* \param intrSrc
+* Interrupt source
 *
 *******************************************************************************/
-__STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(const cy_stc_sysint_t* config)
+__STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(IRQn_Type intrSrc)
 {
     #if CY_CPU_CORTEX_M0P
-        CPUSS->CM0_NMI_CTL = config->intrCm0p;
+        CPUSS->CM0_NMI_CTL = (uint32_t)intrSrc;
     #else
-        CPUSS->CM4_NMI_CTL = config->intrSrc;
+        CPUSS->CM4_NMI_CTL = (uint32_t)intrSrc;
     #endif
 }
 
@@ -294,16 +328,16 @@ __STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(const cy_stc_sysint_t* config)
 * \brief Gets the interrupt source of the NMI.
 *
 * \return
-* Interrupt Source. A value of 240 means that there is no interrupt source
-* for the NMI, and an interrupt can be triggered only through software.
+* Interrupt Source. A value of "unconnected_IRQn" (240) means that there is no 
+* interrupt source for the NMI, and it can be only be triggered through software.
 *
 *******************************************************************************/
-__STATIC_INLINE uint32_t Cy_SysInt_GetIntSourceNMI(void)
+__STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void)
 {
     #if CY_CPU_CORTEX_M0P
-        return (CPUSS->CM0_NMI_CTL);
+        return (IRQn_Type)(CPUSS->CM0_NMI_CTL);
     #else
-        return (CPUSS->CM4_NMI_CTL);
+        return (IRQn_Type)(CPUSS->CM4_NMI_CTL);
     #endif
 }
 
@@ -319,13 +353,13 @@ __STATIC_INLINE uint32_t Cy_SysInt_GetIntSourceNMI(void)
 * <b>Note</b> Only privileged software can enable unprivileged access to the
 * Software Trigger Interrupt Register (STIR).
 *
-* \param config
-* Interrupt configuration structure
+* \param intrSrc
+* Interrupt source
 *
 *******************************************************************************/
-__STATIC_INLINE void Cy_SysInt_SoftwareTrig(const cy_stc_sysint_t* config)
+__STATIC_INLINE void Cy_SysInt_SoftwareTrig(IRQn_Type intrSrc)
 {
-    NVIC->STIR = config->intrSrc & CY_SYSINT_STIR_MASK;
+    NVIC->STIR = (uint32_t)intrSrc & CY_SYSINT_STIR_MASK;
 }
 
 #endif

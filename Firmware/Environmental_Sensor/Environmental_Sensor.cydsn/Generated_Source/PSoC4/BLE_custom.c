@@ -23,7 +23,7 @@
 */
 /* This array contains attribute handles for the defined Custom Services and their characteristics and descriptors.
    The array index definitions are located in the CYBLE_custom.h file. */
-const CYBLE_CUSTOMS_T cyBle_customs[0x03u] = {
+const CYBLE_CUSTOMS_T cyBle_customs[0x05u] = {
 
     /* BME280_Temp service */
     {
@@ -71,6 +71,40 @@ const CYBLE_CUSTOMS_T cyBle_customs[0x03u] = {
                 /* Array of Descriptors handles */
                 {
                     0x0017u, /* Handle of the Client Characteristic Configuration descriptor */ 
+                }, 
+            },
+        }, 
+    },
+
+    /* CCS811_TVOC service */
+    {
+        0x0018u, /* Handle of the CCS811_TVOC service */ 
+        {
+
+            /* CCS811_TVOC characteristic */
+            {
+                0x001Au, /* Handle of the CCS811_TVOC characteristic */ 
+                
+                /* Array of Descriptors handles */
+                {
+                    0x001Bu, /* Handle of the Client Characteristic Configuration descriptor */ 
+                }, 
+            },
+        }, 
+    },
+
+    /* CCS811_ECO2 service */
+    {
+        0x001Cu, /* Handle of the CCS811_ECO2 service */ 
+        {
+
+            /* CCS811_ECO2 characteristic */
+            {
+                0x001Eu, /* Handle of the CCS811_ECO2 characteristic */ 
+                
+                /* Array of Descriptors handles */
+                {
+                    0x001Fu, /* Handle of the Client Characteristic Configuration descriptor */ 
                 }, 
             },
         }, 

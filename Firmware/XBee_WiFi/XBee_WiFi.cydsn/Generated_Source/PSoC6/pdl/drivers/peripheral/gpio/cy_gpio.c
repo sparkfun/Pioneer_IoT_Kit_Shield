@@ -36,7 +36,7 @@ extern "C" {
 * Pointer to the pin config structure base address
 *
 * \return
-* void
+* Initialization status
 *
 * \note 
 * This function modifies port registers in read-modify-write operations. It is
@@ -96,7 +96,7 @@ cy_en_gpio_status_t Cy_GPIO_Pin_Init(GPIO_PRT_Type *base, uint32_t pinNum, const
 * Pointer to the pin config structure base address
 *
 * \return
-* void
+* Initialization status
 *
 *******************************************************************************/
 cy_en_gpio_status_t Cy_GPIO_Port_Init(GPIO_PRT_Type* base, const cy_stc_gpio_prt_config_t *config)

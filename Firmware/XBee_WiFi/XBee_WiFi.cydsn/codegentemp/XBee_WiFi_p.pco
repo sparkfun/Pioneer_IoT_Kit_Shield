@@ -1,19 +1,15 @@
-dont_use_location drqcell -1 -1 0
-set_io "\SPI:miso_s(0)\" iocell 12 1
-set_io "Yellow_Btn(0)" iocell 0 2
-set_io "\UART:rx(0)\" iocell 5 0
-set_io "\SPI:ss_s(0)\" iocell 12 3
-set_io "\SPI:sclk_s(0)\" iocell 12 2
-set_location "ClockGenBlock" CLK_GEN -1 -1 0
-set_location "\SPI:SCB\" SCB -1 -1 6
-set_location "ClockBlock" Clock -1 -1 0
-set_io "\SPI:mosi_s(0)\" iocell 12 0
+dont_use_location p4usbcell -1 -1 0
+dont_use_location USB -1 -1 0
+dont_use_location usbcell -1 -1 0
 set_location "\UART:SCB\" SCB -1 -1 5
-set_io "CPUSS_SWJ_SWCLK_TCLK(0)" iocell 6 7
-set_location "\UART:SCB_IRQ\" interrupt -1 -1 38
-set_location "\SPI:SCB_IRQ\" interrupt -1 -1 39
-set_io "CPUSS_SWJ_SWDIO_TMS(0)" iocell 6 6
-set_location "CPUSS" CPUSS -1 -1 0
+set_io "\UART:rx(0)\" iocell 5 0
+set_location "\UART:SCB_IRQ\" interrupt -1 -1 46
+set_location "ClockGenBlock" CLK_GEN -1 -1 0
+set_io "D7(0)" iocell 0 2
+set_location "ClockBlock" Clock -1 -1 0
+set_io "CY_CPUSS_SWJ_SWCLK_TCLK(0)" iocell 6 7
+set_io "CY_CPUSS_SWJ_SWDIO_TMS(0)" iocell 6 6
+set_io "D9(0)" iocell 13 1
 set_io "\UART:tx(0)\" iocell 5 1
 set_io "Pin_CM0p_Writing(0)" iocell 0 0
 set_io "Pin_CM0p_Reading(0)" iocell 0 1
@@ -21,4 +17,4 @@ set_io "Pin_CM4_Writing(0)" iocell 0 4
 set_io "Pin_CM4_Reading(0)" iocell 0 5
 set_io "Red_LED(0)" iocell 0 3
 set_io "Blue_LED(0)" iocell 11 1
-set_io "White_Btn(0)" iocell 13 1
+set_location "CPUSS" CPUSS -1 -1 0

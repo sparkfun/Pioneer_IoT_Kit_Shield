@@ -24,7 +24,7 @@
 ***************************************/
 
 /* Maximum supported Custom Services */
-#define CYBLE_CUSTOMS_SERVICE_COUNT                  (0x03u)
+#define CYBLE_CUSTOMS_SERVICE_COUNT                  (0x05u)
 #define CYBLE_CUSTOMC_SERVICE_COUNT                  (0x00u)
 #define CYBLE_CUSTOM_SERVICE_CHAR_COUNT              (0x01u)
 #define CYBLE_CUSTOM_SERVICE_CHAR_DESCRIPTORS_COUNT  (0x01u)
@@ -42,6 +42,14 @@
 #define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CHAR_INDEX   (0x00u) /* Index of BME280_Humidity characteristic */
 #define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x00u) /* Index of Client Characteristic Configuration descriptor */
 
+#define CYBLE_CCS811_TVOC_SERVICE_INDEX   (0x03u) /* Index of CCS811_TVOC service in the cyBle_customs array */
+#define CYBLE_CCS811_TVOC_CCS811_TVOC_CHAR_INDEX   (0x00u) /* Index of CCS811_TVOC characteristic */
+#define CYBLE_CCS811_TVOC_CCS811_TVOC_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x00u) /* Index of Client Characteristic Configuration descriptor */
+
+#define CYBLE_CCS811_ECO2_SERVICE_INDEX   (0x04u) /* Index of CCS811_ECO2 service in the cyBle_customs array */
+#define CYBLE_CCS811_ECO2_CCS811_ECO2_CHAR_INDEX   (0x00u) /* Index of CCS811_ECO2 characteristic */
+#define CYBLE_CCS811_ECO2_CCS811_ECO2_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_INDEX   (0x00u) /* Index of Client Characteristic Configuration descriptor */
+
 
 #define CYBLE_BME280_TEMP_SERVICE_HANDLE   (0x000Cu) /* Handle of BME280_Temp service */
 #define CYBLE_BME280_TEMP_BME280_TEMP_DECL_HANDLE   (0x000Du) /* Handle of BME280_Temp characteristic declaration */
@@ -57,6 +65,16 @@
 #define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_DECL_HANDLE   (0x0015u) /* Handle of BME280_Humidity characteristic declaration */
 #define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CHAR_HANDLE   (0x0016u) /* Handle of BME280_Humidity characteristic */
 #define CYBLE_BME280_HUMIDITY_BME280_HUMIDITY_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x0017u) /* Handle of Client Characteristic Configuration descriptor */
+
+#define CYBLE_CCS811_TVOC_SERVICE_HANDLE   (0x0018u) /* Handle of CCS811_TVOC service */
+#define CYBLE_CCS811_TVOC_CCS811_TVOC_DECL_HANDLE   (0x0019u) /* Handle of CCS811_TVOC characteristic declaration */
+#define CYBLE_CCS811_TVOC_CCS811_TVOC_CHAR_HANDLE   (0x001Au) /* Handle of CCS811_TVOC characteristic */
+#define CYBLE_CCS811_TVOC_CCS811_TVOC_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x001Bu) /* Handle of Client Characteristic Configuration descriptor */
+
+#define CYBLE_CCS811_ECO2_SERVICE_HANDLE   (0x001Cu) /* Handle of CCS811_ECO2 service */
+#define CYBLE_CCS811_ECO2_CCS811_ECO2_DECL_HANDLE   (0x001Du) /* Handle of CCS811_ECO2 characteristic declaration */
+#define CYBLE_CCS811_ECO2_CCS811_ECO2_CHAR_HANDLE   (0x001Eu) /* Handle of CCS811_ECO2 characteristic */
+#define CYBLE_CCS811_ECO2_CCS811_ECO2_CLIENT_CHARACTERISTIC_CONFIGURATION_DESC_HANDLE   (0x001Fu) /* Handle of Client Characteristic Configuration descriptor */
 
 
 

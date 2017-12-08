@@ -1,7 +1,7 @@
 /*******************************************************************************
 * File Name: project.h
 * 
-* PSoC Creator  4.1
+* PSoC Creator  4.2
 *
 * Description:
 * It contains references to all generated header files and should not be modified.
@@ -14,50 +14,29 @@
 * the software package with which this file was provided.
 ********************************************************************************/
 
+#include "cy8c6347bzi_bld53.h"
 #include "sysint/cy_sysint.h"
 #include "ipc/cy_ipc_drv.h"
-#include "ipc/cy_ipc_lock.h"
+#include "ipc/cy_ipc_sema.h"
 #include "ipc/cy_ipc_pipe.h"
 #include "sysclk/cy_sysclk.h"
 #include "wdt/cy_wdt.h"
-#include "scb/cy_scb_common.h"
-#include "scb/cy_scb_i2c.h"
-#include "scb/cy_scb_ezi2c.h"
-#include "scb/cy_scb_spi.h"
-#include "scb/cy_scb_uart.h"
 #include "flash/cy_flash.h"
 #include "gpio/cy_gpio.h"
+#include "sysanalog/cy_sysanalog.h"
 #include "syspm/cy_syspm.h"
 #include "syslib/cy_syslib.h"
 #include "trigmux/cy_trigmux.h"
 #include "systick/cy_systick.h"
-#include "crypto/cy_crypto.h"
-#include "crypto/cy_crypto_common.h"
-#include "crypto/cy_crypto_server.h"
-#include "crypto/cy_crypto_core_des.h"
-#include "crypto/cy_crypto_core_aes.h"
-#include "crypto/cy_crypto_core_cmac.h"
-#include "crypto/cy_crypto_core_crc.h"
-#include "crypto/cy_crypto_core_hmac.h"
-#include "crypto/cy_crypto_core_instructions.h"
-#include "crypto/cy_crypto_core_prng.h"
-#include "crypto/cy_crypto_core_rsa.h"
-#include "crypto/cy_crypto_core_sha.h"
-#include "crypto/cy_crypto_core_str.h"
-#include "crypto/cy_crypto_core_trng.h"
-#include "crypto/cy_crypto_core_trng_config.h"
-#include "crypto/cy_crypto_core_util.h"
-#include "crypto/cy_crypto_core_vu.h"
-#include "crypto/cy_crypto_core_vu_hw.h"
 #include "profile/cy_profile.h"
 #include "prot/cy_prot.h"
+#include "lvd/cy_lvd.h"
 #include "ble/cy_ble_clk.h"
-#include "cy8c637bzi_bld74.h"
-#include "psoc6ble_config.h"
+#include "psoc63_config.h"
 #include "cy_device_headers.h"
-#include "gpio_psoc6ble_116_bga_ble.h"
-#include "system_psoc6ble_cm0plus.h"
-#include "system_psoc6ble_cm4.h"
+#if ((__CORTEX_M == 0) || (__CORTEX_M == 4))
+    #include "gpio_psoc63_116_bga_ble.h"
+#endif /*(__CORTEX_M == 0) || (__CORTEX_M == 4)*/
 #include "cyip_sflash.h"
 #include "cyip_peri.h"
 #include "cyip_crypto.h"
@@ -80,6 +59,7 @@
 #include "cyip_tcpwm.h"
 #include "cyip_lcd.h"
 #include "cyip_ble.h"
+#include "cyip_usbfs.h"
 #include "cyip_smif.h"
 #include "cyip_scb.h"
 #include "cyip_ctbm.h"
@@ -90,16 +70,14 @@
 #include "cyip_pdm.h"
 #include "cyip_headers.h"
 #include "cyfitter_cfg.h"
+#include "cyfitter_sysint_cfg.h"
 #include "cydevice_trm.h"
 #include "cyfitter.h"
 #include "cyfitter_gpio.h"
+#include "cyfitter_sysint.h"
 #include "cydisabledsheets.h"
 #include "UART.h"
-#include "SPI.h"
 #include "UART_SCBCLK.h"
-#include "UART_SCB_IRQ.h"
-#include "SPI_SCBCLK.h"
-#include "SPI_SCB_IRQ.h"
 
 /*[]*/
 

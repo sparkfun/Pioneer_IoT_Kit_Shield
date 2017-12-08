@@ -6,7 +6,7 @@
 *
 ********************************************************************************
 * \copyright
-* Copyright 2016, Cypress Semiconductor Corporation.  All rights reserved.
+* Copyright 2016-2017, Cypress Semiconductor Corporation.  All rights reserved.
 * You may use this file only in accordance with the license, terms, conditions,
 * disclaimers, and limitations in the end user license agreement accompanying
 * the software package with which this file was provided.
@@ -18,29 +18,31 @@
 /**
 * \defgroup group_arm_system_timer ARM System Timer (SysTick)
 * \{
-* Provides a SysTick API.
+* Provides vendor-specific SysTick API.
+*
+* The SysTick timer is part of the CPU. The timer is a down counter with a 24-bit reload/tick value that is clocked by
+* the FastClk/SlowClk. The timer has the capability to generate an interrupt when the set number of ticks expires and
+* the counter is reloaded. This interrupt is available as part of the Nested Vectored Interrupt Controller (NVIC) for
+* service by the CPU and can be used for general-purpose timing control in user code.
+*
+* The timer is independent of the CPU (except for the clock), which is useful in applications requiring
+* precise timing that do not have a dedicated timer/counter available for the job.
 *
 * \section group_systick_configuration Configuration Considerations
 *
-* The SysTick timer is part of the CPU. The timer is a down counter with a
-* 24-bit reload/tick value that is clocked by the FastClk/SlowClk. The timer has
-* the capability to generate an interrupt when the set number of ticks expires
-* and the counter is reloaded. This interrupt is available as part of the Nested
-* Vectored Interrupt Controller (NVIC) for service by the CPU and can be used
-* for general purpose timing control in user code.
+* The \ref Cy_SysTick_Init() performs all required driver's initialization and enables the timer. The function accepts
+* two parameters: clock source \ref cy_en_systick_clock_source_t and the timer interval. You must ensure
+* the selected clock source for SysTick is enabled.
+* The callbacks can be registered/unregistered any time after \ref Cy_SysTick_Init() by calling
+* \ref Cy_SysTick_SetCallback().
 *
-* Changing the SysTick clock source and/or its frequency will change the
-* interrupt interval and therefore Cy_SysTick_SetReload() should be called to
-* compensate for this change.
-*
-* Because the timer is independent of the CPU (except for the clock), this can be
-* handy in applications requiring precise timing that do not have a dedicated
-* timer/counter available for the job.
+* Changing the SysTick clock source and/or its frequency will change the interrupt interval and therefore
+* \ref Cy_SysTick_SetReload() should be called to compensate for this change.
 *
 * \section group_systick_more_information More Information
 *
-* Refer to the SysTick section of the ARM reference guide for complete details
-* on the registers and their use.
+* Refer to the SysTick section of the ARM reference guide for complete details on the registers and their use.
+* See also the "CPU Subsystem (CPUSS)" chapter of the device technical reference manual (TRM).
 *
 * \section group_systick_MISRA MISRA-C Compliance
 *
@@ -68,15 +70,20 @@
 * <td>Initial version</td>
 * <td></td>
 * </tr>
+* <tr>
+* <td>1.0.1</td>
+* <td>Fixed a warning issued when the compilation of C++ source code was
+*     enabled.</td> 
+* <td></td>
+* </tr>
 * </table>
 *
-* \defgroup group_systick_macro Macro
+* \defgroup group_systick_macros Macros
 * \defgroup group_systick_functions Functions
 * \defgroup group_systick_data_structures Data Structures
 */
 
 #include <stdint.h>
-#include <stdbool.h>
 #include "syslib/cy_syslib.h"
 
 #ifdef __cplusplus
@@ -92,23 +99,14 @@ typedef void (*Cy_SysTick_Callback)(void);
 * \addtogroup group_systick_data_structures
 * \{
 */
+/** SysTick clocks sources */
 typedef enum
 {
-    /** The low frequency clock clk_lf is selected. The precision of this clock depends on whether the low frequency
-    clock source is a SRSS internal RC oscillator (imprecise) or a device external crystal oscillator (precise) */
-    CY_SYSTICK_CLOCK_SOURCE_CLK_LF    = 0u,
-
-    /** The internal main oscillator (IMO) clock clk_imo is selected. */
-    CY_SYSTICK_CLOCK_SOURCE_CLK_IMO   = 1u,
-
-    /** The external crystal oscillator (ECO) clock clk_eco is selected. */
-    CY_SYSTICK_CLOCK_SOURCE_CLK_ECO   = 2u,
-
-    /** The SRSS clk_timer is selected. The clk_timer is a divided/gated version of clk_hf or clk_imo. */
-    CY_SYSTICK_CLOCK_SOURCE_CLK_TIMER = 3u,
-
-    /** The CPU clock is selected. */
-    CY_SYSTICK_CLOCK_SOURCE_CLK_CPU   = 4u,
+    CY_SYSTICK_CLOCK_SOURCE_CLK_LF    = 0u,     /**< The low frequency clock clk_lf is selected. */
+    CY_SYSTICK_CLOCK_SOURCE_CLK_IMO   = 1u,     /**< The internal main oscillator (IMO) clock clk_imo is selected. */
+    CY_SYSTICK_CLOCK_SOURCE_CLK_ECO   = 2u,     /**< The external crystal oscillator (ECO) clock clk_eco is selected. */
+    CY_SYSTICK_CLOCK_SOURCE_CLK_TIMER = 3u,     /**< The SRSS clk_timer is selected. */
+    CY_SYSTICK_CLOCK_SOURCE_CLK_CPU   = 4u,     /**< The CPU clock is selected. */
 } cy_en_systick_clock_source_t;
 
 /** \} group_systick_data_structures */
@@ -122,24 +120,23 @@ typedef enum
 void Cy_SysTick_Init(cy_en_systick_clock_source_t clockSource, uint32_t interval);
 void Cy_SysTick_Enable(void);
 void Cy_SysTick_Disable(void);
-void Cy_SysTick_EnableInterrupt(void);
-void Cy_SysTick_DisableInterrupt(void);
-void Cy_SysTick_SetReload(uint32_t value);
-uint32_t Cy_SysTick_GetReload(void);
-uint32_t Cy_SysTick_GetValue(void);
 Cy_SysTick_Callback Cy_SysTick_SetCallback(uint32_t number, Cy_SysTick_Callback function);
 Cy_SysTick_Callback Cy_SysTick_GetCallback(uint32_t number);
 void Cy_SysTick_SetClockSource(cy_en_systick_clock_source_t clockSource);
 cy_en_systick_clock_source_t Cy_SysTick_GetClockSource(void);
-
-uint32_t Cy_SysTick_GetCountFlag(void);
-void Cy_SysTick_Clear(void);
+__STATIC_INLINE void Cy_SysTick_EnableInterrupt(void);
+__STATIC_INLINE void Cy_SysTick_DisableInterrupt(void);
+__STATIC_INLINE void Cy_SysTick_SetReload(uint32_t value);
+__STATIC_INLINE uint32_t Cy_SysTick_GetReload(void);
+__STATIC_INLINE uint32_t Cy_SysTick_GetValue(void);
+__STATIC_INLINE uint32_t Cy_SysTick_GetCountFlag(void);
+__STATIC_INLINE void Cy_SysTick_Clear(void);
 
 /** \} group_systick_functions */
 
 
 /**
-* \addtogroup group_systick_macro
+* \addtogroup group_systick_macros
 * \{
 */
 
@@ -152,11 +149,128 @@ void Cy_SysTick_Clear(void);
 /** Number of the callbacks assigned to the SysTick interrupt */
 #define CY_SYS_SYST_NUM_OF_CALLBACKS         (5u)
 
+/** \} group_systick_macros */
+
+
+/** \cond */
 /** Interrupt number in the vector table */
 #define CY_SYSTICK_IRQ_NUM                   (15u)
+/** \endcond */
 
-/** \} group_systick_macro */
+/**
+* \addtogroup group_systick_functions
+* \{
+*/
 
+/*******************************************************************************
+* Function Name: Cy_SysTick_EnableInterrupt
+****************************************************************************//**
+*
+* Enables the SysTick interrupt.
+*
+* \sideeffect Clears the SysTick count flag if it was set
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysTick_EnableInterrupt(void)
+{
+    SysTick->CTRL = SysTick->CTRL | SysTick_CTRL_TICKINT_Msk;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_DisableInterrupt
+****************************************************************************//**
+*
+* Disables the SysTick interrupt.
+*
+* \sideeffect Clears the SysTick count flag if it was set
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysTick_DisableInterrupt(void)
+{
+    SysTick->CTRL = SysTick->CTRL & ~SysTick_CTRL_TICKINT_Msk;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_SetReload
+****************************************************************************//**
+*
+* Sets the value the counter is set to on a startup and after it reaches zero.
+* This function does not change or reset the current sysTick counter value, so
+* it should be cleared using the Cy_SysTick_Clear() API.
+*
+* \param value: The valid range is [0x0-0x00FFFFFF]. The counter reset value.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysTick_SetReload(uint32_t value)
+{
+    SysTick->LOAD = (value & SysTick_LOAD_RELOAD_Msk);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_GetReload
+****************************************************************************//**
+*
+* Gets the value the counter is set to on a startup and after it reaches zero.
+*
+* \return The counter reset value.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_SysTick_GetReload(void)
+{
+    return (SysTick->LOAD);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_GetValue
+****************************************************************************//**
+*
+* Gets the current SysTick counter value.
+*
+* \return The current SysTick counter value.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_SysTick_GetValue(void)
+{
+    return (SysTick->VAL);
+}
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_Clear
+****************************************************************************//**
+*
+* Clears the SysTick counter for a well-defined startup.
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysTick_Clear(void)
+{
+    SysTick->VAL = 0u;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysTick_GetCountFlag
+****************************************************************************//**
+*
+* Gets the values of the count flag. The count flag is set once the SysTick
+* counter reaches zero. The flag is cleared on read.
+*
+* \return Returns a non-zero value if a flag is set; otherwise a zero is
+* returned.
+*
+* \sideeffect Clears the SysTick count flag if it was set.
+*
+*******************************************************************************/
+__STATIC_INLINE uint32_t Cy_SysTick_GetCountFlag(void)
+{
+    return (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk);
+}
+
+
+/** \} group_systick_functions */
 
 #ifdef __cplusplus
 }

@@ -82,10 +82,6 @@ CYBLE_STATE_T cyBle_state;
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
-        },
-        {
-            0x00u, 0x00u,
-            0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
         },
@@ -94,20 +90,34 @@ CYBLE_STATE_T cyBle_state;
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+        },
+        {
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
         },
         {
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
+            0x00u, 0x00u,
+            0x00u, 0x00u,
         },
         {
+            0x00u, 0x00u,
+            0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
             0x00u, 0x00u,
         }}, 
-        0x08u, /* CYBLE_GATT_DB_CCCD_COUNT */ 
+        0x0Cu, /* CYBLE_GATT_DB_CCCD_COUNT */ 
         0x05u, /* CYBLE_GAP_MAX_BONDED_DEVICE */ 
     };
 #endif /* (CYBLE_MODE_PROFILE) */
@@ -123,7 +133,7 @@ CYBLE_STATE_T cyBle_state;
     0x000Bu,    /* Handle of the Client Characteristic Configuration descriptor */
 };
     
-    static uint8 cyBle_attValues[0x1Cu] = {
+    static uint8 cyBle_attValues[0x1Eu] = {
     /* Device Name */
     (uint8)'E', (uint8)'n', (uint8)'v', (uint8)'_', (uint8)'S', (uint8)'e', (uint8)'n', (uint8)'s', (uint8)'o',
     (uint8)'r',
@@ -146,6 +156,12 @@ CYBLE_STATE_T cyBle_state;
     /* BME280_Humidity */
     0x00u,
 
+    /* CCS811_TVOC */
+    0x00u,
+
+    /* CCS811_ECO2 */
+    0x00u,
+
 };
 #if(CYBLE_GATT_DB_CCCD_COUNT != 0u)
 uint8 cyBle_attValuesCCCD[CYBLE_GATT_DB_CCCD_COUNT];
@@ -164,6 +180,14 @@ const uint8 cyBle_attUuid128[][16u] = {
     { 0xCDu, 0xD3u, 0x20u, 0xBBu, 0x83u, 0xCBu, 0xBCu, 0xABu, 0x83u, 0x41u, 0x88u, 0x88u, 0xF8u, 0xC7u, 0x4Du, 0x4Bu },
     /* BME280_Humidity */
     { 0x7Eu, 0x04u, 0x80u, 0x41u, 0x12u, 0x11u, 0xE2u, 0xB2u, 0x30u, 0x47u, 0x48u, 0x17u, 0x62u, 0x0Cu, 0xD1u, 0x81u },
+    /* CCS811_TVOC */
+    { 0xE7u, 0x89u, 0x34u, 0xAAu, 0xF9u, 0xAEu, 0x1Eu, 0x86u, 0x8Du, 0x42u, 0x3Bu, 0xCDu, 0x96u, 0x16u, 0xA0u, 0x88u },
+    /* CCS811_TVOC */
+    { 0xB9u, 0xAEu, 0x95u, 0xEBu, 0x40u, 0x69u, 0xABu, 0x90u, 0xCEu, 0x4Au, 0xCDu, 0xA8u, 0xF8u, 0xECu, 0x03u, 0x86u },
+    /* CCS811_ECO2 */
+    { 0x8Eu, 0x92u, 0x76u, 0x18u, 0x80u, 0xFFu, 0x0Fu, 0xB8u, 0xEAu, 0x4Eu, 0x5Eu, 0xDEu, 0xA6u, 0x58u, 0x5Fu, 0xD4u },
+    /* CCS811_ECO2 */
+    { 0x01u, 0x40u, 0x47u, 0xD8u, 0xE7u, 0xF2u, 0x62u, 0x87u, 0x73u, 0x4Au, 0xAAu, 0x38u, 0xCEu, 0x16u, 0x74u, 0x31u },
 };
 
 CYBLE_GATTS_ATT_GEN_VAL_LEN_T cyBle_attValuesLen[CYBLE_GATT_DB_ATT_VAL_COUNT] = {
@@ -184,9 +208,17 @@ CYBLE_GATTS_ATT_GEN_VAL_LEN_T cyBle_attValuesLen[CYBLE_GATT_DB_ATT_VAL_COUNT] = 
     { 0x0010u, (void *)&cyBle_attUuid128[5] }, /* BME280_Humidity UUID */
     { 0x0001u, (void *)&cyBle_attValues[27] }, /* BME280_Humidity */
     { 0x0002u, (void *)&cyBle_attValuesCCCD[6] }, /* Client Characteristic Configuration */
+    { 0x0010u, (void *)&cyBle_attUuid128[6] }, /* CCS811_TVOC UUID */
+    { 0x0010u, (void *)&cyBle_attUuid128[7] }, /* CCS811_TVOC UUID */
+    { 0x0001u, (void *)&cyBle_attValues[28] }, /* CCS811_TVOC */
+    { 0x0002u, (void *)&cyBle_attValuesCCCD[8] }, /* Client Characteristic Configuration */
+    { 0x0010u, (void *)&cyBle_attUuid128[8] }, /* CCS811_ECO2 UUID */
+    { 0x0010u, (void *)&cyBle_attUuid128[9] }, /* CCS811_ECO2 UUID */
+    { 0x0001u, (void *)&cyBle_attValues[29] }, /* CCS811_ECO2 */
+    { 0x0002u, (void *)&cyBle_attValuesCCCD[10] }, /* Client Characteristic Configuration */
 };
 
-const CYBLE_GATTS_DB_T cyBle_gattDB[0x17u] = {
+const CYBLE_GATTS_DB_T cyBle_gattDB[0x1Fu] = {
     { 0x0001u, 0x2800u /* Primary service                     */, 0x00000001u /*        */, 0x0007u, {{0x1800u, NULL}}                           },
     { 0x0002u, 0x2803u /* Characteristic                      */, 0x00020001u /* rd     */, 0x0003u, {{0x2A00u, NULL}}                           },
     { 0x0003u, 0x2A00u /* Device Name                         */, 0x01020001u /* rd     */, 0x0003u, {{0x000Au, (void *)&cyBle_attValuesLen[0]}} },
@@ -210,6 +242,14 @@ const CYBLE_GATTS_DB_T cyBle_gattDB[0x17u] = {
     { 0x0015u, 0x2803u /* Characteristic                      */, 0x00100001u /* ntf    */, 0x0017u, {{0x0010u, (void *)&cyBle_attValuesLen[14]}} },
     { 0x0016u, 0x0C62u /* BME280_Humidity                     */, 0x09100000u /* ntf    */, 0x0017u, {{0x0001u, (void *)&cyBle_attValuesLen[15]}} },
     { 0x0017u, 0x2902u /* Client Characteristic Configuration */, 0x010A0101u /* rd,wr  */, 0x0017u, {{0x0002u, (void *)&cyBle_attValuesLen[16]}} },
+    { 0x0018u, 0x2800u /* Primary service                     */, 0x08000001u /*        */, 0x001Bu, {{0x0010u, (void *)&cyBle_attValuesLen[17]}} },
+    { 0x0019u, 0x2803u /* Characteristic                      */, 0x00100001u /* ntf    */, 0x001Bu, {{0x0010u, (void *)&cyBle_attValuesLen[18]}} },
+    { 0x001Au, 0xECF8u /* CCS811_TVOC                         */, 0x09100000u /* ntf    */, 0x001Bu, {{0x0001u, (void *)&cyBle_attValuesLen[19]}} },
+    { 0x001Bu, 0x2902u /* Client Characteristic Configuration */, 0x010A0101u /* rd,wr  */, 0x001Bu, {{0x0002u, (void *)&cyBle_attValuesLen[20]}} },
+    { 0x001Cu, 0x2800u /* Primary service                     */, 0x08000001u /*        */, 0x001Fu, {{0x0010u, (void *)&cyBle_attValuesLen[21]}} },
+    { 0x001Du, 0x2803u /* Characteristic                      */, 0x00100001u /* ntf    */, 0x001Fu, {{0x0010u, (void *)&cyBle_attValuesLen[22]}} },
+    { 0x001Eu, 0x16CEu /* CCS811_ECO2                         */, 0x09100000u /* ntf    */, 0x001Fu, {{0x0001u, (void *)&cyBle_attValuesLen[23]}} },
+    { 0x001Fu, 0x2902u /* Client Characteristic Configuration */, 0x010A0101u /* rd,wr  */, 0x001Fu, {{0x0002u, (void *)&cyBle_attValuesLen[24]}} },
 };
 
 

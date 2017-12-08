@@ -1,9 +1,9 @@
 /***************************************************************************//**
 * \file
-* \version 1.0
+* \version 1.10
 *
 * \brief
-* Provides an API implementation of the sysint driver.
+* Provides an API implementation of the SysInt driver.
 *
 ********************************************************************************
 * \copyright
@@ -28,16 +28,16 @@ extern "C" {
 * interrupt vector. Note that the interrupt vector will only be relocated if the
 * vector table was moved to __ramVectors in SRAM. Otherwise it is ignored.
 *
-* Use the CMSIS core function NVIC_EnableIRQ(config.intrSrc)
-* to enable it. For CM0+, this function also configures the interrupt mux 
-* connected to the NVIC. Use the CMSIS core function 
-* NVIC_EnableIRQ(config.intrCm0p) to enable it.
+* Use the CMSIS core function NVIC_EnableIRQ(config.intrSrc) to enable it.
 *
 * \param config
 * Interrupt configuration structure
 *
 * \param userIsr
 * Address of the ISR
+*
+* \return 
+* Initialization status  
 *
 *******************************************************************************/
 cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddress userIsr)
@@ -54,8 +54,8 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
             else
             {
                 /* Configure the interrupt mux */
-                Cy_SysInt_SetIntSource(config);
-                NVIC_SetPriority((IRQn_Type)(config->intrCm0p), config->intrPriority);
+                Cy_SysInt_SetIntSource(config->intrSrc, config->cm0pSrc);
+                NVIC_SetPriority(config->intrSrc, config->intrPriority);
             }
         #else
             /* Set the priority */
@@ -65,7 +65,7 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
         /* Only set the new vector if it was moved to __ramVectors */
         if (SCB->VTOR == (uint32_t)&__ramVectors)
         {
-            (void)Cy_SysInt_SetVector(config, userIsr);
+            (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
         }
     }
     else
@@ -85,22 +85,24 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 *
 * \brief Configures the interrupt mux for the specified CM0+ NVIC channel.
 *
-* Setting this value to 240 disconnects the interrupt source and will
-* effectively deactivate the interrupt.
+* Setting this value to "disconnected_IRQn" (240) disconnects the interrupt 
+* source and will effectively deactivate the interrupt.
 *
-* \param config
-* Interrupt configuration structure. This must be a positive number.
+* \param intrSrc
+* NVIC mux number connected to the NVIC channel of the CM0+ core
+*
+* \param cm0pSrc
+* Device interrupt to be routed to the NVIC mux
 *
 *******************************************************************************/
-void Cy_SysInt_SetIntSource(const cy_stc_sysint_t* config)
+void Cy_SysInt_SetIntSource(IRQn_Type intrSrc, cy_en_intr_t cm0pSrc)
 {
     /* Calculation of variables and masks */
-    uint8_t  intrMux    = config->intrCm0p;
-    uint8_t  regPos     = intrMux >> CY_SYSINT_CM0P_MUX_SHIFT;
-    uint8_t  bitPos     = (intrMux - (regPos << CY_SYSINT_CM0P_MUX_SHIFT)) << CY_SYSINT_CM0P_MUX_SCALE;
+    uint32_t regPos     = (uint32_t)intrSrc >> CY_SYSINT_CM0P_MUX_SHIFT;
+    uint32_t bitPos     = ((uint32_t)intrSrc - (regPos << CY_SYSINT_CM0P_MUX_SHIFT)) << CY_SYSINT_CM0P_MUX_SCALE;
     uint32_t bitMask    = (uint32_t)(CY_SYSINT_CM0P_MUX_MASK << bitPos);
     uint32_t bitMaskClr = (uint32_t)(~bitMask);
-    uint32_t bitMaskSet = ((config->intrSrc << bitPos) & bitMask);
+    uint32_t bitMaskSet = ((cm0pSrc << bitPos) & bitMask);
 
     uint32_t tempReg;
 
@@ -150,85 +152,56 @@ void Cy_SysInt_SetIntSource(const cy_stc_sysint_t* config)
 *
 * \brief Gets the interrupt source of CM0+ NVIC channel.
 *
+* \param intrSrc
+* NVIC mux number connected to the NVIC channel of the CM0+ core
+*
 * \return 
-* Interrupt source. A returned value of 240 denotes that the interrupt source
-* is disconnected.  
+* Device interrupt source connected to the NVIC mux. A returned value of 
+* "disconnected_IRQn" (240) indicates that the interrupt source is disconnected.  
 *
 *******************************************************************************/
-uint32_t Cy_SysInt_GetIntSource(IRQn_CM0P_Type muxSel)
+cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc)
 {
     /* Calculation of variables */
-    uint8_t  regPos  = muxSel >>  CY_SYSINT_CM0P_MUX_SHIFT;
-    uint8_t  bitPos  = (muxSel - (regPos <<  CY_SYSINT_CM0P_MUX_SHIFT)) <<  CY_SYSINT_CM0P_MUX_SCALE;
+    uint32_t regPos  = (uint32_t)intrSrc >>  CY_SYSINT_CM0P_MUX_SHIFT;
+    uint32_t bitPos  = ((uint32_t)intrSrc - (regPos <<  CY_SYSINT_CM0P_MUX_SHIFT)) <<  CY_SYSINT_CM0P_MUX_SCALE;
     uint32_t bitMask = (uint32_t)(CY_SYSINT_CM0P_MUX_MASK << bitPos);
 
-    uint32_t tempReg;
+    cy_en_intr_t tempReg;
 
     switch(regPos)
     {
         case CY_SYSINT_CM0P_MUX0:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL0 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL0 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX1:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL1 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL1 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX2:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL2 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL2 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX3:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL3 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL3 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX4:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL4 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL4 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX5:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL5 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL5 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX6:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL6 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL6 & bitMask) >> bitPos);
         break;
         case CY_SYSINT_CM0P_MUX7:
-            tempReg = (uint32_t)((CPUSS->CM0_INT_CTL7 & bitMask) >> bitPos);
+            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL7 & bitMask) >> bitPos);
         break;
         default:
-            tempReg = CY_SYSINT_CM0P_MUX_ERROR;
+            tempReg = (cy_en_intr_t)CY_SYSINT_CM0P_MUX_ERROR;
         break;
     }
     return tempReg;
 }
 #endif
-
-/*******************************************************************************
-* Function Name: Cy_SysInt_GetState
-****************************************************************************//**
-*
-* \brief Gets the enabled/disabled state of the Interrupt.
-*
-* For CM0+, this function returns the state of the CM0+ interrupt mux output
-* feeding into the NVIC.
-*
-* \param config
-* Interrupt configuration structure
-*
-* \return
-* 1 if enabled, 0 if disabled
-*
-*******************************************************************************/
-uint32_t Cy_SysInt_GetState(const cy_stc_sysint_t* config)
-{
-    #if CY_CPU_CORTEX_M0P
-        if (config->intrSrc < 0)
-        {
-            return (*(NVIC->ISER) >> config->intrSrc) & CY_SYSINT_STATE_MASK;
-        }
-        else
-        {
-            return (*(NVIC->ISER) >> config->intrCm0p) & CY_SYSINT_STATE_MASK;
-        }
-    #else
-        return (*(NVIC->ISER) >> config->intrSrc) & CY_SYSINT_STATE_MASK;
-    #endif
-}
 
 
 /*******************************************************************************
@@ -237,15 +210,15 @@ uint32_t Cy_SysInt_GetState(const cy_stc_sysint_t* config)
 *
 * \brief Changes the ISR vector for the Interrupt.
 *
-* For CM0+, this function sets the interrupt vector for the interrupt mux
-* output feeding into the NVIC.
+* Note that for CM0+, this function sets the interrupt vector for the interrupt
+* mux output feeding into the NVIC.
 *
 * Note that this function relies on the assumption that the vector table is
 * relocated to __ramVectors[RAM_VECTORS_SIZE] in SRAM. Otherwise it will
 * return the address of the default ISR location in Flash vector table.
 *
-* \param config
-* Interrrupt configuration structure
+* \param intrSrc
+* Interrrupt source
 *
 * \param userIsr
 * Address of the ISR to set in the interrupt vector table
@@ -255,48 +228,20 @@ uint32_t Cy_SysInt_GetState(const cy_stc_sysint_t* config)
 * function call
 *
 *******************************************************************************/
-cy_israddress Cy_SysInt_SetVector(const cy_stc_sysint_t* config, cy_israddress userIsr)
+cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr)
 {
     cy_israddress prevIsr;
     
-    #if CY_CPU_CORTEX_M0P
-        /* Only set the new vector if it was moved to __ramVectors */
-        if (SCB->VTOR == (uint32_t)&__ramVectors)
-        {
-            if (config->intrSrc < 0)
-            {
-                prevIsr = __ramVectors[CY_INT_IRQ_BASE + config->intrSrc];
-                __ramVectors[CY_INT_IRQ_BASE + config->intrSrc] = userIsr;
-            }
-            else
-            {
-                prevIsr = __ramVectors[CY_INT_IRQ_BASE + config->intrCm0p];
-                __ramVectors[CY_INT_IRQ_BASE + config->intrCm0p] = userIsr;
-            }
-        }
-        else
-        {
-            if (config->intrSrc < 0)
-            {
-                prevIsr = __Vectors[CY_INT_IRQ_BASE + config->intrSrc];
-            }
-            else
-            {
-                prevIsr = __Vectors[CY_INT_IRQ_BASE + config->intrCm0p];
-            }
-        }
-    #else
-        /* Only set the new vector if it was moved to __ramVectors */
-        if (SCB->VTOR == (uint32_t)&__ramVectors)
-        {
-            prevIsr = __ramVectors[CY_INT_IRQ_BASE + config->intrSrc];
-            __ramVectors[CY_INT_IRQ_BASE + config->intrSrc] = userIsr;
-        }
-        else
-        {
-            prevIsr = __Vectors[CY_INT_IRQ_BASE + config->intrSrc];
-        }
-    #endif
+    /* Only set the new vector if it was moved to __ramVectors */
+    if (SCB->VTOR == (uint32_t)&__ramVectors)
+    {
+        prevIsr = __ramVectors[CY_INT_IRQ_BASE + intrSrc];
+        __ramVectors[CY_INT_IRQ_BASE + intrSrc] = userIsr;
+    }
+    else
+    {
+        prevIsr = __Vectors[CY_INT_IRQ_BASE + intrSrc];
+    }
 
     return prevIsr;
 }
@@ -308,56 +253,34 @@ cy_israddress Cy_SysInt_SetVector(const cy_stc_sysint_t* config, cy_israddress u
 *
 * \brief Gets the address of the current ISR vector for the Interrupt.
 *
-* For CM0+, this function returns the interrupt vector for the interrupt mux
-* output feeding into the NVIC.
+* Note that for CM0+, this function returns the interrupt vector for the 
+* interrupt mux output feeding into the NVIC.
 *
 * Note that this function relies on the assumption that the vector table is
 * relocated to __ramVectors[RAM_VECTORS_SIZE] in SRAM.
 *
-* \param config
-* Interrupt configuration structure
+* \param intrSrc
+* Interrupt source
 *
 * \return
 * Address of the ISR in the interrupt vector table
 *
 *******************************************************************************/
-cy_israddress Cy_SysInt_GetVector(const cy_stc_sysint_t* config)
+cy_israddress Cy_SysInt_GetVector(IRQn_Type intrSrc)
 {
-    #if CY_CPU_CORTEX_M0P
-        /* Only return the SRAM ISR address if it was moved to __ramVectors */
-        if (SCB->VTOR == (uint32_t)&__ramVectors)
-        {
-            if (config->intrSrc < 0)
-            {
-                return __ramVectors[CY_INT_IRQ_BASE + config->intrSrc];
-            }
-            else
-            {
-                return __ramVectors[CY_INT_IRQ_BASE + config->intrCm0p];
-            }
-        }
-        else
-        {
-            if (config->intrSrc < 0)
-            {
-                return __Vectors[CY_INT_IRQ_BASE + config->intrSrc];
-            }
-            else
-            {
-                return __Vectors[CY_INT_IRQ_BASE + config->intrCm0p];
-            }
-        }
-    #else
-         /* Only return the SRAM ISR address if it was moved to __ramVectors */
-        if (SCB->VTOR == (uint32_t)&__ramVectors)
-        {
-            return __ramVectors[CY_INT_IRQ_BASE + config->intrSrc];
-        }
-        else
-        {
-            return __Vectors[CY_INT_IRQ_BASE + config->intrSrc];
-        }
-    #endif
+    cy_israddress currIsr;
+    
+    /* Only return the SRAM ISR address if it was moved to __ramVectors */
+    if (SCB->VTOR == (uint32_t)&__ramVectors)
+    {
+        currIsr = __ramVectors[CY_INT_IRQ_BASE + intrSrc];
+    }
+    else
+    {
+        currIsr = __Vectors[CY_INT_IRQ_BASE + intrSrc];
+    }
+    
+    return currIsr;
 }
 
 
