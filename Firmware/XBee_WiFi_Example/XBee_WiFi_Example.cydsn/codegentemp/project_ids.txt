@@ -1,0 +1,7 @@
+C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\XBee_WiFi_Example.cyprj|db7863c7-ef72-48c4-a827-42ac0530c1d2
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|c5c32d50-f2a6-440b-9a9e-1c77663a4aa2
+C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|1feb8989-3a65-4681-a124-0701055d1178
+C:\Users\mike.hord\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|ba6d6632-6093-493b-b971-c633a97e2fb7
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|aa7939df-3f4d-40fc-a5da-dbfd88550e45
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|59587ef9-296e-453f-acff-6eeffbf20c11
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|76bf2799-ae25-476c-88a1-0471a9a921b7
