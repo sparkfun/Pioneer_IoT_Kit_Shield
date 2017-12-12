@@ -35,7 +35,7 @@ static bool IsSemaError(uint32_t status)
 * \note This function should be used to read the shared variable; the variable
 * should not be read directly.
 *******************************************************************************/
-uint32_t ReadSharedVar(const uint8_t *sharedVar, uint8_t *copy)
+uint32_t ReadSharedVar(const uint8_t *sharedVar, uint8_t *copy, uint8_t semaID)
 {
     uint32_t timeout;
     uint32_t rtnVal;
@@ -43,7 +43,7 @@ uint32_t ReadSharedVar(const uint8_t *sharedVar, uint8_t *copy)
     /* timeout wait to set the semaphore */
     for (timeout = 0ul; timeout < MY_TIMEOUT; timeout++)
     {
-        rtnVal = (uint32_t)Cy_IPC_Sema_Set(0, false);
+        rtnVal = (uint32_t)Cy_IPC_Sema_Set(semaID, false);
         /* exit the timeout wait if semaphore successfully set or error */
         if ((rtnVal == (uint32_t)CY_IPC_SEMA_SUCCESS) || IsSemaError(rtnVal))
         {
@@ -60,7 +60,7 @@ uint32_t ReadSharedVar(const uint8_t *sharedVar, uint8_t *copy)
         /* timeout wait to clear semaphore */
         for (timeout = 0ul; timeout < MY_TIMEOUT; timeout++)
         {
-            rtnVal = Cy_IPC_Sema_Clear(0, false);
+            rtnVal = Cy_IPC_Sema_Clear(semaID, false);
             /* exit the timeout wait if semaphore successfully cleared or error */
             if ((rtnVal == (uint32_t)CY_IPC_SEMA_SUCCESS) || IsSemaError(rtnVal))
             {
@@ -88,7 +88,7 @@ uint32_t ReadSharedVar(const uint8_t *sharedVar, uint8_t *copy)
 * \note This function should be used to write to the shared variable; the
 * variable should not be written directly.
 *******************************************************************************/
-uint32_t WriteSharedVar(uint8_t *sharedVar, uint8_t value)
+uint32_t WriteSharedVar(uint8_t *sharedVar, uint8_t value, uint8_t semaID)
 {
     uint32_t timeout;
     uint32_t rtnVal;
@@ -96,7 +96,7 @@ uint32_t WriteSharedVar(uint8_t *sharedVar, uint8_t value)
     /* timeout wait to set semaphore */
     for (timeout = 0ul; timeout < MY_TIMEOUT; timeout++)
     {
-        rtnVal = (uint32_t)Cy_IPC_Sema_Set(0, false);
+        rtnVal = (uint32_t)Cy_IPC_Sema_Set(semaID, false);
         /* exit the timeout wait if semaphore successfully set or error */
         if ((rtnVal == (uint32_t)CY_IPC_SEMA_SUCCESS) || IsSemaError(rtnVal))
         {
@@ -113,7 +113,7 @@ uint32_t WriteSharedVar(uint8_t *sharedVar, uint8_t value)
         /* timeout wait to clear semaphore */
         for (timeout = 0ul; timeout < MY_TIMEOUT; timeout++)
         {
-            rtnVal = (uint32_t)Cy_IPC_Sema_Clear(0, false);
+            rtnVal = (uint32_t)Cy_IPC_Sema_Clear(semaID, false);
             /* exit the timeout wait if semaphore successfully cleared or error */
             if ((rtnVal == (uint32_t)CY_IPC_SEMA_SUCCESS) || IsSemaError(rtnVal))
             {

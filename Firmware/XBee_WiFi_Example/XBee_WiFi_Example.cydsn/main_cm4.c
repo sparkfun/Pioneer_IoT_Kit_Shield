@@ -29,9 +29,10 @@ void HandleError(void)
 *  Initialization:<br>
 *   - Initializes IPC channel for sharing a variable with the other CPU.<br>
 *  Do forever loop:<br>
-*   - Waits for the 4 MS bits of the shared variable to not equal the 4 LS bits.
-*     The other CPU increments the 4 LS bits.<br>
-*   - sets the 4 MS bits to equal the 4 LS bits.
+*   - Waits for a non-zero value on the shared data variables, then sends a
+*     message via WiFi corresponding to the variable that was set.  
+*   - Clears the variable to wait for CM0 to set it again so only one message is
+*     sent per button press.
 *
 *******************************************************************************/
 int main(void)
@@ -69,22 +70,22 @@ int main(void)
     /* Always use lock/release functions to access the shared variable;
        do computations on a local copy of the shared variable. */
     uint8_t copy = 0;
-    mySysError = (cy_en_ipcdrv_status_t)ReadSharedVar(D9Button, &copy);
+    mySysError = (cy_en_ipcdrv_status_t)ReadSharedVar(D9Button, &copy, D9_SEMAPHORE);
     if (copy != 0)
     {
       UART_PutString("GET /gpio/2/0 HTTP/1.1\r");
       while (UART_GetNumLeftToTransmit());
       copy = 0;
-      (cy_en_ipcdrv_status_t)WriteSharedVar(D9Button, copy);
+      (cy_en_ipcdrv_status_t)WriteSharedVar(D9Button, copy, D9_SEMAPHORE);
     }    
     copy = 0;
-    mySysError = (cy_en_ipcdrv_status_t)ReadSharedVar(D7Button, &copy);
+    mySysError = (cy_en_ipcdrv_status_t)ReadSharedVar(D7Button, &copy, D7_SEMAPHORE);
     if (copy != 0)
     {
       UART_PutString("GET /gpio/2/1 HTTP/1.1\r");
       while (UART_GetNumLeftToTransmit());
       copy = 0;
-      (cy_en_ipcdrv_status_t)WriteSharedVar(D7Button, copy);
+      (cy_en_ipcdrv_status_t)WriteSharedVar(D7Button, copy, D7_SEMAPHORE);
     } 
   }
 }

@@ -90,7 +90,7 @@ int main(void)
     if (gpioRes == 0)
     {
       copy = 0x01;
-      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D9Button, copy);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D9Button, copy, D9_SEMAPHORE);
       CyDelay(50);
       while (gpioRes == 0)
       {
@@ -101,7 +101,7 @@ int main(void)
     if (gpioRes == 0)
     {
       copy = 0x10;
-      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D7Button, copy);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(&D7Button, copy, D7_SEMAPHORE);
       CyDelay(50);
       while (gpioRes == 0)
       {

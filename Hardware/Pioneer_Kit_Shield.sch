@@ -22973,7 +22973,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <wire x1="185.42" y1="129.54" x2="116.84" y2="129.54" width="0.2032" layer="97" style="shortdash"/>
 <wire x1="185.42" y1="129.54" x2="185.42" y2="185.42" width="0.2032" layer="97" style="shortdash"/>
 <wire x1="76.2" y1="83.82" x2="76.2" y2="0" width="0.2032" layer="97" style="shortdash"/>
-<text x="238.506" y="6.604" size="3.81" layer="97">01</text>
+<text x="238.506" y="6.604" size="3.81" layer="97">10</text>
 <text x="170.942" y="11.43" size="2.54" layer="97">Mike Hord</text>
 <text x="119.38" y="124.46" size="2.54" layer="97">I2C/QWIIC</text>
 <text x="78.74" y="78.74" size="2.54" layer="97">XBee</text>
@@ -23783,7 +23783,7 @@ Select</text>
 <sheet>
 <plain>
 <text x="172.72" y="7.62" size="3.81" layer="97">Mike Hord</text>
-<text x="239.014" y="6.858" size="3.81" layer="97">01</text>
+<text x="239.014" y="6.858" size="3.81" layer="97">10</text>
 <text x="177.8" y="121.92" size="1.778" layer="97">Vcc = 3.3V</text>
 <text x="7.62" y="175.26" size="3.81" layer="97">Power Regulator</text>
 </plain>
