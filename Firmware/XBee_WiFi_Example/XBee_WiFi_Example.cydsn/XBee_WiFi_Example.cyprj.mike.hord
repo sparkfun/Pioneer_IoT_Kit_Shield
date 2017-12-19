@@ -1828,6 +1828,7 @@
 <dep name=".\ipc_common.h" />
 <dep name=".\main_cm4.c" />
 <dep name=".\system_psoc63.h" />
+<dep name=".\wifi.h" />
 </file>
 <file name=".\Generated_Source\PSoC6\UART.h" />
 <file name=".\Generated_Source\PSoC6\UART_SCBCLK.h" />
@@ -1907,6 +1908,7 @@
 <file name=".\ipc_common.h" />
 <file name=".\main_cm4.c" />
 <file name=".\system_psoc63.h" />
+<file name=".\wifi.h" />
 <file name=".\CortexM4\ARM_GCC_541\Debug\ipc_common.o">
 <dep name=".\Generated_Source\PSoC6\UART.h" />
 <dep name=".\Generated_Source\PSoC6\UART_SCBCLK.h" />
@@ -3884,9 +3886,19 @@
 <CyGuid_769d31ea-68b1-4f0c-b90a-7c10a43ee563 type_name="CyDesigner.Common.ProjMgmt.Model.CyLinkCustomData" version="1">
 <link_deps_times>
 <name_val_pair name="c9323d49-d323-40b8-9b59-cc008d68a989@Debug@CortexM0p" v="131572382820950116" />
-<name_val_pair name="c9323d49-d323-40b8-9b59-cc008d68a989@Debug@CortexM4" v="131572384231445902" />
+<name_val_pair name="c9323d49-d323-40b8-9b59-cc008d68a989@Debug@CortexM4" v="131578404658537084" />
 </link_deps_times>
 </CyGuid_769d31ea-68b1-4f0c-b90a-7c10a43ee563>
+</dataGuid>
+<dataGuid v="237c8ed1-e161-4c9d-af97-582eda6d6952">
+<CyGuid_d442b0b8-dd66-4eee-b5be-1cb213792b31 type_name="CyDesigner.Device.FitterPSoC.Common.DesignWideResources.DeviceEditor.CyCustomAnalogDevData" version="1" ZoomToPage="True" ZoomScale="0.22008945" ScrollX="-69" ScrollY="-137">
+<ComponentStates />
+</CyGuid_d442b0b8-dd66-4eee-b5be-1cb213792b31>
+</dataGuid>
+<dataGuid v="504337dd-7d07-4bc7-9057-90e60cf6c469">
+<CyGuid_504337dd-7d07-4bc7-9057-90e60cf6c469 type_name="CyDesigner.Common.Debugger.CyBreakpointList" version="1">
+<debugger_breakpoint_list />
+</CyGuid_504337dd-7d07-4bc7-9057-90e60cf6c469>
 </dataGuid>
 </userData>
 </CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997>

@@ -1,0 +1,7 @@
+C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\BLE_To_RPi.cyprj|7e699820-4538-44c7-a2e0-adee27802c8e
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|14703d87-b932-4cc4-a536-f2889a1c0025
+C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|cf808e17-6148-47fe-b538-09bec123ebc1
+C:\Users\mike.hord\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|befb42eb-bcc3-4a71-9dc5-c9ef1a007713
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|a91b7d17-c298-475e-80f3-4c18e77b9cd9
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|065c4786-293a-429b-b6cf-0345aa3eb984
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|ac76ef67-316b-48c9-96d2-89630c1aaeaf

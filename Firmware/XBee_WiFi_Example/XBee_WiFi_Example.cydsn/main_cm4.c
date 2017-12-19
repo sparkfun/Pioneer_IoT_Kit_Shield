@@ -1,5 +1,7 @@
 #include "project.h"
 #include "ipc_common.h"
+#include "wifi.h"
+#include <stdio.h>
 
 static volatile cy_en_ipcdrv_status_t mySysError;  /* general-purpose status/error code */
 
@@ -65,6 +67,46 @@ int main(void)
      successfully complete. */
   mySysError = Cy_IPC_Drv_LockRelease(D7IpcHandle, CY_IPC_NO_NOTIFICATION);
   if (mySysError != CY_IPC_DRV_SUCCESS) HandleError();
+  
+  // Configure the XBee connection settings.
+  char buffer[40];       // Create a buffer for our commands
+  char ssid[] = "your_ssid_here";
+  char rpi_ip[] = "raspi_ip_here";
+  char ssid_pw[] = "wifi_pw_here";
+  int dest_port = 5000;
+  char encrypt_mode = WPA2;
+  
+  UART_PutString("+++");  // Enter AT command mode for the XBee
+  CyDelay(1000);          // A pause is required after the +++ command
+  
+  UART_PutString("ATRE\r"); // Reset module to default settings.
+  CyDelay(2000);            // Wait two seconds for reset to finish
+  
+  UART_PutString("+++");  // Enter AT command mode for the XBee
+  CyDelay(1000);          // A pause is required after the +++ command
+  
+  sprintf(buffer, "ATID%s\r", ssid); // Set up the XBee to use your SSID
+  UART_PutString(buffer);
+  
+  sprintf(buffer, "ATPK%s\r", ssid_pw); // Set up the password for your SSID
+  UART_PutString(buffer);
+  
+  UART_PutString("ATIP1\r");  // TCP mode enable (default is UDP)
+  
+  sprintf(buffer, "ATEE%d\r", encrypt_mode); // Set up your encryption mode
+  UART_PutString(buffer);
+  
+  sprintf(buffer, "ATDL%s\r", rpi_ip); // Set the destination IP
+  UART_PutString(buffer);
+  
+  sprintf(buffer, "ATDE%x\r", dest_port); // Set the destination port
+  UART_PutString(buffer);
+    
+  UART_PutString("ATTM0\r");   // Set the TCP Client timeout to 0 to send packet
+                               //  immediately upon completion
+  
+  UART_PutString("ATWR\r");    // Write settings to flash memory.
+  
   for(;;)
   {
     /* Always use lock/release functions to access the shared variable;
@@ -76,7 +118,7 @@ int main(void)
       UART_PutString("GET /gpio/2/0 HTTP/1.1\r");
       while (UART_GetNumLeftToTransmit());
       copy = 0;
-      (cy_en_ipcdrv_status_t)WriteSharedVar(D9Button, copy, D9_SEMAPHORE);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(D9Button, copy, D9_SEMAPHORE);
     }    
     copy = 0;
     mySysError = (cy_en_ipcdrv_status_t)ReadSharedVar(D7Button, &copy, D7_SEMAPHORE);
@@ -85,7 +127,7 @@ int main(void)
       UART_PutString("GET /gpio/2/1 HTTP/1.1\r");
       while (UART_GetNumLeftToTransmit());
       copy = 0;
-      (cy_en_ipcdrv_status_t)WriteSharedVar(D7Button, copy, D7_SEMAPHORE);
+      mySysError = (cy_en_ipcdrv_status_t)WriteSharedVar(D7Button, copy, D7_SEMAPHORE);
     } 
   }
 }

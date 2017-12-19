@@ -36,6 +36,7 @@
     <Folders>
       <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn">
+          <File BuildType="BUILD" Toolchain="">wifi.h</File>
           <File BuildType="BUILD" Toolchain="">main_cm4.c</File>
           <File BuildType="BUILD" Toolchain="ARM GCC Generic">armgcc\startup\startup_psoc63_cm4.S</File>
           <File BuildType="BUILD" Toolchain="ARM IAR Generic">iar\startup\startup_psoc63_cm4.s</File>
