@@ -13,7 +13,7 @@
 <v>Output</v>
 </TreeKeys>
 <TreeStates>
-<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="BLE_To_RPi\BLE_To_RPi\CM0p (Core 0)\Source Files\handle_CapSense.c">
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="BLE_To_RPi\BLE_To_RPi\CM0p (Core 0)\Source Files\BLE_applications.c">
 <ExpandedNodeIds>
 <v>BLE_To_RPi</v>
 <v>BLE_To_RPi\BLE_To_RPi</v>
@@ -385,6 +385,20 @@
 <v>BLE_To_RPi\BLE_To_RPi\PSoC 6 Architecture TRM</v>
 <v>BLE_To_RPi\BLE_To_RPi\Peripheral Driver Library</v>
 <v>BLE_To_RPi\BLE_To_RPi\System Reference Guides</v>
+<v>BLE_To_RPi\BLE_To_RPi\BLE_PDL_v2_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\CapSense_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\GPIO_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\LED_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\LED_v1_0\LED_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\Power_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\Power_v1_0\Power_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\Resistor_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\Resistor_v1_0\Resistor_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\SysClk_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\SysClk_PDL_v1_0\SysClk_PDL_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\TCPWM_PWM_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\TCPWM_PWM_PDL_v1_0\TCPWM_PWM_PDL_v1_0.pdf</v>
 </ExpandedNodeIds>
 <VisibleNodeIds>
 <v>BLE_To_RPi</v>
@@ -392,6 +406,20 @@
 <v>BLE_To_RPi\BLE_To_RPi\PSoC 6 Architecture TRM</v>
 <v>BLE_To_RPi\BLE_To_RPi\Peripheral Driver Library</v>
 <v>BLE_To_RPi\BLE_To_RPi\System Reference Guides</v>
+<v>BLE_To_RPi\BLE_To_RPi\BLE_PDL_v2_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\CapSense_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\GPIO_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\LED_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\LED_v1_0\LED_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\Power_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\Power_v1_0\Power_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\Resistor_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\Resistor_v1_0\Resistor_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\SysClk_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\SysClk_PDL_v1_0\SysClk_PDL_v1_0.pdf</v>
+<v>BLE_To_RPi\BLE_To_RPi\TCPWM_PWM_PDL_v1_0</v>
+<v>BLE_To_RPi\BLE_To_RPi\TCPWM_PWM_PDL_v1_0\TCPWM_PWM_PDL_v1_0.pdf</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStatesV2>
@@ -404,6 +432,7 @@
 <name v=".\BLE_To_RPi.cydsn\TopDesign\TopDesign.cysch" />
 <name v=".\BLE_To_RPi.cydsn\main_cm0p.c" />
 <name v=".\BLE_To_RPi.cydsn\handle_CapSense.c" />
+<name v=".\BLE_To_RPi.cydsn\BLE_applications.c" />
 </OpenDocs>
 <OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
 
@@ -411,7 +440,7 @@
   Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
   http://www.actiprosoftware.com
 
---><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1182, 710" SelectedTabbedMdiWindow="56553890-278e-499f-b188-19e0134fe959"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\TopDesign\TopDesign.cysch" Guid="ef4dbabc-4d06-4382-a591-a78206799d6b" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\main_cm0p.c" Guid="56553890-278e-499f-b188-19e0134fe959" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\handle_CapSense.c" Guid="d724b7be-4b3d-47c7-bb19-7f821af25a7a" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1306, 710" SelectedTabbedMdiWindow="ef4dbabc-4d06-4382-a591-a78206799d6b"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\TopDesign\TopDesign.cysch" Guid="ef4dbabc-4d06-4382-a591-a78206799d6b" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\main_cm0p.c" Guid="56553890-278e-499f-b188-19e0134fe959" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\handle_CapSense.c" Guid="d724b7be-4b3d-47c7-bb19-7f821af25a7a" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\BLE_applications.c" Guid="58e4aad5-7a1d-4698-83d6-b40c1448f0e1" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
 <config v="" />
 <AutoUpdate v="true" />
 </CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>

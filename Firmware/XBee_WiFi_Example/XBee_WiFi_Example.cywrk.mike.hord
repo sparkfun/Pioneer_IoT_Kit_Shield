@@ -236,17 +236,6 @@
 <v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 6 Architecture TRM</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\Peripheral Driver Library</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\System Reference Guides</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Gnd_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0\LED_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Power_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0\Resistor_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SCB_UART_PDL_v2_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0\SwitchSPST_v1_0.pdf</v>
 </ExpandedNodeIds>
 <VisibleNodeIds>
 <v>XBee_WiFi_Example</v>
@@ -254,17 +243,6 @@
 <v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 6 Architecture TRM</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\Peripheral Driver Library</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\System Reference Guides</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Gnd_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0\LED_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Power_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0\Resistor_v1_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SCB_UART_PDL_v2_0.pdf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0\SwitchSPST_v1_0.pdf</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStatesV2>
