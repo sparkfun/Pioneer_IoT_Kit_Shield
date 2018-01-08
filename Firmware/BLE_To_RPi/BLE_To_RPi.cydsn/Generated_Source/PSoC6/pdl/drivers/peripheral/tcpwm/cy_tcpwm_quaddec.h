@@ -13,12 +13,6 @@
 * the software package with which this file was provided.
 *******************************************************************************/
 
-/**
-* \defgroup group_tcpwm_macros_quaddec          Macro
-* \defgroup group_tcpwm_functions_quaddec       Functions
-* \defgroup group_tcpwm_data_structures_quaddec Data Structures
-* \} */
-
 #if !defined(CY_TCPWM_QUADDEC_H)
 #define CY_TCPWM_QUADDEC_H
 
@@ -33,6 +27,12 @@ extern "C" {
 * Driver API for Quadrature Decoder.
 * \{
 */
+
+/**
+* \defgroup group_tcpwm_macros_quaddec          Macros
+* \defgroup group_tcpwm_functions_quaddec       Functions
+* \defgroup group_tcpwm_data_structures_quaddec Data Structures
+* \} */
 
 /**
 * \addtogroup group_tcpwm_data_structures_quaddec
@@ -127,6 +127,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCounter(TCPWM_Type const *base, uin
 * \param cntNum 
 * The Counter instance number in the selected TCPWM.
 *
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_Init
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_QuadDec_Enable(TCPWM_Type *base, uint32_t cntNum)
 {
@@ -144,6 +147,9 @@ __STATIC_INLINE void Cy_TCPWM_QuadDec_Enable(TCPWM_Type *base, uint32_t cntNum)
 *
 * \param cntNum 
 * The Counter instance number in the selected TCPWM.
+*
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_DeInit
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_QuadDec_Disable(TCPWM_Type *base, uint32_t cntNum)
@@ -166,6 +172,9 @@ __STATIC_INLINE void Cy_TCPWM_QuadDec_Disable(TCPWM_Type *base, uint32_t cntNum)
 *
 * \return
 * The status. See \ref group_tcpwm_quaddec_status
+*
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_GetStatus
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetStatus(TCPWM_Type const *base, uint32_t cntNum)
@@ -196,6 +205,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetStatus(TCPWM_Type const *base, uint
 * \return
 * The capture value.
 *
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_GetCapture
+*
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCapture(TCPWM_Type const *base, uint32_t cntNum)
 {
@@ -217,6 +229,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCapture(TCPWM_Type const *base, uin
 *
 * \return
 * The buffered capture value.
+*
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_GetCaptureBuf
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCaptureBuf(TCPWM_Type const *base, uint32_t cntNum)
@@ -240,6 +255,9 @@ __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCaptureBuf(TCPWM_Type const *base, 
 * \param count
 * The value to write into the counter.
 *
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_SetCounter
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_TCPWM_QuadDec_SetCounter(TCPWM_Type *base, uint32_t cntNum, uint32_t count)
 {
@@ -261,6 +279,9 @@ __STATIC_INLINE void Cy_TCPWM_QuadDec_SetCounter(TCPWM_Type *base, uint32_t cntN
 *
 * \return
 * The current counter value.
+*
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_quaddec_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_QuadDec_SetCounter
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_TCPWM_QuadDec_GetCounter(TCPWM_Type const *base, uint32_t cntNum)

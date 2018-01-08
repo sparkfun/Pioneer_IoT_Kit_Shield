@@ -3,8 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the Immediate Alert Service of the BLE
-*  Component.
+*  This file contains the source code for the Immediate Alert Service.
 *
 ********************************************************************************
 * \copyright
@@ -124,7 +123,7 @@ cy_en_ble_api_result_t Cy_BLE_IAS_Init(cy_stc_ble_ias_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc: An application layer event callback function to receive
-*                     events from the BLE Component. The definition of
+*                     events from the BLE Middleware. The definition of
 *                     cy_ble_callback_t for IAS Service is: \n
 *                     typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                        void *eventParam)
@@ -261,7 +260,7 @@ static void Cy_BLE_IASS_WriteCmdEventHandler(cy_stc_ble_gatts_write_cmd_req_para
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *
@@ -346,7 +345,7 @@ static void Cy_BLE_IASC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 
     if(cy_ble_discovery[discIdx].servCount == (uint32_t)CY_BLE_SRVI_IAS)
     {
-        /* IAS does not have any discriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE to skip */
+        /* IAS does not have any descriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE to skip */
         charRangeInfo->range.startHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
         charRangeInfo->range.endHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
 
@@ -363,7 +362,7 @@ static void Cy_BLE_IASC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_IASS_WRITE_CHAR_CMD event is generated.
+*  Server side, the CY_BLE_EVT_IASS_WRITE_CHAR_CMD event is generated.
 *
 *  \param connHandle: The connection handle.
 *  \param charIndex: The index of the Alert Level service characteristic.
@@ -372,7 +371,7 @@ static void Cy_BLE_IASC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *               should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was sent successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed
@@ -424,13 +423,13 @@ cy_en_ble_api_result_t Cy_BLE_IASC_SetCharacteristicValue(cy_stc_ble_conn_handle
 * Function Name: Cy_BLE_IAS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the the Immediate Alert Service.
+*  Handles the events from the BLE Stack for the the Immediate Alert Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_IAS_EventHandler(uint32_t eventCode,

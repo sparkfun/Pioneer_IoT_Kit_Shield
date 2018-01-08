@@ -59,7 +59,7 @@
 *******************************************************************************/
 __STATIC_INLINE void UART_SCBCLK_Enable(void)
 {
-    Cy_SysClk_PeriphEnableDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM);
+    (void)Cy_SysClk_PeriphEnableDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -75,7 +75,7 @@ __STATIC_INLINE void UART_SCBCLK_Enable(void)
 *******************************************************************************/
 __STATIC_INLINE void UART_SCBCLK_Disable(void)
 {
-    Cy_SysClk_PeriphDisableDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM);
+    (void)Cy_SysClk_PeriphDisableDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -97,7 +97,7 @@ __STATIC_INLINE void UART_SCBCLK_Disable(void)
 *******************************************************************************/
 __STATIC_INLINE void UART_SCBCLK_SetDivider(uint32_t dividerValue)
 {
-    Cy_SysClk_PeriphSetDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM, dividerValue);
+    (void)Cy_SysClk_PeriphSetDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM, dividerValue);
 }
 
 /*******************************************************************************
@@ -145,7 +145,7 @@ __STATIC_INLINE uint32_t UART_SCBCLK_GetDivider(void)
 *******************************************************************************/
 __STATIC_INLINE void UART_SCBCLK_SetFracDivider(uint32_t dividerIntValue, uint32_t dividerFracValue)
 {
-    Cy_SysClk_PeriphSetFracDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM, dividerIntValue, dividerFracValue);
+    (void)Cy_SysClk_PeriphSetFracDivider(UART_SCBCLK_DIV_TYPE, UART_SCBCLK_DIV_NUM, dividerIntValue, dividerFracValue);
 }
 
 /*******************************************************************************

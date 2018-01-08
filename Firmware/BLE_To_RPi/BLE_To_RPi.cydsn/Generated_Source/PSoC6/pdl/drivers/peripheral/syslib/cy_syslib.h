@@ -125,6 +125,29 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
+*     <td rowspan="4"> 2.0</td>
+*     <td>
+* Added Cy_SysLib_ResetBackupDomain() API implementation. \n
+* Added CY_NOINLINE attribute implementation. \n
+* Added DIE_YEAR field to 64-bit unique ID return value of Cy_SysLib_GetUniqueId() API. \n
+* Added storing of SCB->HFSR, SCB->SHCSR registers and SCB->MMFAR, SCB->BFAR addresses to Fault Handler debug structure. \n
+* Optimized Cy_SysLib_SetWaitStates() API implementation.
+*     </td>
+*     <td>Improvements made based on usability feedback.</td>
+*   </tr>
+*   <tr>
+*     <td>Added Assertion Classes and Levels.</td>
+*     <td>For error checking, parameter validation and status returns in the PDL API.</td>
+*   </tr>
+*   <tr>
+*     <td>Applied CY_NOINIT attribute to cy_assertFileName, cy_assertLine, and cy_faultFrame global variables.</td>
+*     <td>To store debug information into a non-zero init area for future analysis.</td>
+*   </tr>
+*   <tr>
+*     <td>Removed CY_WEAK attribute implementation.</td>
+*     <td>CMSIS __WEAK attribute should be used instead.</td>
+*   </tr>
+*   <tr>
 *     <td>1.0</td>
 *     <td>Initial version</td>
 *     <td></td>
@@ -168,9 +191,9 @@ extern "C" {
 #define CY_CPU_CORTEX_M4    (__CORTEX_M == 4)    /**< CM4  core CPU Code */
 
 /** The macro to disable the Fault Handler */
-#define CY_ARM_FAULT_DEBUG_DISABLED    (0u)
+#define CY_ARM_FAULT_DEBUG_DISABLED    (0U)
 /** The macro to enable the Fault Handler */
-#define CY_ARM_FAULT_DEBUG_ENABLED     (1u)
+#define CY_ARM_FAULT_DEBUG_ENABLED     (1U)
 
 #if !defined(CY_ARM_FAULT_DEBUG)
     /** The macro defines if the Fault Handler is enabled. Enabled by default. */
@@ -182,16 +205,16 @@ extern "C" {
 * \{
 * Function status type codes
 */
-#define CY_PDL_STATUS_CODE_Pos  (0u)        /**< The module status code position in the status code */
-#define CY_PDL_STATUS_TYPE_Pos  (16u)       /**< The status type position in the status code */
-#define CY_PDL_MODULE_ID_Pos    (18u)       /**< The software module ID position in the status code */
+#define CY_PDL_STATUS_CODE_Pos  (0U)        /**< The module status code position in the status code */
+#define CY_PDL_STATUS_TYPE_Pos  (16U)       /**< The status type position in the status code */
+#define CY_PDL_MODULE_ID_Pos    (18U)       /**< The software module ID position in the status code */
 #define CY_PDL_STATUS_INFO      (0UL << CY_PDL_STATUS_TYPE_Pos)    /**< The information status type */
 #define CY_PDL_STATUS_WARNING   (1UL << CY_PDL_STATUS_TYPE_Pos)    /**< The warning status type */
 #define CY_PDL_STATUS_ERROR     (2UL << CY_PDL_STATUS_TYPE_Pos)    /**< The error status type */
-#define CY_PDL_MODULE_ID_Msk    (0x3FFFu)   /**< The software module ID mask */
+#define CY_PDL_MODULE_ID_Msk    (0x3FFFU)   /**< The software module ID mask */
 /** Get the software PDL module ID */
 #define CY_PDL_DRV_ID(id)       ((uint32_t)((uint32_t)((id) & CY_PDL_MODULE_ID_Msk) << CY_PDL_MODULE_ID_Pos))
-#define CY_SYSLIB_ID            CY_PDL_DRV_ID(0x11u)     /**< SYSLIB PDL ID */
+#define CY_SYSLIB_ID            CY_PDL_DRV_ID(0x11U)     /**< SYSLIB PDL ID */
 /** \} group_syslib_macros_status_codes */
 
 /** \} group_syslib_macros */
@@ -357,25 +380,25 @@ typedef enum
 *******************************************************************************/
 
 /** Get the lower 8 bits of a 16-bit value. */
-#define CY_LO8(x)               ((uint8_t) ((x) & 0xFFu))
+#define CY_LO8(x)               ((uint8_t) ((x) & 0xFFU))
 /** Get the upper 8 bits of a 16-bit value. */
-#define CY_HI8(x)               ((uint8_t) ((uint16_t)(x) >> 8u))
+#define CY_HI8(x)               ((uint8_t) ((uint16_t)(x) >> 8U))
 
 /** Get the lower 16 bits of a 32-bit value. */
-#define CY_LO16(x)              ((uint16_t) ((x) & 0xFFFFu))
+#define CY_LO16(x)              ((uint16_t) ((x) & 0xFFFFU))
 /** Get the upper 16 bits of a 32-bit value. */
-#define CY_HI16(x)              ((uint16_t) ((uint32_t)(x) >> 16u))
+#define CY_HI16(x)              ((uint16_t) ((uint32_t)(x) >> 16U))
 
 /** Swap the byte ordering of a 16-bit value */
-#define CY_SWAP_ENDIAN16(x)     ((uint16_t)(((x) << 8u) | (((x) >> 8u) & 0x00FFu)))
+#define CY_SWAP_ENDIAN16(x)     ((uint16_t)(((x) << 8U) | (((x) >> 8U) & 0x00FFU)))
 
 /** Swap the byte ordering of a 32-bit value */
-#define CY_SWAP_ENDIAN32(x)     ((uint32_t)((((x) >> 24u) & 0x000000FFu) | (((x) & 0x00FF0000u) >> 8u) | \
-                                (((x) & 0x0000FF00u) << 8u) | ((x) << 24u)))
+#define CY_SWAP_ENDIAN32(x)     ((uint32_t)((((x) >> 24U) & 0x000000FFU) | (((x) & 0x00FF0000U) >> 8U) | \
+                                (((x) & 0x0000FF00U) << 8U) | ((x) << 24U)))
 
 /** Swap the byte ordering of a 64-bit value */
-#define CY_SWAP_ENDIAN64(x)     ((uint64_t) (((uint64_t) CY_SWAP_ENDIAN32((uint32_t)(x)) << 32u) | \
-                                CY_SWAP_ENDIAN32((uint32_t)((x) >> 32u))))
+#define CY_SWAP_ENDIAN64(x)     ((uint64_t) (((uint64_t) CY_SWAP_ENDIAN32((uint32_t)(x)) << 32U) | \
+                                CY_SWAP_ENDIAN32((uint32_t)((x) >> 32U))))
 
 
 /*******************************************************************************
@@ -404,7 +427,11 @@ typedef enum
     #define CY_SECTION(name)    CY_PRAGMA(location = name)
     #define CY_UNUSED
     #define CY_NOINLINE         CY_PRAGMA(optimize = no_inline)
-    #define CY_ALIGN(align)     CY_PRAGMA(data_alignment = align)
+    #if (__VER__ < 8010001)
+        #define CY_ALIGN(align) CY_PRAGMA(data_alignment = align)
+    #else
+        #define CY_ALIGN(align) __ALIGNED(align)
+    #endif /* (__VER__ < 8010001) */
 #else
     #error "An unsupported toolchain"
 #endif  /* (__ARMCC_VERSION) */
@@ -423,41 +450,41 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 
 #if !defined(NDEBUG)
     /** The max size of the file name which stores the ASSERT location */
-    #define CY_MAX_FILE_NAME_SIZE  (24u)
+    #define CY_MAX_FILE_NAME_SIZE  (24U)
     extern CY_NOINIT char_t cy_assertFileName[CY_MAX_FILE_NAME_SIZE];  /**< The assert buffer */
     extern CY_NOINIT uint32_t cy_assertLine;                           /**< The assert line value */
 #endif /* NDEBUG */
 
 #if (CY_ARM_FAULT_DEBUG == CY_ARM_FAULT_DEBUG_ENABLED)
-    #define CY_R0_Pos              (0u)    /**< The position of the R0  content in a fault structure */
-    #define CY_R1_Pos              (1u)    /**< The position of the R1  content in a fault structure */
-    #define CY_R2_Pos              (2u)    /**< The position of the R2  content in a fault structure */
-    #define CY_R3_Pos              (3u)    /**< The position of the R3  content in a fault structure */
-    #define CY_R12_Pos             (4u)    /**< The position of the R12 content in a fault structure */
-    #define CY_LR_Pos              (5u)    /**< The position of the LR  content in a fault structure */
-    #define CY_PC_Pos              (6u)    /**< The position of the PC  content in a fault structure */
-    #define CY_PSR_Pos             (7u)    /**< The position of the PSR content in a fault structure */
+    #define CY_R0_Pos             (0U)     /**< The position of the R0  content in a fault structure */
+    #define CY_R1_Pos             (1U)     /**< The position of the R1  content in a fault structure */
+    #define CY_R2_Pos             (2U)     /**< The position of the R2  content in a fault structure */
+    #define CY_R3_Pos             (3U)     /**< The position of the R3  content in a fault structure */
+    #define CY_R12_Pos            (4U)     /**< The position of the R12 content in a fault structure */
+    #define CY_LR_Pos             (5U)     /**< The position of the LR  content in a fault structure */
+    #define CY_PC_Pos             (6U)     /**< The position of the PC  content in a fault structure */
+    #define CY_PSR_Pos            (7U)     /**< The position of the PSR content in a fault structure */
     #if (CY_CPU_CORTEX_M4) && ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
                                (defined (__FPU_USED   ) && (__FPU_USED    == 1U)))
-        #define CY_FPSCR_IXC_Msk  (0x00000010u)    /**< The cumulative exception bit for floating-point exceptions */
-        #define CY_FPSCR_IDC_Msk  (0x00000080u)    /**< The cumulative exception bit for floating-point exceptions */
-        #define CY_S0_Pos         (8u)     /**< The position of the FPU S0 content in a fault structure */
-        #define CY_S1_Pos         (9u)     /**< The position of the FPU S1 content in a fault structure */
-        #define CY_S2_Pos         (10u)    /**< The position of the FPU S2 content in a fault structure */
-        #define CY_S3_Pos         (11u)    /**< The position of the FPU S3 content in a fault structure */
-        #define CY_S4_Pos         (12u)    /**< The position of the FPU S4 content in a fault structure */
-        #define CY_S5_Pos         (13u)    /**< The position of the FPU S5 content in a fault structure */
-        #define CY_S6_Pos         (14u)    /**< The position of the FPU S6 content in a fault structure */
-        #define CY_S7_Pos         (15u)    /**< The position of the FPU S7 content in a fault structure */
-        #define CY_S8_Pos         (16u)    /**< The position of the FPU S8 content in a fault structure */
-        #define CY_S9_Pos         (17u)    /**< The position of the FPU S9 content in a fault structure */
-        #define CY_S10_Pos        (18u)    /**< The position of the FPU S10 content in a fault structure */
-        #define CY_S11_Pos        (19u)    /**< The position of the FPU S11 content in a fault structure */
-        #define CY_S12_Pos        (20u)    /**< The position of the FPU S12 content in a fault structure */
-        #define CY_S13_Pos        (21u)    /**< The position of the FPU S13 content in a fault structure */
-        #define CY_S14_Pos        (22u)    /**< The position of the FPU S14 content in a fault structure */
-        #define CY_S15_Pos        (23u)    /**< The position of the FPU S15 content in a fault structure */
-        #define CY_FPSCR_Pos      (24u)    /**< The position of the FPU FPSCR content in a fault structure */
+        #define CY_FPSCR_IXC_Msk  (0x00000010U)    /**< The cumulative exception bit for floating-point exceptions */
+        #define CY_FPSCR_IDC_Msk  (0x00000080U)    /**< The cumulative exception bit for floating-point exceptions */
+        #define CY_S0_Pos         (8U)     /**< The position of the FPU S0 content in a fault structure */
+        #define CY_S1_Pos         (9U)     /**< The position of the FPU S1 content in a fault structure */
+        #define CY_S2_Pos         (10U)    /**< The position of the FPU S2 content in a fault structure */
+        #define CY_S3_Pos         (11U)    /**< The position of the FPU S3 content in a fault structure */
+        #define CY_S4_Pos         (12U)    /**< The position of the FPU S4 content in a fault structure */
+        #define CY_S5_Pos         (13U)    /**< The position of the FPU S5 content in a fault structure */
+        #define CY_S6_Pos         (14U)    /**< The position of the FPU S6 content in a fault structure */
+        #define CY_S7_Pos         (15U)    /**< The position of the FPU S7 content in a fault structure */
+        #define CY_S8_Pos         (16U)    /**< The position of the FPU S8 content in a fault structure */
+        #define CY_S9_Pos         (17U)    /**< The position of the FPU S9 content in a fault structure */
+        #define CY_S10_Pos        (18U)    /**< The position of the FPU S10 content in a fault structure */
+        #define CY_S11_Pos        (19U)    /**< The position of the FPU S11 content in a fault structure */
+        #define CY_S12_Pos        (20U)    /**< The position of the FPU S12 content in a fault structure */
+        #define CY_S13_Pos        (21U)    /**< The position of the FPU S13 content in a fault structure */
+        #define CY_S14_Pos        (22U)    /**< The position of the FPU S14 content in a fault structure */
+        #define CY_S15_Pos        (23U)    /**< The position of the FPU S15 content in a fault structure */
+        #define CY_FPSCR_Pos      (24U)    /**< The position of the FPU FPSCR content in a fault structure */
     #endif /* CY_CPU_CORTEX_M4 && __FPU_PRESENT */
 
     extern CY_NOINIT cy_stc_fault_frame_t cy_faultFrame;    /**< Fault frame structure */
@@ -534,8 +561,8 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 *
 *******************************************************************************/
 #define CY_GET_REG24(addr)          (uint32_t) ((*((const volatile uint8_t *)(addr))) | \
-                                    (uint32_t) ((*((const volatile uint8_t *)(addr) + 1)) << 8u) | \
-                                    (uint32_t) ((*((const volatile uint8_t *)(addr) + 2)) << 16u))
+                                    (uint32_t) ((*((const volatile uint8_t *)(addr) + 1)) << 8U) | \
+                                    (uint32_t) ((*((const volatile uint8_t *)(addr) + 2)) << 16U))
 
 
 /*******************************************************************************
@@ -552,8 +579,8 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 #define CY_SET_REG24(addr, value)   do  \
                                     {   \
                                         (*((volatile uint8_t *) (addr))) = (uint8_t)(value);                \
-                                        (*((volatile uint8_t *) (addr) + 1)) = (uint8_t)((value) >> 8u);    \
-                                        (*((volatile uint8_t *) (addr) + 2)) = (uint8_t)((value) >> 16u);   \
+                                        (*((volatile uint8_t *) (addr) + 1)) = (uint8_t)((value) >> 8U);    \
+                                        (*((volatile uint8_t *) (addr) + 2)) = (uint8_t)((value) >> 16U);   \
                                     }   \
                                     while(0)
 
@@ -598,13 +625,13 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 * Class 1 - The highest class, safety-critical functions which rely on parameters that could be
 * changed between different PSoC devices
 */
-#define CY_ASSERT_CLASS_1           (1u)
+#define CY_ASSERT_CLASS_1           (1U)
 
 /** Class 2 - Functions that have fixed limits such as counter periods (16-bits/32-bits etc.) */
-#define CY_ASSERT_CLASS_2           (2u)
+#define CY_ASSERT_CLASS_2           (2U)
 
 /** Class 3 - Functions that accept enums as constant parameters */
-#define CY_ASSERT_CLASS_3           (3u)
+#define CY_ASSERT_CLASS_3           (3U)
 
 #ifndef CY_ASSERT_LEVEL
     /** The user-definable assert level from compiler command-line argument (similarly to DEBUG / NDEBUG) */
@@ -612,17 +639,17 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 #endif /* CY_ASSERT_LEVEL */
 
 #if (CY_ASSERT_LEVEL == CY_ASSERT_CLASS_1)
-    #define CY_ASSERT_L1(x)         CY_ASSERT(x)      /**< Assert Level 1 */
+    #define CY_ASSERT_L1(x)         CY_ASSERT(x)     /**< Assert Level 1 */
     #define CY_ASSERT_L2(x)         do{} while(0)    /**< Assert Level 2 */
     #define CY_ASSERT_L3(x)         do{} while(0)    /**< Assert Level 3 */
 #elif (CY_ASSERT_LEVEL == CY_ASSERT_CLASS_2)
-    #define CY_ASSERT_L1(x)         CY_ASSERT(x)      /**< Assert Level 1 */
-    #define CY_ASSERT_L2(x)         CY_ASSERT(x)      /**< Assert Level 2 */
+    #define CY_ASSERT_L1(x)         CY_ASSERT(x)     /**< Assert Level 1 */
+    #define CY_ASSERT_L2(x)         CY_ASSERT(x)     /**< Assert Level 2 */
     #define CY_ASSERT_L3(x)         do{} while(0)    /**< Assert Level 3 */
 #else /* Default is Level 3 */
-    #define CY_ASSERT_L1(x)         CY_ASSERT(x)      /**< Assert Level 1 */
-    #define CY_ASSERT_L2(x)         CY_ASSERT(x)      /**< Assert Level 2 */
-    #define CY_ASSERT_L3(x)         CY_ASSERT(x)      /**< Assert Level 3 */
+    #define CY_ASSERT_L1(x)         CY_ASSERT(x)     /**< Assert Level 1 */
+    #define CY_ASSERT_L2(x)         CY_ASSERT(x)     /**< Assert Level 2 */
+    #define CY_ASSERT_L3(x)         CY_ASSERT(x)     /**< Assert Level 3 */
 #endif /* CY_ASSERT_LEVEL == CY_ASSERT_CLASS_1 */
 
 /** \} group_syslib_macros_assert */
@@ -697,7 +724,7 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 * Constants
 *****************************************************************************/
 /** Defines a 32-kHz clock delay */
-#define CY_DELAY_MS_OVERFLOW            (0x8000u)
+#define CY_DELAY_MS_OVERFLOW            (0x8000U)
 
 /**
 * \defgroup group_syslib_macros_reset_cause Reset cause
@@ -705,31 +732,31 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 * Define RESET_CAUSE mask values
 */
 /** A basic WatchDog Timer (WDT) reset has occurred since the last power cycle. */
-#define CY_SYSLIB_RESET_HWWDT           (0x0001u)
+#define CY_SYSLIB_RESET_HWWDT           (0x0001U)
 /** The fault logging system requested a reset from its Active logic. */
-#define CY_SYSLIB_RESET_ACT_FAULT       (0x0002u)
+#define CY_SYSLIB_RESET_ACT_FAULT       (0x0002U)
 /** The fault logging system requested a reset from its Deep-Sleep logic. */
-#define CY_SYSLIB_RESET_DPSLP_FAULT     (0x0004u)
+#define CY_SYSLIB_RESET_DPSLP_FAULT     (0x0004U)
 /** The CPU requested a system reset through it's SYSRESETREQ. This can be done via a debugger probe or in firmware. */
-#define CY_SYSLIB_RESET_SOFT            (0x0010u)
+#define CY_SYSLIB_RESET_SOFT            (0x0010U)
 /** The Multi-Counter Watchdog timer #0 reset has occurred since the last power cycle. */
-#define CY_SYSLIB_RESET_SWWDT0          (0x0020u)
+#define CY_SYSLIB_RESET_SWWDT0          (0x0020U)
 /** The Multi-Counter Watchdog timer #1 reset has occurred since the last power cycle. */
-#define CY_SYSLIB_RESET_SWWDT1          (0x0040u)
+#define CY_SYSLIB_RESET_SWWDT1          (0x0040U)
 /** The Multi-Counter Watchdog timer #2 reset has occurred since the last power cycle. */
-#define CY_SYSLIB_RESET_SWWDT2          (0x0080u)
+#define CY_SYSLIB_RESET_SWWDT2          (0x0080U)
 /** The Multi-Counter Watchdog timer #3 reset has occurred since the last power cycle. */
-#define CY_SYSLIB_RESET_SWWDT3          (0x0100u)
+#define CY_SYSLIB_RESET_SWWDT3          (0x0100U)
 /** The reset has occurred on a wakeup from Hibernate power mode. */
 #define CY_SYSLIB_RESET_HIB_WAKEUP      (0x40000UL)
-#if (SRSS_WCOCSV_PRESENT != 0u)
+#if (SRSS_WCOCSV_PRESENT != 0U)
     /** The clock supervision logic requested a reset due to the loss of a watch-crystal clock. */
-    #define CY_SYSLIB_RESET_CSV_WCO_LOSS    (0x0008u)
+    #define CY_SYSLIB_RESET_CSV_WCO_LOSS    (0x0008U)
     /** The clock supervision logic requested a reset due to the loss of a high-frequency clock. */
     #define CY_SYSLIB_RESET_HFCLK_LOSS      (0x10000UL)
     /** The clock supervision logic requested a reset due to the frequency error of a high-frequency clock. */
     #define CY_SYSLIB_RESET_HFCLK_ERR       (0x20000UL)
-#endif /* (SRSS_WCOCSV_PRESENT != 0u) */
+#endif /* (SRSS_WCOCSV_PRESENT != 0U) */
 
 /** \} group_syslib_macros_reset_cause */
 
@@ -743,15 +770,15 @@ typedef double   float64_t; /**< Specific-length typedef for the basic numerical
 * \{
 * Unique ID fields positions
 */
-#define CY_UNIQUE_ID_DIE_YEAR_Pos       (57u)    /**< The position of the DIE_YEAR  field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_MINOR_Pos      (56u)    /**< The position of the DIE_MINOR field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_SORT_Pos       (48u)    /**< The position of the DIE_SORT  field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_Y_Pos          (40u)    /**< The position of the DIE_Y     field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_X_Pos          (32u)    /**< The position of the DIE_X     field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_WAFER_Pos      (24u)    /**< The position of the DIE_WAFER field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_LOT_2_Pos      (16u)    /**< The position of the DIE_LOT_2 field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_LOT_1_Pos      (8u)     /**< The position of the DIE_LOT_1 field in the silicon Unique ID */
-#define CY_UNIQUE_ID_DIE_LOT_0_Pos      (0u)     /**< The position of the DIE_LOT_0 field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_YEAR_Pos       (57U)    /**< The position of the DIE_YEAR  field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_MINOR_Pos      (56U)    /**< The position of the DIE_MINOR field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_SORT_Pos       (48U)    /**< The position of the DIE_SORT  field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_Y_Pos          (40U)    /**< The position of the DIE_Y     field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_X_Pos          (32U)    /**< The position of the DIE_X     field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_WAFER_Pos      (24U)    /**< The position of the DIE_WAFER field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_LOT_2_Pos      (16U)    /**< The position of the DIE_LOT_2 field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_LOT_1_Pos      (8U)     /**< The position of the DIE_LOT_1 field in the silicon Unique ID */
+#define CY_UNIQUE_ID_DIE_LOT_0_Pos      (0U)     /**< The position of the DIE_LOT_0 field in the silicon Unique ID */
 
 /** \} group_syslib_macros_unique_id */
 
@@ -780,9 +807,9 @@ __NO_RETURN void Cy_SysLib_Halt(uint32_t reason);
 void Cy_SysLib_ClearFlashCacheAndBuffer(void);
 cy_en_syslib_status_t Cy_SysLib_ResetBackupDomain(void);
 uint32_t Cy_SysLib_GetResetReason(void);
-#if (SRSS_WCOCSV_PRESENT != 0u) || defined(CY_DOXYGEN)
+#if (SRSS_WCOCSV_PRESENT != 0U) || defined(CY_DOXYGEN)
     uint32_t Cy_SysLib_GetNumHfclkResetCause(void);
-#endif /* (SRSS_WCOCSV_PRESENT != 0u) || defined(CY_DOXYGEN) */
+#endif /* (SRSS_WCOCSV_PRESENT != 0U) || defined(CY_DOXYGEN) */
 void Cy_SysLib_ClearResetReason(void);
 uint64_t Cy_SysLib_GetUniqueId(void);
 #if (CY_CPU_CORTEX_M0P)
@@ -829,6 +856,40 @@ void Cy_SysLib_ExitCriticalSection(uint32_t savedIntrStatus);
 
 
 /** \cond INTERNAL */
+#define CY_SYSLIB_DEVICE_REV_0A       (0x21U)  /**< The device TO *A Revision ID */
+#define CY_SYSLIB_DEVICE_PSOC6ABLE2   (0x100U) /**< The PSoC6 BLE2 device Family ID */
+
+
+/*******************************************************************************
+* Function Name: Cy_SysLib_GetDeviceRevision
+****************************************************************************//**
+*
+* This function returns a device Revision ID.
+*
+* \return  A device Revision ID.
+*
+*******************************************************************************/
+__STATIC_INLINE uint8_t Cy_SysLib_GetDeviceRevision(void)
+{
+    return ((SFLASH->SI_REVISION_ID == 0UL) ? CY_SYSLIB_DEVICE_REV_0A : SFLASH->SI_REVISION_ID);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysLib_GetDevice
+****************************************************************************//**
+*
+* This function returns a device Family ID.
+*
+* \return  A device Family ID.
+*
+*******************************************************************************/
+__STATIC_INLINE uint16_t Cy_SysLib_GetDevice(void)
+{
+    return ((SFLASH->FAMILY_ID == 0UL) ? CY_SYSLIB_DEVICE_PSOC6ABLE2 : SFLASH->FAMILY_ID);
+}
+
+
 typedef uint32_t cy_status;
 /** The ARM 32-bit status value for backward compatibility with the UDB components. Do not use it in your code. */
 typedef uint32_t cystatus;
@@ -851,36 +912,36 @@ typedef volatile uint32_t reg32;  /**< Alias to uint32_t for backward compatibil
 /** The ARM 32-bit Return error / status code for backward compatibility.
 *  Do not use them in your code.
 */
-#define CY_RET_SUCCESS           (0x00u)    /* Successful */
-#define CY_RET_BAD_PARAM         (0x01u)    /* One or more invalid parameters */
-#define CY_RET_INVALID_OBJECT    (0x02u)    /* An invalid object specified */
-#define CY_RET_MEMORY            (0x03u)    /* A memory-related failure */
-#define CY_RET_LOCKED            (0x04u)    /* A resource lock failure */
-#define CY_RET_EMPTY             (0x05u)    /* No more objects available */
-#define CY_RET_BAD_DATA          (0x06u)    /* Bad data received (CRC or other error check) */
-#define CY_RET_STARTED           (0x07u)    /* Operation started, but not necessarily completed yet */
-#define CY_RET_FINISHED          (0x08u)    /* Operation is completed */
-#define CY_RET_CANCELED          (0x09u)    /* Operation is canceled */
-#define CY_RET_TIMEOUT           (0x10u)    /* Operation timed out */
-#define CY_RET_INVALID_STATE     (0x11u)    /* Operation is not setup or is in an improper state */
-#define CY_RET_UNKNOWN           ((cy_status) 0xFFFFFFFFu)    /* Unknown failure */
+#define CY_RET_SUCCESS           (0x00U)    /* Successful */
+#define CY_RET_BAD_PARAM         (0x01U)    /* One or more invalid parameters */
+#define CY_RET_INVALID_OBJECT    (0x02U)    /* An invalid object specified */
+#define CY_RET_MEMORY            (0x03U)    /* A memory-related failure */
+#define CY_RET_LOCKED            (0x04U)    /* A resource lock failure */
+#define CY_RET_EMPTY             (0x05U)    /* No more objects available */
+#define CY_RET_BAD_DATA          (0x06U)    /* Bad data received (CRC or other error check) */
+#define CY_RET_STARTED           (0x07U)    /* Operation started, but not necessarily completed yet */
+#define CY_RET_FINISHED          (0x08U)    /* Operation is completed */
+#define CY_RET_CANCELED          (0x09U)    /* Operation is canceled */
+#define CY_RET_TIMEOUT           (0x10U)    /* Operation timed out */
+#define CY_RET_INVALID_STATE     (0x11U)    /* Operation is not setup or is in an improper state */
+#define CY_RET_UNKNOWN           ((cy_status) 0xFFFFFFFFU)    /* Unknown failure */
 
 /** ARM 32-bit Return error / status codes for backward compatibility with the UDB components.
 *  Do not use them in your code.
 */
-#define CYRET_SUCCESS            (0x00u)    /* Successful */
-#define CYRET_BAD_PARAM          (0x01u)    /* One or more invalid parameters */
-#define CYRET_INVALID_OBJECT     (0x02u)    /* An invalid object specified */
-#define CYRET_MEMORY             (0x03u)    /* A memory-related failure */
-#define CYRET_LOCKED             (0x04u)    /* A resource lock failure */
-#define CYRET_EMPTY              (0x05u)    /* No more objects available */
-#define CYRET_BAD_DATA           (0x06u)    /* Bad data received (CRC or other error check) */
-#define CYRET_STARTED            (0x07u)    /* Operation started, but not necessarily completed yet */
-#define CYRET_FINISHED           (0x08u)    /* Operation is completed */
-#define CYRET_CANCELED           (0x09u)    /* Operation is canceled */
-#define CYRET_TIMEOUT            (0x10u)    /* Operation timed out */
-#define CYRET_INVALID_STATE      (0x11u)    /* Operation is not setup or is in an improper state */
-#define CYRET_UNKNOWN            ((cystatus) 0xFFFFFFFFu)    /* Unknown failure */
+#define CYRET_SUCCESS            (0x00U)    /* Successful */
+#define CYRET_BAD_PARAM          (0x01U)    /* One or more invalid parameters */
+#define CYRET_INVALID_OBJECT     (0x02U)    /* An invalid object specified */
+#define CYRET_MEMORY             (0x03U)    /* A memory-related failure */
+#define CYRET_LOCKED             (0x04U)    /* A resource lock failure */
+#define CYRET_EMPTY              (0x05U)    /* No more objects available */
+#define CYRET_BAD_DATA           (0x06U)    /* Bad data received (CRC or other error check) */
+#define CYRET_STARTED            (0x07U)    /* Operation started, but not necessarily completed yet */
+#define CYRET_FINISHED           (0x08U)    /* Operation is completed */
+#define CYRET_CANCELED           (0x09U)    /* Operation is canceled */
+#define CYRET_TIMEOUT            (0x10U)    /* Operation timed out */
+#define CYRET_INVALID_STATE      (0x11U)    /* Operation is not setup or is in an improper state */
+#define CYRET_UNKNOWN            ((cystatus) 0xFFFFFFFFU)    /* Unknown failure */
 
 /** A type of ISR callbacks for backward compatibility with the UDB components. Do not use it in your code. */
 typedef void (* cyisraddress)(void);

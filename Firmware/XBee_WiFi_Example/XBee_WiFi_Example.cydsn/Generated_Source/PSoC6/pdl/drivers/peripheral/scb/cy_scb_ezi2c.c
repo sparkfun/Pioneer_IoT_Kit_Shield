@@ -47,7 +47,7 @@ static void UpdateAddressMask (CySCB_Type *base, cy_stc_scb_ezi2c_context_t cons
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -61,7 +61,7 @@ cy_en_scb_ezi2c_status_t Cy_SCB_EZI2C_Init(CySCB_Type *base, cy_stc_scb_ezi2c_co
                                            cy_stc_scb_ezi2c_context_t *context)
 {
     /* Input parameters verification */
-    if ((NULL == base) && (NULL == config) && (NULL == context))
+    if ((NULL == base) || (NULL == config) || (NULL == context))
     {
         return CY_SCB_EZI2C_BAD_PARAM;
     }
@@ -150,7 +150,7 @@ cy_en_scb_ezi2c_status_t Cy_SCB_EZI2C_Init(CySCB_Type *base, cy_stc_scb_ezi2c_co
 *******************************************************************************/
 void Cy_SCB_EZI2C_DeInit(CySCB_Type *base)
 {
-    /* Returns the block registers into the default state */
+    /* Return the block registers into the default state */
     base->CTRL     = CY_SCB_CTRL_DEF_VAL;
     base->I2C_CTRL = CY_SCB_I2C_CTRL_DEF_VAL;
 
@@ -185,11 +185,11 @@ void Cy_SCB_EZI2C_DeInit(CySCB_Type *base)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
-* Calling this function when EZI2C is busy (the slave was addressed and is
+* Calling this function while EZI2C is busy (the slave has been addressed and is
 * communicating with the master), may cause transaction corruption because
 * the hardware stops driving the output and ignores the input. Ensure that
 * the EZI2C slave is not busy before calling this function.
@@ -210,37 +210,38 @@ void Cy_SCB_EZI2C_Disable(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 ****************************************************************************//**
 *
 * This function handles the transition of the EZI2C SCB into and out of
-* Deep-Sleep mode. It prevents the device from entering Deep-Sleep mode
-* if the EZI2C slave is actively communicating.
-* The following behavior of the EZI2C depends on if the SCB block is
-* wakeup-capable or not:
-* * The SCB wakeup-capable: on the incoming EZI2C slave address, the slave
-*   receives address and stretches the clock until the device is awoken from
-*   Deep-Sleep mode. If the slave address occurs before the device enters
-*   Deep-Sleep mode, the device will not enter Deep-Sleep mode.
-* * The SCB is not wakeup-capable: the EZI2C is disabled. It is enabled when
-*   the device failed to enter Deep-Sleep mode or it is awaken from Deep-Sleep
-*   mode. During the EZI2C is disabled, it stops driving the outputs and
+* Deep Sleep mode. It prevents the device from entering Deep Sleep mode if 
+* the EZI2C slave is actively communicating.
+* The following behavior of the EZI2C depends on whether the SCB block is
+* wakeup-capable:
+* * The SCB <b>wakeup-capable</b>: on the incoming EZI2C slave address, the slave
+*   receives the address and stretches the clock until the device is woken from
+*   Deep Sleep mode. If the slave address occurs before the device enters
+*   Deep Sleep mode, the device will not enter Deep Sleep mode.
+* * The SCB is <b>not wakeup-capable</b>: the EZI2C is disabled. It is enabled 
+*   when the device fails to enter Deep Sleep mode or it is woken from Deep Sleep
+*   mode. While the EZI2C is disabled, it stops driving the outputs and
 *   ignores the input lines. The slave NACKs all incoming addresses.
 *
-* This function can be called during execution of \ref Cy_SysPm_DeepSleep,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_DeepSleep.
+* To do this, register this function as a callback before calling
 * \ref Cy_SysPm_DeepSleep : specify \ref CY_SYSPM_DEEPSLEEP as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
 * \param callbackParams
-* The pointer to the callback parameters structure
+* The pointer to the callback parameters structure.
 * \ref cy_stc_syspm_callback_params_t.
 *
 * \return
 * \ref cy_en_syspm_status_t
 *
-* \warning
+* \note
+* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
 * For proper operation, when the EZI2C slave is configured to be a wakeup source
-* from Deep-Sleep mode, this function must be copied and modified by the user.
+* from Deep Sleep mode, this function must be copied and modified by the user.
 * The EZI2C clock disable code must be inserted in the
-* \ref CY_SYSPM_BEFORE_TRANSITION and enable code in the \ref CY_SYSPM_AFTER_TRANSITION
-* mode processing.
+* \ref CY_SYSPM_BEFORE_TRANSITION and clock enable code in the 
+* \ref CY_SYSPM_AFTER_TRANSITION mode processing.
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams)
@@ -257,8 +258,8 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
             /* Disable the slave interrupt sources to protect the state */
             Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
 
-            /* If the EZI2C is in the IDLE state, it is ready for Deep-Sleep
-            *  mode, otherwise return fail and restore the slave interrupt
+            /* If the EZI2C is in the IDLE state, it is ready for Deep Sleep
+            *  mode. Otherwise, it returns fail and restores the slave interrupt
             * sources.
             */
             if (CY_SCB_EZI2C_STATE_IDLE == locContext->state)
@@ -267,7 +268,7 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
                 {
                     /* The SCB is wakeup-capable: do not restore the address
                     * match interrupt source. The next transaction intended
-                    * for the slave will be paused (SCL is stretched) before
+                    * for the slave will be paused (the SCL is stretched) before
                     * the address is ACKed because the corresponding interrupt
                     * source is disabled.
                     */
@@ -277,8 +278,8 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
                 {
                     /* The SCB is NOT wakeup-capable: disable the EZI2C.
                     * The slave stops responding to the master until the
-                    * EZI2C is enabled. This happens when the device is failed
-                    * to enter Deep-Sleep mode or it is awaken from Deep-Sleep
+                    * EZI2C is enabled. This happens when the device fails
+                    * to enter Deep Sleep mode or it is woken from Deep Sleep
                     * mode.
                     */
                     Cy_SCB_EZI2C_Disable(locBase, locContext);
@@ -297,20 +298,20 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore
+            /* The other driver is not ready for Deep Sleep mode. Restore
             * Active mode configuration.
             */
 
             if (_FLD2BOOL(SCB_CTRL_EC_AM_MODE, locBase->CTRL))
             {
                 /* The SCB is wakeup-capable: restore the slave interrupt
-                * sources
+                * sources.
                 */
                 Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_EZI2C_SLAVE_INTR);
             }
             else
             {
-                /* The SCB is NOT wakeup-capable: enable the slave to operate */
+                /* The SCB is NOT wakeup-capable: enable the slave to operate. */
                 Cy_SCB_EZI2C_Enable(locBase);
             }
 
@@ -331,16 +332,19 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
             {
                 /* The SCB is wakeup-capable: enable the I2C wakeup interrupt
                 * source. If any transaction was paused the the EZI2C interrupt
-                * becomes pending and prevents entering Deep-Sleep mode.
+                * becomes pending and prevents entering Deep Sleep mode.
                 * The transaction continues as soon as the global interrupts
                 * are enabled.
                 */
                 Cy_SCB_SetI2CInterruptMask(locBase, CY_SCB_I2C_INTR_WAKEUP);
 
-                /* IMPORTANT (insert code below): for proper entering Deep
-                * Sleep the EZI2C clock must be disabled. This code must be
-                * inserted by the user because the driver does not have access
-                * to the clock.
+                /* Disable SCB clock */
+                locBase->I2C_CFG &= (uint32_t) ~CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                            
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper entering Deep Sleep mode the I2C clock must be disabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
                 */
             }
 
@@ -352,16 +356,19 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
         {
             if (_FLD2BOOL(SCB_CTRL_EC_AM_MODE, locBase->CTRL))
             {
-                /* IMPORTANT (insert code below): for proper exiting Deep
-                * Sleep, the EZI2C clock must be enabled. This code must be
-                * inserted by the user because the driver does not have access
-                * to the clock.
+                /* Enable SCB clock */
+                locBase->I2C_CFG |= CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper exiting Deep Sleep mode, the I2C clock must be enabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
                 */
 
                 /* The SCB is wakeup-capable: disable the I2C wakeup interrupt
                 * source and restore slave interrupt sources.
                 */
-                Cy_SCB_SetI2CInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
+                Cy_SCB_SetI2CInterruptMask  (locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
                 Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_EZI2C_SLAVE_INTR);
             }
             else
@@ -387,15 +394,15 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_DeepSleepCallback(cy_stc_syspm_callback_params
 ****************************************************************************//**
 *
 * This function handles the transition of the EZI2C SCB block into Hibernate
-* mode. It prevents the device from entering Hibernate mode if the EZI2C slave
+* mode. It prevents the device from entering Hibernate mode if the EZI2C slave 
 * is actively communicating.
 * If the EZI2C is ready to enter Hibernate mode, it is disabled. If the device
-* failed to enter Hibernate mode, the EZI2C is enabled. During the EZI2C
-* is disabled, it does stops driving the output and ignores the inputs.
+* fails to enter Hibernate mode, the EZI2C is enabled. While the EZI2C
+* is disabled, it stops driving the output and ignores the inputs.
 * The slave NACKs all incoming addresses.
 *
-* This function can be called during execution of \ref Cy_SysPm_Hibernate,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_Hibernate.
+* To do this, register this function as a callback before calling
 * \ref Cy_SysPm_Hibernate : specify \ref CY_SYSPM_HIBERNATE as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -421,13 +428,13 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_HibernateCallback(cy_stc_syspm_callback_params
             /* Disable the slave interrupt sources to protect the state */
             Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
 
-            /* If the EZI2C is in the IDLE state, it is ready for Hibernate mode,
-            * otherwise return fail and restore the slave interrupt sources.
+            /* If the EZI2C is in the IDLE state, it is ready for Hibernate mode.
+            * Otherwise, returns fail and restores the slave interrupt sources.
             */
             if (CY_SCB_EZI2C_STATE_IDLE == locContext->state)
             {
                 /* Disable the EZI2C. It stops responding to the master until
-                * the EZI2C is enabled. This happens if the device failed to
+                * the EZI2C is enabled. This happens if the device fails to
                 * enter Hibernate mode.
                 */
                 Cy_SCB_EZI2C_Disable(locBase, locContext);
@@ -483,7 +490,7 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_HibernateCallback(cy_stc_syspm_callback_params
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -524,7 +531,7 @@ uint32_t Cy_SCB_EZI2C_GetActivity(CySCB_Type const *base, cy_stc_scb_ezi2c_conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -553,7 +560,7 @@ void Cy_SCB_EZI2C_SetAddress1(CySCB_Type *base, uint8_t addr, cy_stc_scb_ezi2c_c
 * * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -592,11 +599,11 @@ uint32_t Cy_SCB_EZI2C_GetAddress1(CySCB_Type const *base, cy_stc_scb_ezi2c_conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
-* * This fucntion is not interrupt-protected and to prevent a race condition,
+* * This function is not interrupt-protected and to prevent a race condition,
 *   it must be protected from the EZI2C interruption in the place where it
 *   is called.
 * * Calling this function in the middle of a transaction intended for the
@@ -633,7 +640,7 @@ void Cy_SCB_EZI2C_SetBuffer1(CySCB_Type const *base, uint8_t *buffer, uint32_t s
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
@@ -664,7 +671,7 @@ void Cy_SCB_EZI2C_SetAddress2(CySCB_Type *base, uint8_t addr, cy_stc_scb_ezi2c_c
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -703,11 +710,11 @@ uint32_t Cy_SCB_EZI2C_GetAddress2(CySCB_Type const *base, cy_stc_scb_ezi2c_conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t
 * allocated by the user. The structure is used during the EZI2C operation for
-* internal configuration and data keeping. The user must not modify anything
+* internal configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
-* * This fucntion is not interrupt-protected and to prevent a race condition,
+* * This function is not interrupt-protected. To prevent a race condition,
 *   it must be protected from the EZI2C interruption in the place where it
 *   is called.
 * * Calling this function in the middle of a transaction intended for the
@@ -735,7 +742,7 @@ void Cy_SCB_EZI2C_SetBuffer2(CySCB_Type const *base, uint8_t *buffer, uint32_t s
 *
 * This is the interrupt function for the SCB configured in the EZI2C mode.
 * This function must be called inside the user-defined interrupt service
-* routine to make the EZI2C slave to work.
+* routine to make the EZI2C slave work.
 *
 * \param base
 * The pointer to the EZI2C SCB instance.
@@ -743,7 +750,7 @@ void Cy_SCB_EZI2C_SetBuffer2(CySCB_Type const *base, uint8_t *buffer, uint32_t s
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -754,6 +761,11 @@ void Cy_SCB_EZI2C_Interrupt(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *contex
     /* Handle an I2C wake-up event */
     if (0UL != (CY_SCB_I2C_INTR_WAKEUP & Cy_SCB_GetI2CInterruptStatusMasked(base)))
     {
+        /* Move from IDLE state, the slave was addressed. Following address match 
+        * interrupt continue transfer.
+        */
+        context->state = CY_SCB_EZI2C_STATE_ADDR;
+        
         Cy_SCB_ClearI2CInterrupt(base, CY_SCB_I2C_INTR_WAKEUP);
     }
 
@@ -832,7 +844,7 @@ void Cy_SCB_EZI2C_Interrupt(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *contex
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -862,7 +874,7 @@ static void HandleErrors(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -878,7 +890,7 @@ static void HandleAddress(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
         uint32_t address = (Cy_SCB_ReadRxFifo(base) >> 1UL);
         Cy_SCB_ClearRxInterrupt(base, CY_SCB_RX_INTR_LEVEL);
 
-        /* Decide if the address matches */
+        /* Decide whether the address matches */
         if ((address == context->address1) || (address == context->address2))
         {
             /* ACK the address */
@@ -901,7 +913,7 @@ static void HandleAddress(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
         }
     }
 
-    /* Clear the TX FIFO before continue the transaction */
+    /* Clear the TX FIFO before continuing the transaction */
     Cy_SCB_ClearTxFifo(base);
 
     /* Set the command to an ACK or NACK address */
@@ -914,7 +926,7 @@ static void HandleAddress(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
         /* Prepare for a transaction */
         if (_FLD2BOOL(SCB_I2C_STATUS_S_READ,base->I2C_STATUS))
         {
-            /* The master reads data from  the slave */
+            /* The master reads data from the slave */
             context->state = CY_SCB_EZI2C_STATE_TX_DATA;
 
             /* Prepare the buffer for transmit */
@@ -949,7 +961,7 @@ static void HandleAddress(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 * Function Name: HandleDataReceive
 ****************************************************************************//**
 *
-* Updates RX FIFO level to trigger the next read from it. It also manages
+* Updates the RX FIFO level to trigger the next read from it. It also manages
 * the auto-data NACK feature.
 *
 * \param base
@@ -997,7 +1009,7 @@ static void UpdateRxFifoLevel(CySCB_Type *base, uint32_t bufSize)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1035,12 +1047,12 @@ static void HandleDataReceive(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *cont
                 }
             }
 
-            /* Check if the received base address is valid */
+            /* Check whether the received base address is valid */
             if (checkBaseAddr)
             {
                 uint32_t cmd = SCB_I2C_S_CMD_S_ACK_Msk;
 
-                /* Decide if the base address within the buffer range */
+                /* Decide whether the base address within the buffer range */
                 if (baseAddr < context->bufSize)
                 {
                     /* Accept the new base address */
@@ -1107,7 +1119,7 @@ static void HandleDataReceive(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *cont
         {
             uint32_t byte = Cy_SCB_ReadRxFifo(base);
 
-            /* Check if there is space to store the byte */
+            /* Check whether there is space to store the byte */
             if (context->bufSize > 0UL)
             {
                 /* Continue the transfer: send an ACK */
@@ -1166,7 +1178,7 @@ static void HandleDataReceive(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1201,7 +1213,7 @@ static void HandleDataTransmit(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *con
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1259,7 +1271,7 @@ static void HandleStop(CySCB_Type *base, cy_stc_scb_ezi2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_ezi2c_context_t allocated
 * by the user. The structure is used during the EZI2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1270,7 +1282,7 @@ static void UpdateAddressMask(CySCB_Type *base, cy_stc_scb_ezi2c_context_t const
     /* Check how many addresses are used: */
     if (0U != context->address2)
     {
-        /* If (addr1 and addr2) bit matches - mask bit equals 1, otherwise 0 */
+        /* If (addr1 and addr2) bits match - mask bit equals 1; otherwise 0 */
         addrMask  = (uint32_t) ~((uint32_t) context->address1 ^ (uint32_t) context->address2);
     }
     else

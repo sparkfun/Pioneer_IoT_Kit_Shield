@@ -21,7 +21,7 @@
 #define CY_BLE_STACK_GAP_H_
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 #include "BLE_config.h"
 #include "cy_ble_stack_host_main.h"
@@ -264,7 +264,7 @@ typedef enum
     /** Invalid Parameters in Request - Invalid Command length and Parameter value outside range. */
     CY_BLE_GAP_AUTH_ERROR_INVALID_PARAMETERS ,
 
-    /** Indicates to the remote device that the DHKey Check value received doesn't
+    /** Indicates to the remote device that the DHKey Check value received does not
        match the one calculated by the local device. */
     CY_BLE_GAP_AUTH_ERROR_DHKEY_CHECK_FAILED,
     
@@ -770,7 +770,7 @@ typedef struct
             as defined in BLE spec 4.2 */
     uint8_t   status;
 
-    /** Rand for OOB. This is also stored in stack */
+    /** Rand for OOB. This is also stored in BLE Stack */
     uint8_t   * key; 
 
     /** OOB Data using 'key' and local Public Key */
@@ -894,8 +894,8 @@ typedef struct
 * Function Name: Cy_BLE_GAP_SetIoCap
 ***************************************************************************//**
 * 
-*  This function sets the input and output capability of the BLE Device that is
-*  used during authentication procedure. This is a blocking function. No event
+*  This function sets the input and output capability of the Local Device that is
+*  used during pairing procedure. This is a blocking function. No event
 *  is generated on calling this function. The input capabilities are described
 *  in the following table:
 *  
@@ -945,8 +945,8 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetIoCap
 *
 *  This function is used to set the security requirements of local device and encryption
 *  key size requirement of the local device. This is a blocking function. No event 
-*  is generated on calling this function. It is expected to call this API on host stack 
-*  on, though can be called at any point except when any of SMP procedure is in progress. 
+*  is generated on calling this function. It is expected to call this API on BLE Stack 
+*  on, though can be called at any point except when pairing procedure is in progress. 
 *  Security requirements are defined in the following table:
 *
 *   Security Requirement                   | Description
@@ -959,10 +959,10 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetIoCap
 *   CY_BLE_GAP_SEC_OOB_IN_LEGACY_PAIRING   | Bit 4: Legacy pairing with OOB method
 *   CY_BLE_GAP_SEC_OOB_IN_SC_PAIRING       | Bit 5: Secured Connection pairing with OOB method
 *
-*  After this API is called, the BLE Stack will check whether the received 
+*  After this API is called, BLE Stack will check whether the received 
 *  security request or pairing request or pairing response satisfies local 
 *  device security requirements that are set using this API. If local device
-*  security requirements are not met, then pairing is rejected by the BLE stack.
+*  security requirements are not met, then pairing is rejected by the BLE Stack.
 *
 *  For example: Cy_BLE_GAP_SetSecurityRequirements() is called with secReq as CY_BLE_GAP_SEC_SC_PAIRING_WITH_MITM.
 *  Now if the BLE Stack receives any pairing request with SC bit and MITM bit are not set, 
@@ -977,7 +977,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetIoCap
 *     set this value with the above defined values in the table. The application can set 
 *     multiple security requirements by ORing them in this parameter.
 *     For example: If secReq is (CY_BLE_GAP_SEC_UNAUTH_PAIRING | CY_BLE_GAP_SEC_SC_PAIRING_WITH_NO_MITM),
-*     then the stack allows pairing only if the received pairing request is either Legacy 
+*     then the BLE Stack allows pairing only if the received pairing request is either Legacy 
 *     pairing with NO MITM or Secured Connection pairing with NO MITM.
 *
 *   encKeySize: Encryption key size requirement of the local device. 
@@ -1007,7 +1007,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetSecurityRequirements
 ***************************************************************************//**
 * 
 *  This function sets OOB presence flag and data. This function should be used 
-*  by the application layer if it wants to enable OOB bonding procedure for any
+*  by the application layer if it wants to enable Out Of Band bonding procedure for any
 *  specific device identified by 'bdHandle'. This function should be called
 *  before initiating authentication or before responding to an authentication
 *  request to set OOB flag and data. 
@@ -1059,14 +1059,14 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetOobData
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 * 
 * \note: 
 *  Note1: param should point to valid memory location until completion of API
         is indicated via the CY_BLE_EVT_GAP_DEVICE_ADDR_GEN_COMPLETE event.
-*  Note2: To guarantee that sequential calls to Cy_BLE_GAP_GenerateBdAddress API generate different addresses,
-*         a call to Cy_BLE_GenerateRandomNumber should be made between calls made
-*        to the Cy_BLE_GAP_GenerateBdAddress API. These calls to the Cy_BLE_GenerateRandomNumber API
+*  Note2: To guarantee that sequential calls to Cy_BLE_GAP_GenerateBdAddress() API generate different addresses,
+*         a call to Cy_BLE_GenerateRandomNumber() should be made between calls made
+*        to the Cy_BLE_GAP_GenerateBdAddress() API. These calls to the Cy_BLE_GenerateRandomNumber() API
 *        should use unique seeds for these calls.
 *
 ******************************************************************************/
@@ -1099,7 +1099,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateBdAddress
 *   CY_BLE_ERROR_INVALID_PARAMETER       | If 'param' pointer is NULL
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY        | Device identified using 'bdHandle' does not exist
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED| Memory allocation failed
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES  | Stack resources are unavailable
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES  | BLE Stack resources are unavailable
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_Disconnect
@@ -1112,14 +1112,12 @@ cy_en_ble_api_result_t Cy_BLE_GAP_Disconnect
 * Function Name: Cy_BLE_GAP_GetPeerBdAddr
 ***************************************************************************//**
 * 
-*  This function reads the peer Bluetooth device address that has already been
-*  fetched by the BLE Stack. 'peerBdAddr' stores the peer's Bluetooth device
-*  address identified with 'bdHandle'. 
+*  This function reads the peer Bluetooth device address identified by 'bdHandle'.
 *
 *  This is a blocking function. No event is generated on calling this function.
 *
 * \param param: parameter is of type cy_stc_ble_gap_peer_addr_info_t, where 
-*             param->bdHandle: Peer device handle, input parameter
+*             param->bdHandle: Peer bdHandle, input parameter
 *             param->bdAddr: Empty buffer where the peer Bluetooth device address will be stored.
 *
 * \return
@@ -1130,7 +1128,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_Disconnect
 *   ------------                     | -----------
 *   CY_BLE_SUCCESS                   | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter for 'peerBdAddr'.
-*   CY_BLE_ERROR_NO_DEVICE_ENTITY    | Specified device handle does not map to any device handle entry in the BLE stack.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY    | Specified bdHandle does not map to any bdHandle entry in the BLE Stack.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdAddr
@@ -1143,14 +1141,13 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdAddr
 * Function Name: Cy_BLE_GAP_GetPeerBdHandle
 ***************************************************************************//**
 * 
-*  This function reads the device handle of the remote Bluetooth device using 
-*  'peerBdAddr', which has already been fetched by the BLE Stack. 'bdHandle'
-*  stores the peer device handle. 
+*  This function reads the bdHandle of the remote Bluetooth device using 
+*  'peer BD addr'.
 *
 *  This is a blocking function. No event is generated on calling this function.
 *     
 * \param param: parameter is of type cy_stc_ble_gap_peer_addr_info_t, where 
-*             param->bdHandle: buffer where peer device handle will be stored, output parameter
+*             param->bdHandle: buffer where peer bdHandle will be stored, output parameter
 *             param->bdAddr: Peer Bluetooth device address will be stored.
 * 
 * \return
@@ -1161,7 +1158,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdAddr
 *   ------------                         | ----------
 *   CY_BLE_SUCCESS                       | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER       | On specifying NULL as input parameter for 'peerBdAddr' or 'bdHandle'.
-*   CY_BLE_ERROR_NO_DEVICE_ENTITY        | Specified device address does not map to any entry in BLE stack.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY        | Specified device address does not map to any entry in BLE Stack.
 *             
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdHandle
@@ -1175,8 +1172,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdHandle
 ***************************************************************************//**
 * 
 *  This function enables the application to get the device security of the peer
-*  device, which has already been fetched by the BLE Stack, identified using 
-*  'bdHandle' when the peer device is in the trusted list. 
+*  device, identified by 'bdHandle', when the peer device is in the trusted list. 
 *
 *  This is a blocking function. No event is generated on calling this function.
 * 
@@ -1193,12 +1189,12 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerBdHandle
 *   ------------                         | -----------
 *   CY_BLE_SUCCESS                       | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER       | On specifying NULL as input parameter for 'authInfo'.
-*   CY_BLE_ERROR_INVALID_OPERATION       | An error occurred in the BLE stack.
-*   CY_BLE_ERROR_NO_DEVICE_ENTITY        | Specified device handle does not map to any device handle entry in the BLE stack.
+*   CY_BLE_ERROR_INVALID_OPERATION       | An error occurred in the BLE Stack.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY        | Specified bdHandle does not map to any bdHandle entry in the BLE Stack.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerDevSecurity 
-(   
+(
     cy_stc_ble_gap_auth_info_t  * param
 );
 
@@ -1207,11 +1203,11 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerDevSecurity
 * Function Name: Cy_BLE_GAP_GetPeerDevSecurityKeyInfo
 ***************************************************************************//**
 *
-*  This function enables the application to know the keys shared by a given peer
-*  device upon completion of the security sequence (already fetched by the BLE
-*  Stack). The keys are shared by the peer device on initiation of authentication, which
-*  is performed using the Cy_BLE_GAP_AuthReq() or Cy_BLE_GAPP_AuthReqReply()
-*  function.
+*  This function enables the application to know the keys shared by a peer
+*  device upon completion of the bonding procedure.
+*
+*  The keys are shared by the peer device during bonding procedure. Bonding procedure
+*  is performed using Cy_BLE_GAP_AuthReq() or Cy_BLE_GAPP_AuthReqReply() function.
 *
 *  This is a blocking function. No event is generated on calling this function.
 *
@@ -1229,7 +1225,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerDevSecurity
 *   ------------                     | -----------
 *   CY_BLE_SUCCESS                   | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter for 'keyInfo'.
-*   CY_BLE_ERROR_INVALID_OPERATION   | An error occurred in BLE stack.
+*   CY_BLE_ERROR_INVALID_OPERATION   | An error occurred in BLE Stack.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY    | Device identified using 'bdHandle' does not exist.
 * 
 ******************************************************************************/
@@ -1245,7 +1241,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetPeerDevSecurityKeyInfo
 * 
 *  This function gets the local device's keys and key flags. The IRK received from
 *  this function should be used as the input IRK for the function 
-*  'Cy_BLE_GAP_GenerateDeviceAddress' to generate Random Private Resolvable address.
+*  'Cy_BLE_GAP_GenerateDeviceAddress()' to generate Random Private Resolvable address.
 *  This is a blocking function. No event is generated on calling this function.
 * 
 *  \param param: buffer is of type cy_stc_ble_gap_sec_key_info_t, where local device security
@@ -1278,13 +1274,13 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetLocalDevSecurityKeyInfo
 *  This function sets the security keys that are to be exchanged with a peer
 *  device during key exchange stage of the authentication procedure and sets it in the 
 *  BLE Stack. The application is expected to set new keys for new connections. By default,
-*  stack will use 'ZEROs' for the keys if not set by the application. The last set keys will be used 
-*  by the BLE stack during the pairing procedure.
+*  BLE Stack will use 'ZEROs' for the keys if not set by the application. The last set keys will be used 
+*  by the BLE Stack during the pairing procedure.
 *
 *  This is a blocking function. No event is generated on calling this function.
-* This API should be called before the pairing process begins, preferably after 
+*  This API should be called before the pairing process begins, preferably after 
 * 'CY_BLE_EVT_GAP_DEVICE_CONNECTED or CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE'
-* is received.
+*  is received.
 *
 *  \param param: buffer is of type cy_stc_ble_gap_sec_key_info_t, which contains the 
 *                         security keys to be set to BLE Stack.
@@ -1303,7 +1299,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GetLocalDevSecurityKeyInfo
 * 
 * \note:
 *       Note1: idAddrInfo is ignored as it is device level information.
-*        Use Cy_BLE_GAP_SetIdAddress to set the ID address for the device.
+*        Use Cy_BLE_GAP_SetIdAddress() to set the ID address for the device.
 *       Note2: 'exchangeKeysFlag' flags will automatically be ignored if this does not match with 
 *        the exchange key flag received for a peer during pairing process.
 ******************************************************************************/    
@@ -1317,10 +1313,10 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetSecurityKeys
 * Function Name: Cy_BLE_GAP_GenerateKeys
 ***************************************************************************//**
 * 
-* This function generates the security keys as per application requirement.
+*  This function generates the security keys as per application requirement.
 *
 *  Generated Keys are informed through 'CY_BLE_EVT_GAP_KEYS_GEN_COMPLETE'
-* This API does not generate identity address (keyInfo->idAddrInfo)
+*  This API does not generate identity address (keyInfo->idAddrInfo)
 *
 *  \param param: buffer is of type cy_stc_ble_gap_sec_key_info_t, where generated keys are store.
 *              param->SecKeyParam.bdHandle: parameter ignored
@@ -1335,14 +1331,14 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetSecurityKeys
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter for 'keyInfo'
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 *  \note
 *  Note1: param should point to a valid memory location until completion of API
 *       is indicated via CY_BLE_EVT_GAP_KEYS_GEN_COMPLETE event.
-*  Note2: To guarantee that sequential calls to Cy_BLE_GAP_GenerateKeys API generate different keys,
-*         a call to Cy_BLE_GenerateRandomNumber should be made between calls made
-*        to Cy_BLE_GAP_GenerateKeys API. These calls to Cy_BLE_GenerateRandomNumber API
+*  Note2: To guarantee that sequential calls to Cy_BLE_GAP_GenerateKeys() API generate different keys,
+*         a call to Cy_BLE_GenerateRandomNumber() should be made between calls made
+*        to Cy_BLE_GAP_GenerateKeys() API. These calls to Cy_BLE_GenerateRandomNumber() API
 *        should use unique seeds for these calls.
 *
 ******************************************************************************/
@@ -1359,34 +1355,31 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateKeys
 *  It is a non-blocking function.
 *  
 *  If the local device is a GAP Central, the pairing request is sent to the GAP
-*  Peripheral device. On receiving CY_BLE_EVT_GAP_AUTH_REQ event, the GAP
+*  Peripheral device. 
+*  On receiving CY_BLE_EVT_GAP_AUTH_REQ event, GAP
 *  Peripheral is expected to respond by invoking the Cy_BLE_GAPP_AuthReqReply()
 *  function.
 * 
 *  If the local device is GAP Peripheral, a Security Request is sent to GAP
-*  Central device. On receiving CY_BLE_EVT_GAP_AUTH_REQ event, the GAP Central
-*  device is expected to respond by invoking 'Cy_BLE_GAP_AuthReq ()' function.
+*  Central device to initiate pairing. 
+*  On receiving CY_BLE_EVT_GAP_AUTH_REQ event, the GAP Central
+*  device should initiate pairing by invoking 'Cy_BLE_GAP_AuthReq()' function.
 *
 *  Events shown in the following table may be received by the application based 
-*  on the authentication result.
+*  on the authentication procedure result.
 *
-*   Event Name                   | Description
-*   ------------                 | -----------
-*   CY_BLE_EVT_GAP_AUTH_COMPLETE | Pointer to structure of type 'cy_stc_ble_gap_auth_info_t' is returned as parameter to both the peer devices on successful authentication.
-*   CY_BLE_EVT_GAP_AUTH_FAILED   | Received by both GAP Central and Peripheral devices (peers) on authentication failure. Data is of type 'cy_en_ble_gap_auth_failed_reason_t'.
-*
-*  Following events may occur if API result is CY_BLE_SUCCESS:
+*  Following events may occur during pairing procedure, if API result of this function is CY_BLE_SUCCESS:
 *
 *   Event Name                             | Description
 *   ------------                           | -----------
 *   CY_BLE_EVT_GAP_SMP_NEGOTIATED_AUTH_INFO| SMP has completed pairing properties (feature exchange) negotiation.
 *   CY_BLE_EVT_GAP_KEYINFO_EXCHNGE_CMPLT   | SMP keys exchange with peer device is completed.
 *   CY_BLE_EVT_GAP_ENCRYPT_CHANGE          | When there is a change in encryption after pairing procedure.
+*   CY_BLE_EVT_GAP_AUTH_COMPLETE           | Pointer to structure of type 'cy_stc_ble_gap_auth_info_t' is returned as parameter to both the peer devices on successful authentication.
+*   CY_BLE_EVT_GAP_AUTH_FAILED             | Received by both GAP Central and Peripheral devices (peers) on authentication failure. Data is of type 'cy_en_ble_gap_auth_failed_reason_t'.
 *
 *  Based on IO capabilities, security modes following events may occur
 *  during pairing procedure.
-*  Please refer to the Core spec 4.2 volume 3 part - H section 2.3.5.1
-*  to learn more about Selecting Key Generation Method.
 *
 *   | Event Name                                |
 *   | ------------------------                  |
@@ -1405,8 +1398,6 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateKeys
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
 *  failed. Following are the possible error codes.
 *
-*
-*  
 *   Error codes                          | Description
 *   ------------                         | -----------
 *   CY_BLE_SUCCESS                       | On successful operation
@@ -1428,7 +1419,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_AuthReq
 * 
 *  This function sends a passkey for authentication. It is a non-blocking function.
 * 
-*  It should be invoked in reply to the authentication request event
+*  This function should be called to pass 6 digit passkey in reply to passkey entry request event
 *  CY_BLE_EVT_GAP_PASSKEY_ENTRY_REQUEST received by the BLE Stack. This function
 *  is used to accept the passkey request and send the passkey or reject the
 *  passkey request.
@@ -1462,15 +1453,16 @@ cy_en_ble_api_result_t Cy_BLE_GAP_AuthPassKeyReply
 /******************************************************************************
 * Function Name: Cy_BLE_GAP_FixAuthPassKey
 ***************************************************************************//**
-* Sets or clears a fixed passkey to be used by the SMP procedure.
+* This function Sets or clears a fixed passkey to be used during authenticated pairing procedure.
 * This is a blocking function. No event is generated on calling this function.
+*
 * \note:
-*    Note1:  The fixed passkey will work only if we are the device displaying the
-*         passkey and peer has to enter the passkey.
-*         This will not work for numeric comparison (secure connections) method.
+*    Note1:  The fixed passkey will work only if local device has IO capability as display only
+*         and peer device's IO capability is keyboard only.
+*
 *    Note2:  The fixed passkey is not persistent across power cycle.
-*    Note3:  This API should not be called during an ongoing SMP procedure.
-*         Call this API on Stack Init completion.
+*    Note3:  This API should not be called during an ongoing pairing procedure.
+*         This API preferably Call this API on BLE Stack Init completion.
 *
 *
 *  \param param: Parameter is of type 'cy_stc_ble_gap_auth_fix_pk_info_t' 
@@ -1495,14 +1487,14 @@ cy_en_ble_api_result_t Cy_BLE_GAP_FixAuthPassKey
 * Function Name: Cy_BLE_GAP_SetSecureConnectionsOnlyMode
 ***************************************************************************//**
 *
-* This API sets the state of the SC Only mode for device.
-* If device is in SC Only mode, it will allow pairing to
-* complete only with secure connections security. Another kind of pairing will
+* This API sets the state of the Secure Connection Only mode for device.
+* If device is in Secure Connection Only mode, it will allow pairing to
+* complete only with Secure Connection Security mode. Non Secure Connection Security pairing will
 * lead to pairing failure with reason "Authentication requirement not met"
-* You should call this API on host stack on, though it can be called 
+* You should call this API on BLE Stack ON, though it can be called 
 * at any point.
-* SC Only mode is not persistent across power cycles. It is
-* persistent across stack shutdown-init cycles.
+* Secure Connection Only mode is not persistent across power cycles. It is
+* persistent across BLE Stack shutdown-init cycles.
 *
 *  \param param: Parameter is of type 'cy_stc_ble_gap_sc_mode_info_t'
 *                bdHandle should be ignored.
@@ -1517,7 +1509,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_FixAuthPassKey
 *  CY_BLE_ERROR_INVALID_OPERATION    | Secure connections feature was not selected in feature config.
 *  CY_BLE_ERROR_INVALID_PARAMETER    | If 'param' is NULL or 'state' value is invalid.
 *
-* Note: This is device level policy and doesn't depend on bdHandle.
+* Note: This is device level policy and does not depend on bdHandle.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_SetSecureConnectionsOnlyMode
 (
@@ -1529,9 +1521,9 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetSecureConnectionsOnlyMode
 * Function Name: Cy_BLE_GAP_GenerateSetLocalP256Keys
 ***************************************************************************//**
 *
-* This API is used to generate and set  P-256 Public-Private key pair to be using during LE Secure connection 
-* pairing procedure. The application may choose to generate a P-256 public-private key pair before pairing 
-* process starts. If this API is not called before pairing process starts, the BLE stack will use a default
+* This API is used to generate and set P-256 Public-Private key pair to be used during LE Secure connection 
+* pairing procedure. Application may choose to generate a P-256 public-private key pair before pairing 
+* process starts. If this API is not called before pairing process starts, the BLE Stack will use a default
 * public-private key pair.
 * Successful completion is informed by CY_BLE_EVT_GAP_GEN_SET_LOCAL_P256_KEYS_COMPLETE event.
 * Event parameter contains the keys that are generated and set for LE Secure connection pairing procedure.
@@ -1546,7 +1538,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetSecureConnectionsOnlyMode
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_OPERATION        | Pairing is in progress or Secure Connections feature is not enabled.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GenerateSetLocalP256Keys
@@ -1560,7 +1552,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateSetLocalP256Keys
 *
 * This API is used to set a P-256 Public-Private key pair to be used during the LE Secure connection 
 * pairing procedure. The application may choose to set a P-256 public-private key pair before the pairing 
-* process starts. If this API is not called before the pairing process starts, the BLE stack will use a default
+* process starts. If this API is not called before the pairing process starts, the BLE Stack will use a default
 * public-private key pair. This API is not expected to be called when a pairing procedure is in progress.
 * The application can provide a P-256 Public-Private key pair to be set for the LE Secure connection pairing procedure.
 *
@@ -1588,12 +1580,12 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetLocalP256Keys
 * Function Name: Cy_BLE_GAP_AuthSendKeyPress
 ***************************************************************************//**
 *
-* This API is used to send the LE Secure connections key press notification to a peer device during secure connection pairing.
-* This API should be called by the application to inform the stack about the passkey entry process started for each digit:
+* This API is used to send the LE Secure connection key press notification to a peer device during secure connection pairing.
+* This API should be called by the application to inform the BLE Stack about the passkey entry process started for each digit:
 * Started (0), entered (1), erased (2), cleared (3). Once all the digits are entered, application needs to call
-* 'Cy_BLE_GAP_AuthPassKeyReply()' to inform the stack for passkey enter completed.
+* 'Cy_BLE_GAP_AuthPassKeyReply()'to inform the BLE Stack for passkey enter completed.
 * An error will be returned if key press entry bit was not set in 'pairingProperties' of cy_stc_ble_gap_auth_info_t
-* during the authentication procedure.
+* during the authentication procedure and this API is called.
 *
 *  \param param: Parameter is of type 'cy_stc_ble_gap_sc_kp_notif_info_t'
 *
@@ -1618,13 +1610,14 @@ cy_en_ble_api_result_t Cy_BLE_GAP_AuthSendKeyPress
 ***************************************************************************//**
 *
 * This API is used to generate OOB data based on the input parameter (16 Byte random number)
-* This API is called to generate OOB data to be used by peer device. Peer device (or local device with peer's OOB data)
-* will use 'Cy_BLE_GAP_SetOobData()' to set the oob data to be used for secure connections pairing.
-* API compilation is informed through the 'CY_BLE_EVT_GAP_OOB_GENERATED_NOTIFICATION' event.
+* This API is called to generate OOB data to be used by peer device. Local device needs to share this with peer using Out of Band mechanism.
+* Local device should use 'Cy_BLE_GAP_SetOobData()' to set the oob data of peer device to BLE Stack for Secure Connections pairing.
+*
+* API compilation is informed through 'CY_BLE_EVT_GAP_OOB_GENERATED_NOTIFICATION' event.
 * Note: This API must be used only during secured connection pairing.
 *
 *  \param param: parameter is of type 'cy_stc_ble_gap_sc_oob_info_t'.
-*              If 'param->rand' is NULL, stack will generate 16 Bytes random number and then will generate OOB data.
+*              If 'param->rand' is NULL, BLE Stack will generate 16 Bytes random number and then will generate OOB data.
 *
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -1634,7 +1627,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_AuthSendKeyPress
 *  ------------                          | -----------
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | If 'param' is NULL.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY         | Device identified using 'bdHandle' does not exist.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Sufficient memory is not available to handle this request.
 *
@@ -1649,20 +1642,19 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateOobData
 * Function Name: Cy_BLE_GAP_SetBdAddress
 ***************************************************************************//**
 * 
-* This function sets the Bluetooth device address into the BLE stack's memory.
+* This function informs Bluetooth device address to BLE Stack for its operation.
 * This address shall be used for all BLE procedures unless explicitly changed by the application.
 * The application layer must call this function every time an address change is required. 
-* Bluetooth 4.1 Core specification [3.12] specifies that the Bluetooth device can change its
-* private address periodically, with the period being decided by the
+* Application can change its private address periodically, with the period being decided by the
 * application; there are no limits specified on this period. The application
 * layer should maintain its own timers in order to do this.
 *
-* User should call 'Cy_BLE_GAP_SetIdAddress' API to set identity address if 'Cy_BLE_GAP_SetBdAddress'
+* User should call 'Cy_BLE_GAP_SetIdAddress()' API to set identity address if 'Cy_BLE_GAP_SetBdAddress()'
 * API is used to set public or random static address.
 * API compilation is informed through the 'CY_BLE_EVT_SET_DEVICE_ADDR_COMPLETE' event
 *
 *
-*  \param param: Bluetooth Device address retrieved from the BLE stack gets stored
+*  \param param: Bluetooth Device address retrieved from the BLE Stack gets stored
 *           to a variable pointed to by this pointer. The variable is of type
 *           cy_stc_ble_bd_addr_t.
 * 
@@ -1675,7 +1667,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_GenerateOobData
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_SetBdAddress
@@ -1688,9 +1680,8 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetBdAddress
 * Function Name: Cy_BLE_GAP_GetBdAddress
 ***************************************************************************//**
 * 
-*  This API reads the BD device address from the BLE Controller's memory. This
-*  address shall be used for BLE procedures unless explicitly indicated by the BLE
-*  Host through HCI commands. 
+*  This API reads the Bluetooth device address which is currently being used by BLE Stack.
+*
 *  The BD Address is informed through event 'CY_BLE_EVT_GET_DEVICE_ADDR_COMPLETE'
 *         
 * 
@@ -1702,7 +1693,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetBdAddress
 *   ------------                          | -----------
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GetBdAddress
 (
@@ -1752,16 +1743,13 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetIdAddress
 * Function Name: Cy_BLE_GAP_GetBondList
 ***************************************************************************//**
 *
-* This function returns the count and Bluetooth device address along with BD handles of the devices in
-* the bonded device list in the order of Rank*. This is a blocking function. No event is generated on
+* This function returns the count and Bluetooth device address along with ''bdHandles' of the devices in
+* the bonded device list in the order of Rank. This is a blocking function. No event is generated on
 * calling this function.
 *
 * Rank: The newest device bonded will be at 0 index.
 *
 *
-* Refer Bluetooth 4.1 core specification, Volume 3, Part C, section 9.4.4 for
-* details on bonded devices.
-*   
 * \param param: Buffer to which list of bonded devices will be stored
 *                       of type cy_stc_ble_gap_bonded_device_list_info_t.
 *
@@ -1775,7 +1763,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetIdAddress
 *  CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter.
 *
 *  Note : Provide sufficient memory for 'param->bdHandleAddrList' based on 'bondListSize' 
-*  parameter that is passed during Stack Initialization otherwise provided memory might 
+*  parameter that is passed during BLE Stack Initialization otherwise provided memory might 
 *  be corrupted if memory is not sufficient to store all bonded device information.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_GetBondList
@@ -1816,7 +1804,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_RemoveDeviceFromBondList
 * Function Name: Cy_BLE_GAP_RemoveOldestDeviceFromBondedList
 ***************************************************************************//**
 * 
-*  This function removes the oldest device from the bonded and white lists. 
+*  This function removes the oldest device from the bond List. 
 *  This API should not be called while in the connected state.
 *  If the device is connected to the oldest device and this API is called, it will remove the device that is oldest and not
 *  connected. 
@@ -1856,11 +1844,11 @@ cy_en_ble_api_result_t Cy_BLE_GAP_RemoveOldestDeviceFromBondedList
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY         | Incorrect bdHandle.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 * Note1: The primary usage of this API is to allow application to control bandwidth
 *        by setting connection event lengths for specific connections.
-* Note2: Application shall set ceLength to 0xFFFF to allow stack to internally
+* Note2: Application shall set ceLength to 0xFFFF to allow BLE Stack to internally
 *        use maximum possible bandwidth for this connection.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_SetCeLengthParam
@@ -1891,7 +1879,7 @@ cy_en_ble_api_result_t Cy_BLE_GAP_SetCeLengthParam
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY         | Incorrect bdHandle.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_SetConnectionPriority

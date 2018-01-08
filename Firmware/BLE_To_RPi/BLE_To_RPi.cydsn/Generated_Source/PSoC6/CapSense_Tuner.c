@@ -1,11 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Tuner.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
-* This file provides the source code for the Tuner module API of the Component.
+*   This file provides the source code for the Tuner module API of the 
+*   Component.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -46,6 +47,7 @@
 #define TU_FSM_RUNNING      (0u)
 #define TU_FSM_SUSPENDED    (1u)
 #define TU_FSM_SNR_TEST     (2u)
+#define TU_FSM_ONE_SCAN     (3u)
 
 /* Tuner state variable */
 static uint32 tunerFsm = TU_FSM_RUNNING;
@@ -80,7 +82,7 @@ void CapSense_TuInitialize(void)
 *
 * \details
 *  This function is used to establish synchronized communication between the
-*  CapSense component and Tuner application (or other host controllers).
+*  CapSense Component and Tuner application (or other host controllers).
 *  This function is called periodically in the application program loop
 *  to serve the Tuner application (or host controller) requests and commands.
 *  In most cases, the best place to call this function is after processing and
@@ -93,19 +95,19 @@ void CapSense_TuInitialize(void)
 *    - The Tuner tool may read the sensor data such as raw counts from a scan
 *      multiple times, as a result, noise and SNR measurement will not be
 *      accurate.
-*    - The Tuner tool and host controller should not change the component parameters
-*      via the tuner interface. Changing the component parameters via the tuner
-*      interface in the async mode will result in component abnormal behavior.
+*    - The Tuner tool and host controller should not change the Component parameters
+*      via the tuner interface. Changing the Component parameters via the tuner
+*      interface in the async mode will result in Component abnormal behavior.
 *
 *  Note that calling this function is not mandatory for the application, but
 *  required only to synchronize the communication with the host controller or
 *  tuner application.
 *
 * \return
-*  In some cases, the application program may need to know if the component was
+*  In some cases, the application program may need to know if the Component was
 *  re-initialized. The return indicates if a restart command was executed or not:
 *    - CapSense_STATUS_RESTART_DONE - Based on a received command, the
-*      component was restarted.
+*      Component was restarted.
 *    -  CapSense_STATUS_RESTART_NONE - No restart was executed by this
 *      function.
 *
@@ -120,12 +122,22 @@ uint32 CapSense_RunTuner(void)
     uint32 tunerStatus = CapSense_STATUS_RESTART_NONE;
 
     volatile CapSense_RAM_STRUCT *ptrDsRam;
-    volatile CapSense_RAM_SNS_STRUCT *ptrSns;
+    volatile CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
 
     ptrDsRam = &CapSense_dsRam;
 
     do
     {
+        /* ONE_SCAN command could be interpreted as two commands:
+        * RESUME till next call of this function and then
+        * SUSPEND till next command receiving.
+        */
+        if (TU_FSM_ONE_SCAN == tunerFsm)
+        {
+            interruptState = Cy_SysLib_EnterCriticalSection();
+            ptrDsRam->tunerCmd = (uint16)CapSense_TU_CMD_SUSPEND_E;
+            Cy_SysLib_ExitCriticalSection(interruptState);
+        }
         command = (CapSense_TU_CMD_ENUM)ptrDsRam->tunerCmd;
 
         /* Check command register */
@@ -154,7 +166,13 @@ uint32 CapSense_RunTuner(void)
             break;
 
         case CapSense_TU_CMD_PING_E:
+            tunerFsm = TU_FSM_RUNNING;
             updateFlag = 1Lu;
+            break;
+
+        case CapSense_TU_CMD_ONE_SCAN_E:
+            tunerFsm = TU_FSM_ONE_SCAN;
+            updateFlag = 0Lu;
             break;
 
         default:
@@ -191,17 +209,17 @@ uint32 CapSense_RunTuner(void)
             (ptrDsRam->scanCounter != ptrDsRam->snrTestScanCounter))
         {
             /* Get access to the Sensor Object */
-            ptrSns = CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsRam;
-            ptrSns += sensorId;
+            ptrSnsTmp = CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsRam;
+            ptrSnsTmp += sensorId;
 
             /* Update data in SNR Test Object */
             interruptState = Cy_SysLib_EnterCriticalSection();
             ptrDsRam->snrTestScanCounter = ptrDsRam->scanCounter;
-            ptrDsRam->snrTestRawCount[0u] = ptrSns->raw[0u];
+            ptrDsRam->snrTestRawCount[0u] = ptrSnsTmp->raw[0u];
 
             #if (0u != CapSense_MULTI_FREQ_SCAN_EN)
-                ptrDsRam->snrTestRawCount[1u] = ptrSns->raw[1u];
-                ptrDsRam->snrTestRawCount[2u] = ptrSns->raw[2u];
+                ptrDsRam->snrTestRawCount[1u] = ptrSnsTmp->raw[1u];
+                ptrDsRam->snrTestRawCount[2u] = ptrSnsTmp->raw[2u];
             #endif
 
             Cy_SysLib_ExitCriticalSection(interruptState);

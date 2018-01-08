@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_INT.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
-*   This file contains the source code for implementation of the CapSense component
-*   Interrupt Service Routine (ISR).
+*   This file contains the source code for implementation of the CapSense
+*   Component Interrupt Service Routine (ISR).
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -50,8 +50,8 @@
 * Static Function Prototypes
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -62,16 +62,16 @@
             (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)) */
 
 #if ((CapSense_ENABLE == CapSense_CSD_EN) || (CapSense_ENABLE == CapSense_CSD_CSX_EN))
-    __STATIC_INLINE void CapSense_SsCSDPostScan(void);
-    __STATIC_INLINE void CapSense_SsCSDInitNextScan(void);
+    static void CapSense_SsCSDPostScan(void);
+    static void CapSense_SsCSDInitNextScan(void);
 #endif /* ((CapSense_ENABLE == CapSense_CSD_EN) || (CapSense_ENABLE == CapSense_CSD_CSX_EN)) */
 /** \}
-* \endif */
+* \endcond */
 
 
 /**
-* \if SECTION_CAPSENSE_INTERRUPT
-* \addtogroup group_capsense_interrupt
+* \cond SECTION_CYSENSE_INTERRUPT
+* \addtogroup group_cysense_interrupt
 * \{
 */
 
@@ -99,12 +99,12 @@
     *    5. Reset the BUSY flag.
     *    6. Enable the CSD interrupt.
     *
-    *  The ISR handler changes the IMO and initializes scanning for the next frequency
+    *  The ISR handler changes the scanning for the next frequency
     *  channels when multi-frequency scanning is enabled.
     *
     *  This function has two Macro Callbacks that allow calling the user code
-    *  from macros specified in component's generated code. Refer to the
-    *  \ref group_capsense_macrocallbacks section of the PSoC Creator User Guide
+    *  from macros specified in Component's generated code. Refer to the
+    *  \ref group_cysense_macrocallbacks section of the PSoC Creator User Guide
     *  for details.
     *
     *******************************************************************************/
@@ -118,23 +118,23 @@
         CY_SET_REG32(CapSense_CSD_INTR_PTR, CapSense_CSD_INTR_ALL_MSK);
         (void)CY_GET_REG32(CapSense_CSD_INTR_PTR);
 
-    #if (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN)
-        if ((CapSense_CSD_NOISE_METRIC_TH < ((CY_GET_REG32(CapSense_CSD_RESULT_VAL1_PTR) &
-                                                    CapSense_CSD_RESULT_VAL1_BAD_CONVS_MSK) >>
-                                                    CapSense_CSD_RESULT_VAL1_BAD_CONVS_POS)) &&
-                                                    (0u < CapSense_badConversionsNum))
-        {
-            /* Decrement bad conversions number */
-            CapSense_badConversionsNum--;
+        #if (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN)
+            if ((CapSense_CSD_NOISE_METRIC_TH < ((CY_GET_REG32(CapSense_CSD_RESULT_VAL1_PTR) &
+                                                        CapSense_CSD_RESULT_VAL1_BAD_CONVS_MSK) >>
+                                                        CapSense_CSD_RESULT_VAL1_BAD_CONVS_POS)) &&
+                                                        (0u < CapSense_badConversionsNum))
+            {
+                /* Decrement bad conversions number */
+                CapSense_badConversionsNum--;
 
-            /* Start the re-scan */
-            CY_SET_REG32(CapSense_CSD_SEQ_START_PTR, CapSense_CSD_SEQ_START_AZ0_SKIP_MSK |
-                                                         CapSense_CSD_SEQ_START_AZ1_SKIP_MSK |
-                                                         CapSense_CSD_SEQ_START_START_MSK);
-        }
-        else
-        {
-    #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
+                /* Start the re-scan */
+                CY_SET_REG32(CapSense_CSD_SEQ_START_PTR, CapSense_CSD_SEQ_START_AZ0_SKIP_MSK |
+                                                             CapSense_CSD_SEQ_START_AZ1_SKIP_MSK |
+                                                             CapSense_CSD_SEQ_START_START_MSK);
+            }
+            else
+            {
+        #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
             CapSense_SsCSDPostScan();
 
@@ -146,13 +146,13 @@
                 }
                 else
                 {
-                    /* All channels are scanned. Set IMO to zero channel */
+                    /* All channels are scanned. Reset the frequency scan channel */
                     CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
                     CapSense_SsChangeClkFreq(CapSense_FREQ_CHANNEL_0);
 
                     #if (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN)
-                        /*  Disable CSDv2 block */
-                    CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
+                        /* Disable HW IP block */
+                        CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
                     #endif /* (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN) */
 
                     /* Update Scan Counter */
@@ -164,8 +164,8 @@
             #else
                 {
                     #if (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN)
-                        /*  Disable CSDv2 block */
-                    CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
+                        /* Disable HW IP block */
+                        CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
                     #endif /* (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN) */
 
                     /* Update Scan Counter */
@@ -215,14 +215,14 @@
     *  frequency channels when multi-frequency scanning is enabled.
     *
     *  This function has two Macro Callbacks that allow calling the user
-    *  code from macros specified in component's generated code. Refer to the
-    *  \ref group_capsense_macrocallbacks section of the PSoC Creator User Guide
+    *  code from macros specified in Component's generated code. Refer to the
+    *  \ref group_cysense_macrocallbacks section of the PSoC Creator User Guide
     *  for details.
     *
     *******************************************************************************/
     void CapSense_CSDPostMultiScan(void)
     {
-        /*  Declare and initialise ptr to sensor IO structure to appropriate address        */
+        /* Declare and initialize ptr to sensor IO structure to appropriate address */
         CapSense_FLASH_IO_STRUCT const *curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                                           CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2SnsFlash
                                                           + CapSense_sensorIndex;
@@ -231,40 +231,38 @@
             CapSense_EntryCallback();
         #endif /* CapSense_ENTRY_CALLBACK */
 
+        /* Clear pending interrupt */
         CY_SET_REG32(CapSense_CSD_INTR_PTR, CapSense_CSD_INTR_ALL_MSK);
         (void)CY_GET_REG32(CapSense_CSD_INTR_PTR);
 
-    #if (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN)
-        if ((CapSense_CSD_NOISE_METRIC_TH < ((CY_GET_REG32(CapSense_CSD_RESULT_VAL1_PTR) &
-                                                  CapSense_CSD_RESULT_VAL1_BAD_CONVS_MSK) >>
-                                                  CapSense_CSD_RESULT_VAL1_BAD_CONVS_POS)) &&
-                                                  (0u < CapSense_badConversionsNum))
-        {
-            /* Decrement bad conversions number */
-            CapSense_badConversionsNum--;
+        #if (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN)
+            if ((CapSense_CSD_NOISE_METRIC_TH < ((CY_GET_REG32(CapSense_CSD_RESULT_VAL1_PTR) &
+                                                      CapSense_CSD_RESULT_VAL1_BAD_CONVS_MSK) >>
+                                                      CapSense_CSD_RESULT_VAL1_BAD_CONVS_POS)) &&
+                                                      (0u < CapSense_badConversionsNum))
+            {
+                /* Decrement bad conversions number */
+                CapSense_badConversionsNum--;
 
-            /* Start the re-scan */
-            CY_SET_REG32(CapSense_CSD_SEQ_START_PTR, CapSense_CSD_SEQ_START_AZ0_SKIP_MSK |
-                                                         CapSense_CSD_SEQ_START_AZ1_SKIP_MSK |
-                                                         CapSense_CSD_SEQ_START_START_MSK);
-        }
-        else
-        {
-    #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
+                /* Start the re-scan */
+                CY_SET_REG32(CapSense_CSD_SEQ_START_PTR, CapSense_CSD_SEQ_START_AZ0_SKIP_MSK |
+                                                             CapSense_CSD_SEQ_START_AZ1_SKIP_MSK |
+                                                             CapSense_CSD_SEQ_START_START_MSK);
+            }
+            else
+            {
+        #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
         CapSense_SsCSDPostScan();
 
+        /* Disable sensor when all frequency channels are scanned */
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-            /* Disable sensor when all frequency channels are scanned */
             if (CapSense_FREQ_CHANNEL_2 == CapSense_scanFreqIndex)
-            {
-                /* Disable sensor */
-                CapSense_CSDDisconnectSns(curSnsIOPtr);
-            }
-        #else
+        #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+        {
             /* Disable sensor */
             CapSense_CSDDisconnectSns(curSnsIOPtr);
-        #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+        }
 
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
             if (CapSense_FREQ_CHANNEL_2 > CapSense_scanFreqIndex)
@@ -274,7 +272,7 @@
             }
             else
             {
-                 /* All channels are scanned. Set IMO to zero channel */
+                /* All channels are scanned. Reset the frequency scan channel */
                 CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
                 CapSense_SsChangeClkFreq(CapSense_FREQ_CHANNEL_0);
 
@@ -301,7 +299,7 @@
 ****************************************************************************//**
 *
 * \brief
-*  This is an internal ISR function for the multiple sensor scanning
+*  This is an internal ISR function for the multiple-sensor scanning
 *  implementation for ganged sensors.
 *
 * \details
@@ -327,8 +325,8 @@
 *  frequency channels when multi-frequency scanning is enabled.
 *
 *  This function has two Macro Callbacks that allow calling the user
-*  code from macros specified in component's generated code. Refer to the
-*  \ref group_capsense_macrocallbacks section of the PSoC Creator User Guide
+*  code from macros specified in Component's generated code. Refer to the
+*  \ref group_cysense_macrocallbacks section of the PSoC Creator User Guide
 *  for details.
 *
 *******************************************************************************/
@@ -364,12 +362,10 @@ void CapSense_CSDPostMultiScanGanged(void)
 
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
             if (CapSense_FREQ_CHANNEL_2 == CapSense_scanFreqIndex)
-            {
-                CapSense_SsCSDDisconnectSnsExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
-            }
-        #else
-            CapSense_SsCSDDisconnectSnsExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
         #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+        {
+            CapSense_SsCSDDisconnectSnsExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
+        }
 
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
             if (CapSense_FREQ_CHANNEL_2 > CapSense_scanFreqIndex)
@@ -379,7 +375,7 @@ void CapSense_CSDPostMultiScanGanged(void)
             }
             else
             {
-                /* All channels are scanned. Set IMO to zero channel */
+                /* All channels are scanned. Reset the frequency scan channel */
                 CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
                 CapSense_SsChangeClkFreq(CapSense_FREQ_CHANNEL_0);
 
@@ -406,7 +402,7 @@ void CapSense_CSDPostMultiScanGanged(void)
 #endif /* ((CapSense_ENABLE == CapSense_CSD_EN) || (CapSense_ENABLE == CapSense_CSD_CSX_EN)) */
 
 /** \}
- * \endif */
+ * \endcond */
 
 
 #if ((CapSense_ENABLE == CapSense_CSD_EN) || (CapSense_ENABLE == CapSense_CSD_CSX_EN))
@@ -427,7 +423,7 @@ void CapSense_CSDPostMultiScanGanged(void)
 *   - Opens HCBV and HCBG switches.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_SsCSDPostScan(void)
+static void CapSense_SsCSDPostScan(void)
 {
     uint32 tmpRawData;
     uint32 tmpMaxCount;
@@ -448,7 +444,7 @@ __STATIC_INLINE void CapSense_SsCSDPostScan(void)
     }
 
     #if (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN)
-        /*  Init bad Conversions number */
+        /* Init bad Conversions number */
         CapSense_badConversionsNum = CapSense_BAD_CONVERSIONS_NUM;
     #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
@@ -475,34 +471,31 @@ __STATIC_INLINE void CapSense_SsCSDPostScan(void)
 *   scanned.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
+static void CapSense_SsCSDInitNextScan(void)
 {
-    /*  Declare and initialise ptr to widget and sensor structures to appropriate address */
+    /* Declare and initialize ptr to widget and sensor structures to appropriate address */
     #if (((CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) || \
-            (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))) || \
+            (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)) || \
             (((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) && \
-            (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)))))
+            (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN))))
         CapSense_RAM_WD_BASE_STRUCT *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
             CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2WdgtRam;
-    #endif /* (((CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) || \
-               (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))) || \
-               (((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) && \
-               (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))))) */
+    #endif
 
-    /* Check if all sensors are scanned in widget */
+    /* Check if all the sensors are scanned in widget */
     if (((uint8)CapSense_dsFlash.wdgtArray[(CapSense_widgetIndex)].totalNumSns - 1u) > CapSense_sensorIndex)
     {
-        /*  Inrecrement snsIndex to configure next sensor in widget */
+        /* Increment sensor index to configure next sensor in widget */
         CapSense_sensorIndex++;
 
-        /*  Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor  */
+        /* Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor */
         CapSense_curRamSnsPtr = (CapSense_RAM_SNS_STRUCT *)
                                                   CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2SnsRam
                                                   + CapSense_sensorIndex;
 
         /* Configure clock divider to row or column */
         #if ((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) && \
-             (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)))
+             (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN))
             if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(CapSense_widgetIndex)].wdgtType) ||
                 (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(CapSense_widgetIndex)].wdgtType))
             {
@@ -512,14 +505,14 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
                 CapSense_SsCSDCalculateScanDuration(ptrWdgt);
             }
         #endif /* ((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) && \
-                   (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)))) */
+                   (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN))) */
 
         /* Setup Compensation IDAC for next sensor in widget */
         #if ((CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) || \
-             (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)))
+             (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN))
             CapSense_SsCSDSetUpIdacs(ptrWdgt);
         #endif /* ((CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) || \
-             (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)))*/
+             (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
 
         /* Enable sensor */
         CapSense_SsCSDConnectSensorExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
@@ -527,7 +520,7 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
         /* Proceed scanning */
         CapSense_SsCSDStartSample();
     }
-    /*    Call scan next widget API if requested, if not, complete the scan  */
+    /* Call scan next widget API if requested, if not, complete the scan */
     else
     {
         CapSense_sensorIndex = 0u;
@@ -535,7 +528,7 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
         /* Current widget is totally scanned. Reset WIDGET BUSY flag */
         CapSense_dsRam.status &= ~CapSense_WDGT_SW_STS_BUSY;
 
-        /* Check if all widgets have been scanned */
+        /* Check if all the widgets have been scanned */
         if (CapSense_ENABLE == CapSense_requestScanAllWidget)
         {
             /* Configure and begin scanning next widget */
@@ -544,11 +537,11 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
         else
         {
             #if (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN)
-                /*  Disable the CSD block */
+                /* Disable the CSD block */
                 CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
             #endif /* (CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN) */
 
-            /* All widgets are totally scanned. Reset BUSY flag */
+            /* all the widgets are totally scanned. Reset BUSY flag */
             CapSense_dsRam.status &= ~CapSense_SW_STS_BUSY;
 
             /* Update scan Counter */
@@ -566,8 +559,8 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
     *   This function scans the sensor on the next frequency channel.
     *
     * \details
-    *   The function increments the frequency channel, changes IMO and initializes
-    *   the scanning process of the same sensor.
+    *   The function increments the frequency channel, changes scan frequency and 
+    *   initializes the scanning process of the same sensor.
     *
     *******************************************************************************/
     static void CapSense_SsNextFrequencyScan(void)
@@ -589,5 +582,6 @@ __STATIC_INLINE void CapSense_SsCSDInitNextScan(void)
 #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
 #endif /* ((CapSense_ENABLE == CapSense_CSD_EN) || (CapSense_ENABLE == CapSense_CSD_CSX_EN)) */
+
 
 /* [] END OF FILE */

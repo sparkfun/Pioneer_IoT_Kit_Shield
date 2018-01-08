@@ -138,7 +138,7 @@ cy_en_ble_api_result_t Cy_BLE_HTS_Init(cy_stc_ble_hts_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc: An application layer event callback function to receive
-*                     events from the BLE Component. The definition of
+*                     events from the BLE Middleware. The definition of
 *                     cy_ble_callback_t for HTS Service is:\n
 *                     typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                        void *eventParam)
@@ -192,8 +192,8 @@ cy_en_ble_api_result_t Cy_BLE_HTS_RegisterAttrCallback(cy_ble_callback_t callbac
 *               stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *
 ******************************************************************************/
@@ -241,8 +241,8 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_SetCharacteristicValue(cy_en_ble_hts_char_ind
 *               should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *
 ******************************************************************************/
@@ -291,8 +291,8 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_GetCharacteristicValue(cy_en_ble_hts_char_ind
 *              be stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *
 ******************************************************************************/
@@ -350,8 +350,8 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *
 ******************************************************************************/
@@ -507,14 +507,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_HTSS_WriteEventHandler(cy_stc_ble_gatts_
                                 Cy_BLE_HTS_ApplCallback((uint32_t)CY_BLE_EVT_HTSS_INDICATION_DISABLED, &locCharValue);
                             }
                         }
-                    #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                        (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-                        /* Set flag to store bonding data to flash */
-                        if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                        {
-                            cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                        }
-                    #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
                     }
                 }
                 cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
@@ -545,8 +537,8 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_HTSS_WriteEventHandler(cy_stc_ble_gatts_
 *               sent to the client's device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
@@ -607,8 +599,8 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_SendNotification(cy_stc_ble_conn_handle_t con
 *               sent to the Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
@@ -617,14 +609,14 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_SendNotification(cy_stc_ble_conn_handle_t con
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the HTS service-specific callback is registered
 *      (with Cy_BLE_HTS_RegisterAttrCallback):
-*  * CY_BLE_EVT_HTSS_INDICATION_CONFIRMED - in case if the indication is
+*  * CY_BLE_EVT_HTSS_INDICATION_CONFIRMED - In case if the indication is
 *                                successfully delivered to the peer device.
 *  .
 *   Otherwise (if the HTS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - in case if the indication is
+*  * CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - In case if the indication is
 *                                successfully delivered to the peer device.
 *
 ******************************************************************************/
@@ -672,7 +664,7 @@ cy_en_ble_api_result_t Cy_BLE_HTSS_SendIndication(cy_stc_ble_conn_handle_t connH
 * Function Name: Cy_BLE_HTSS_ConfirmationEventHandler
 ***************************************************************************//**
 *
-*  Handles a Value Confirmation request event from the BLE stack.
+*  Handles a Value Confirmation request event from the BLE Stack.
 *
 *  *eventParam - The pointer to a structure of type cy_stc_ble_conn_handle_t.
 *
@@ -882,8 +874,8 @@ static void Cy_BLE_HTSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_HTSS_WRITE_CHAR events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_HTSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  \param connHandle: The connection handle.
@@ -893,7 +885,7 @@ static void Cy_BLE_HTSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *               sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed
@@ -905,19 +897,19 @@ static void Cy_BLE_HTSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the HTS service-specific callback is registered
 *      (with Cy_BLE_HTS_RegisterAttrCallback):
-*  * CY_BLE_EVT_HTSC_WRITE_CHAR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_HTSC_WRITE_CHAR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_hts_char_value_t.
 *  .
 *   Otherwise (if the HTS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -975,7 +967,7 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *  \param charIndex: The index of the service characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -987,22 +979,22 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the HTS service-specific callback is registered
 *      (with Cy_BLE_HTS_RegisterAttrCallback):
-*  * CY_BLE_EVT_HTSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_HTSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_hts_char_value_t.
 *  .
 *   Otherwise (if the HTS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1053,7 +1045,7 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *  which is identified by charIndex and descrIndex.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_HTSS_NOTIFICATION_ENABLED
 *  * CY_BLE_EVT_HTSS_NOTIFICATION_ENABLED
@@ -1068,7 +1060,7 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *               should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid
@@ -1078,19 +1070,19 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the HTS service-specific callback is registered
 *      (with Cy_BLE_HTS_RegisterAttrCallback):
-*  * CY_BLE_EVT_HTSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_HTSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, descr index etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_hts_descr_value_t.
 *  .
 *   Otherwise (if the HTS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1163,22 +1155,22 @@ cy_en_ble_api_result_t Cy_BLE_HTSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the HTS service-specific callback is registered
 *      (with Cy_BLE_HTS_RegisterAttrCallback):
-*  * CY_BLE_EVT_HTSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_HTSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with event parameter structure
 *                                of type cy_stc_ble_hts_descr_value_t.
 *  .
 *  Otherwise (if the HTS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1444,13 +1436,13 @@ static void Cy_BLE_HTSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 * Function Name: Cy_BLE_HTS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Health Thermometer Service.
+*  Handles the events from the BLE Stack for the Health Thermometer Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_HTS_EventHandler(uint32_t eventCode,

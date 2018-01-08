@@ -141,7 +141,7 @@ cy_en_ble_api_result_t Cy_BLE_IPS_Init(cy_stc_ble_ips_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                 events from the BLE Component. The definition of
+*                 events from the BLE Middleware. The definition of
 *                 cy_ble_callback_t for IPS Service is:\n
 *                 typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                    void *eventParam)
@@ -443,8 +443,8 @@ static void Cy_BLE_IPSS_ExecuteWriteRequestEventHandler(cy_stc_ble_gatts_exec_wr
 *             stored in the GATT database.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is 
 *                                               absent.
@@ -505,8 +505,8 @@ cy_en_ble_api_result_t Cy_BLE_IPSS_SetCharacteristicValue(cy_en_ble_ips_char_ind
 *             should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
 *                                               absent.
@@ -565,8 +565,8 @@ cy_en_ble_api_result_t Cy_BLE_IPSS_GetCharacteristicValue(cy_en_ble_ips_char_ind
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -622,8 +622,8 @@ cy_en_ble_api_result_t Cy_BLE_IPSS_GetCharacteristicDescriptor(cy_en_ble_ips_cha
 *             be stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -678,11 +678,11 @@ cy_en_ble_api_result_t Cy_BLE_IPSS_SetCharacteristicDescriptor(cy_en_ble_ips_cha
 *  Sets the characteristics values in advertisement packet depending on a value of
 *  Indoor Positioning Configuration characteristic.
 *
-*  This function must be called when Cy_BLE_GetBleSsState() returns
+*  This function must be called when Cy_BLE_StackGetBleSsState() returns
 *  CY_BLE_BLESS_STATE_EVENT_CLOSE state.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The advertisement packet collected successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Read operation is not permitted on this
 *                attribute or on NULL pointer, Data length in input
@@ -916,7 +916,7 @@ static cy_en_ble_api_result_t Cy_BLE_IPSS_SetAdvertisementData(void)
 *                     sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
@@ -986,8 +986,8 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicValueWithoutResponse(cy_stc_
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_IPSS_WRITE_CHAR events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_IPSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  The Write Response just confirms the operation success.
@@ -999,7 +999,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicValueWithoutResponse(cy_stc_
 *                     sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
@@ -1011,7 +1011,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicValueWithoutResponse(cy_stc_
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_WRITE_CHAR_RESPONSE - If the requested attribute is
@@ -1125,19 +1125,19 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *                                     characteristic.
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_IPSC_WRITE_CHAR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_IPSC_WRITE_CHAR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_ips_char_value_t.
 *  .
 *   Otherwise (if the IPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_EXEC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_EXEC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1205,7 +1205,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_ReliableWriteCharacteristicValue(cy_stc_ble_c
 *  \param charIndex:  The index of the service characteristic.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -1217,11 +1217,11 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_ReliableWriteCharacteristicValue(cy_stc_ble_c
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_READ_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_ips_char_value_t.
@@ -1293,7 +1293,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *                     descriptor value should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -1305,11 +1305,11 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_READ_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_ips_char_value_t.
@@ -1417,11 +1417,11 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_GetLongCharacteristicValue(cy_stc_ble_conn_ha
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_READ_MULTIPLE_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_ips_char_value_t.
@@ -1504,7 +1504,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_GetMultipleCharacteristicValues(cy_stc_ble_co
 *                      should be sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -1516,7 +1516,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_GetMultipleCharacteristicValues(cy_stc_ble_co
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_WRITE_DESCR_RESPONSE - If the requested attribute is
@@ -1591,7 +1591,7 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *  \param descrIndex: The index of the service characteristic descriptor.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -1603,11 +1603,11 @@ cy_en_ble_api_result_t Cy_BLE_IPSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the IPS service-specific callback is registered
 *      (with Cy_BLE_IPS_RegisterAttrCallback):
 *  * CY_BLE_EVT_IPSC_READ_DESCR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with an event parameter structure
 *                                of type cy_stc_ble_ips_descr_value_t.
@@ -2155,13 +2155,13 @@ static void Cy_BLE_IPSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 * Function Name: Cy_BLE_IPS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for Indoor Positioning Service.
+*  Handles the events from the BLE Stack for Indoor Positioning Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_IPS_EventHandler(uint32_t eventCode,

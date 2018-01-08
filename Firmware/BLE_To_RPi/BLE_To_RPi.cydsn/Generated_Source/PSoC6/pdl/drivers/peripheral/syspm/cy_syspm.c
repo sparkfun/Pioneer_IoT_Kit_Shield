@@ -25,12 +25,65 @@ static uint32_t curRegisteredCallbacks = 0U;
     static void Cy_SetVoltageBitForFlash(bool setBit);
 #endif /* (0u != SRSS_SIMOBUCK_PRESENT) */
 
-static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor);
+#if defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE)
+    static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor);
+#endif /* defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE) */
 
-#if(0u != CY_CPU_CORTEX_M4)
+#if (0u != CY_CPU_CORTEX_M4)
     static bool wasEventSent = false;
 #endif /* (0u != CY_CPU_CORTEX_M4) */
 
+
+/*******************************************************************************
+*       Internal Defines
+*******************************************************************************/
+
+/** \cond INTERNAL */
+
+#if defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE)
+
+    /** The internal define for clock divider */
+    #define CY_SYSPM_CLK_DIVIDER                 (9U)
+
+    /* Mask for the fast clock divider value */
+    #define CY_SYSPM_FAST_CLK_DIV_Msk            (0xFF000000UL)
+
+    /* Position for the fast clock divider value */
+    #define CY_SYSPM_FAST_CLK_DIV_Pos            (24UL)
+
+    /* Mask for the slow clock divider value */
+    #define CY_SYSPM_SLOW_CLK_DIV_Msk            (0x00FF0000UL)
+
+    /* Position for the slow clock divider value */
+    #define CY_SYSPM_SLOW_CLK_DIV_Pos            (16UL)
+
+    #if(0u != CY_CPU_CORTEX_M4)
+        #define CY_SYSPM_CUR_CORE_DP_MASK        (0x01UL)
+        #define CY_SYSPM_OTHER_CORE_DP_MASK      (0x02UL)
+    #else
+        #define CY_SYSPM_CUR_CORE_DP_MASK        (0x02UL)
+        #define CY_SYSPM_OTHER_CORE_DP_MASK      (0x01UL)
+    #endif
+
+#endif /* defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE) */
+
+/* The pointer to the Cy_EnterDeepSleep() function in the ROM */
+#define CY_SYSPM_ROM_ENTER_DEEP_SLEEP_ADDR    (*(uint32_t *) 0x00000D30UL)
+
+/* The define to call the ROM Cy_EnterDeepSleep() function. 
+* The ROM Cy_EnterDeepSleep() function prepares the system for the Deep Sleep 
+* and restores the system after wakeup from the Deep Sleep. */
+typedef void (*cy_cb_syspm_deep_sleep_t)(cy_en_syspm_waitfor_t waitFor, bool *wasEventSent);
+
+#define EnterDeepSleep(waitFor, wasEventSent) \
+       ((cy_cb_syspm_deep_sleep_t) CY_SYSPM_ROM_ENTER_DEEP_SLEEP_ADDR)((waitFor), &(wasEventSent))
+
+#ifdef CY_IP_MXUDB
+
+    /* The UDB placement on MMIO slave level */
+    #define CY_SYSPM_PERI_UDB_SLAVE_ENABLED     ((uint32_t) (1UL << CY_MMIO_UDB_SLAVE_NR))
+#endif /* CY_IP_MXUDB */
+/** \endcond */
 
 
 /*******************************************************************************
@@ -40,6 +93,9 @@ static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor);
 * Reads the status of the core(s).
 *
 * \return The current power mode. See \ref group_syspm_return_status.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_ReadStatus
 *
 *******************************************************************************/
 uint32_t Cy_SysPm_ReadStatus(void)
@@ -160,6 +216,9 @@ uint32_t Cy_SysPm_ReadStatus(void)
 * \sideeffect
 * This function clears the Event Register of CM4 core after wakeup from WFE.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Sleep
+*
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 {
@@ -243,9 +302,9 @@ cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 * Function Name: Cy_SysPm_DeepSleep
 ****************************************************************************//**
 *
-* Sets a CPU core to the deep sleep mode.
+* Sets a CPU core to the Deep Sleep mode.
 *
-* Puts the core into the deep sleep power mode. Prior to entering the deep sleep
+* Puts the core into the Deep Sleep power mode. Prior to entering the Deep Sleep
 * mode, all callbacks of the CY_SYSPM_DEEPSLEEP type with the 
 * CY_SYSPM_CHECK_READY parameter registered callbacks are called, allowing the 
 * driver to signal whether it is ready to enter the power mode. If any 
@@ -256,7 +315,7 @@ cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 * parameter are executed that correspond to the callbacks with 
 * CY_SYSPM_DEEPSLEEP type with CY_SYSPM_CHECK_READY parameter calls that 
 * occurred up to the point of failure.
-* The deep sleep mode is not entered and the Cy_SysPm_DeepSleep() function 
+* The Deep Sleep mode is not entered and the Cy_SysPm_DeepSleep() function 
 * returns CY_SYSPM_FAIL.
 *
 * If all callbacks of the CY_SYSPM_DEEPSLEEP type with the CY_SYSPM_CHECK_READY
@@ -264,9 +323,9 @@ cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 * CY_SYSPM_DEEPSLEEP type with the CY_SYSPM_CHECK_FAIL parameter calls are 
 * skipped and all callbacks of the CY_SYSPM_DEEPSLEEP type with the 
 * CY_SYSPM_BEFORE_TRANSITION parameter calls are executed, allowing the 
-* peripherals to prepare for deep sleep.
-* The deep sleep mode is then entered. Any enabled interrupt can cause a wakeup 
-* from the deep sleep mode.
+* peripherals to prepare for Deep Sleep.
+* The Deep Sleep mode is then entered. Any enabled interrupt can cause a wakeup 
+* from the Deep Sleep mode.
 *
 * \note The last callback which returned CY_SYSPM_FAIL is not executed with the 
 * CY_SYSPM_CHECK_FAIL parameter because of the FAIL.
@@ -277,39 +336,40 @@ cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 *
 * If the firmware attempts to enter this mode before the system is ready (that
 * is, when PWR_CONTROL.LPM_READY = 0), then the device will go into the (LP)
-* Sleep mode instead and automatically enter the deep sleep mode when the
+* Sleep mode instead and automatically enter the Deep Sleep mode when the
 * system is ready.
 *
-* The system puts the whole device into the deep sleep mode when all the 
-* processor(s) is (are) in deep sleep, there are no busy peripherals, the 
-* debugger is not active, and the deep sleep circuits are 
+* The system puts the whole device into the Deep Sleep mode when all the 
+* processor(s) is (are) in Deep Sleep, there are no busy peripherals, the 
+* debugger is not active, and the Deep Sleep circuits are 
 * ready (PWR_CONTROL.LPM_READY=1).
 *
 * The peripherals that do not need a clock or that receive a clock from their
 * external interface (e.g. I2C/SPI) continue operating. All circuits using the
 * current from Vccdpslp supply are under the current limitation that is 
-* controlled by deep sleep regulator.
+* controlled by Deep Sleep regulator.
 *
-* Wakeup occurs when an interrupt asserts from a deep sleep active peripheral.
+* Wakeup occurs when an interrupt asserts from a Deep Sleep active peripheral.
 * For more details, see the corresponding peripheral's datasheet.
 *
-* \note For multi-core devices the second core, that did not participate in 
-* device wakeup, remain execute the deep sleep instructions. Any deep sleep 
+* \note 
+* For multi-core devices the second core, that did not participate in 
+* device wakeup, remain execute the Deep Sleep instructions. Any Deep Sleep 
 * capable interrupt routed to this core can wakeup it.
 *
-* For more details about switching into the deep sleep power mode and debug,
+* For more details about switching into the Deep Sleep power mode and debug,
 * refer to the device TRM.
 *
-* A normal wakeup from the deep sleep power mode returns to either LPActive, 
-* LPSleep, Active, or Sleep, depending on the previous state and programmed 
-* behaviour for the particular wakeup interrupt.
+* A normal wakeup from the Deep Sleep power mode returns to either LPActive, or
+* Active depending on the previous state and programmed behaviour for the 
+* particular wakeup interrupt.
 *
 * After wakeup from Deep Sleep, all of the registered callbacks with
 * CY_SYSPM_DEEPSLEEP type with CY_SYSPM_AFTER_TRANSITION are executed to return 
 * peripherals to Active operation. The Cy_SysPm_DeepSleep() function returns 
 * CY_SYSPM_SUCCESS. No callbacks are executed with CY_SYSPM_DEEPSLEEP type with 
-* CY_SYSPM_BEFORE_TRANSITION or CY_SYSPM_AFTER_TRANSITION parameter, if deep 
-* sleep mode was not entered.
+* CY_SYSPM_BEFORE_TRANSITION or CY_SYSPM_AFTER_TRANSITION parameter, if 
+* Deep Sleep mode was not entered.
 *
 * \param waitFor Selects wait for action. See \ref cy_en_syspm_waitfor_t.
 *
@@ -329,22 +389,37 @@ cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor)
 * are restored by the values saved on the first core, and after the second core 
 * wakeup, these registers are "reconfigured" by the values saved on the second 
 * core.
-* Be aware of such a situation.
+* Be aware of such situation.
 *
 * \sideeffect
 * This function clears the Event Register of CM4 core after wakeup from WFE.
 *
 * \sideeffect
-* This function changes the the slow and fast clock dividers to 
-* CY_SYSPM_CLK_DIVIDER right before entering into the deep sleep and restores 
+* This side effect is applicable only for rev-08 of the CY8CKIT-062.
+* The function changes the slow and fast clock dividers to
+* CY_SYSPM_CLK_DIVIDER right before entering into the Deep Sleep and restores
 * these dividers after the wakeup.
 *
 * \return
 * Entered status, see \ref cy_en_syspm_status_t.
 *
+* \note
+* The FLL/PLL are not restored right before the CPU starts executing the 
+* instructions after the Deep Sleep. This can affect the peripheral which is 
+* driven by PLL/FLL. Ensure that the PLL/FLL were properly restored (locked)
+* after the wakeup from the Deep Sleep. Refer to the System Clock (SysClk) 
+* driver for the information how to read the PLL/FLL lock statuses.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DeepSleep
+*
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor)
 {
+#if(0u != CY_CPU_CORTEX_M0P)
+    static bool wasEventSent = false;
+#endif /* (0u != CY_CPU_CORTEX_M0P) */
+
     uint32_t interruptState;
     cy_en_syspm_status_t retVal = CY_SYSPM_SUCCESS;
 
@@ -358,7 +433,7 @@ cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor)
         retVal = Cy_SysPm_ExecuteCallback(CY_SYSPM_DEEPSLEEP, CY_SYSPM_CHECK_READY);
     }
 
-    /* The device (core) can switch into the deep sleep power mode only when
+    /* The device (core) can switch into the Deep Sleep power mode only when
     *  all executed registered callback functions with the CY_SYSPM_CHECK_READY
     *  parameter returned CY_SYSPM_SUCCESS.
     */
@@ -379,7 +454,7 @@ cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor)
         static cy_stc_syspm_backup_regs_t regs;
 
         /* Check is the UDB disabled on MMIO level */
-        if(_FLD2BOOL(PERI_GR_SL_CTL_ENABLED_4, PERI->GR[CY_SYSPM_PERI_GR3_UDB].SL_CTL))
+        if (0UL != (PERI->GR[CY_MMIO_UDB_GROUP_NR].SL_CTL & CY_SYSPM_PERI_UDB_SLAVE_ENABLED))
         {
 
             /* Save non-retained registers */
@@ -387,12 +462,39 @@ cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor)
         }
     #endif /* CY_IP_MXUDB */
 
-        Cy_EnterDeepSleep(waitFor);
+    #if defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE)
+
+        if (CY_SYSLIB_DEVICE_REV_0A == (uint32_t) Cy_SysLib_GetDeviceRevision())
+        {
+            Cy_EnterDeepSleep(waitFor);
+        }
+        else
+    #endif /* defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE) */
+        {
+            cy_en_syspm_ldo_voltage_t curLdoVoltage;
+
+            curLdoVoltage = Cy_SysPm_LdoGetVoltage();
+
+            /* Configure additional wakeup delay from Deep Sleep 
+            *  for 1.1V Linear Core regulator. Cypress ID #290172.
+            */
+            if ((Cy_SysPm_LdoIsEnabled()) && (CY_SYSPM_LDO_VOLTAGE_1_1V == curLdoVoltage))
+            {
+                SRSS->PWR_TRIM_WAKE_CTL = CY_SYSPM_SFLASH->PWR_TRIM_WAKE_CTL;
+            }
+            else
+            {
+                SRSS->PWR_TRIM_WAKE_CTL = 0UL;
+            }
+
+            /* The core (system) enters Deep Sleep and wakes up in the SROM */
+            EnterDeepSleep(waitFor, wasEventSent);
+        }
 
     #ifdef CY_IP_MXUDB
 
         /* Do not restore the UDB if it is disabled on MMIO level */
-        if(_FLD2BOOL(PERI_GR_SL_CTL_ENABLED_4, PERI->GR[CY_SYSPM_PERI_GR3_UDB].SL_CTL))
+        if (0UL != (PERI->GR[CY_MMIO_UDB_GROUP_NR].SL_CTL & CY_SYSPM_PERI_UDB_SLAVE_ENABLED))
         {
             /* Restore non-retained registers */
             Cy_RestoreRegisters(&regs);
@@ -484,6 +586,9 @@ cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor)
 *
 * \return
 * Entered status, see \ref cy_en_syspm_status_t.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Hibernate
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_Hibernate(void)
@@ -634,6 +739,9 @@ cy_en_syspm_status_t Cy_SysPm_Hibernate(void)
 * in LPActive.<br>
 * CY_SYSPM_FAIL - The LPActive mode is not entered or low power circuits 
 * are not ready to enter the low power mode. 
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnterLpMode
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_EnterLpMode(void)
@@ -791,6 +899,9 @@ cy_en_syspm_status_t Cy_SysPm_EnterLpMode(void)
 * \warning This function blocks as it waits until Active Reference is ready
 * to enter into the normal mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_ExitLpMode
+*
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_ExitLpMode(void)
 {
@@ -907,6 +1018,9 @@ cy_en_syspm_status_t Cy_SysPm_ExitLpMode(void)
 * True - enable Sleep on the Exit mode <br> false - disable
 * Sleep on the Exit mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SleepOnExit
+*
 *******************************************************************************/
 void Cy_SysPm_SleepOnExit(bool enable)
 {
@@ -975,17 +1089,20 @@ void Cy_SysPm_SleepOnExit(bool enable)
 *
 * \param wakeupSource 
 * The source to be configured as a wakeup source from 
-* the hibernate power mode. The input parameters values can be ORed.
-* For example, if you want to set LPComp0 (active high) and WDT, call 
-* this function:
+* the hibernate power mode, see \ref cy_en_syspm_hib_wakeup_source_t.
+* The input parameters values can be ORed. For example, if you want to set 
+* LPComp0 (active high) and WDT, call this function:
 * Cy_SysPm_SetHibWakeupSource(CY_SYSPM_LPCOMP0_HIGH | CY_SYSPM_HIBWDT).
 *
 * \warning Do not call this function with different polarity levels for the same
 * wakeup source. For example, do not call a function like this:
 * Cy_SysPm_SetHibWakeupSource(CY_SYSPM_LPCOMP0_LOW, CY_SYSPM_LPCOMP0_HIGH);
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SetHibWakeupSource
+*
 *******************************************************************************/
-void Cy_SysPm_SetHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
+void Cy_SysPm_SetHibWakeupSource(uint32_t wakeupSource)
 {
     CY_ASSERT_L3(CY_SYSPM_IS_WAKE_UP_SOURCE_VALID(wakeupSource));
     
@@ -1029,13 +1146,16 @@ void Cy_SysPm_SetHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
 * wake up the device from the hibernate power mode.
 *
 * \param wakeupSource
-* The source to be disabled. The input parameters values can 
-* be ORed. For example, if you want to disable LPComp0 (active high) and WDT
-* call this function:
+* The source to be disabled, see \ref cy_en_syspm_hib_wakeup_source_t.
+* The input parameters values can be ORed. For example, if you want to disable 
+* LPComp0 (active high) and WDT call this function:
 * Cy_SysPm_ClearHibWakeupSource(CY_SYSPM_LPCOMP0_HIGH | CY_SYSPM_HIBWDT).
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_ClearHibWakeupSource
+*
 *******************************************************************************/
-void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
+void Cy_SysPm_ClearHibWakeupSource(uint32_t wakeupSource)
 {
     uint32_t clearWakeupSource;
 
@@ -1108,6 +1228,7 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * driver for more details.
     *
     * In general, use the next sequence to obtain SIMO Buck 0.9 V (nominal):
+    * 
     * 1) Set the appropriate Wait states for 0.9 V, by calling 
     * Cy_SysLib_SetWaitStates(true, hfClkFreqMz), where hfClkFreqMz -
     * the desired frequency of HfClk0 in MHz.
@@ -1117,6 +1238,7 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * 3) Switch the regulators by calling the Cy_SysPm_SwitchToSimoBuck() function.
     *
     * To obtain SIMO Buck 1.1 V (nominal) use the next sequence:
+    *
     * 1) Set the appropriate Wait states for 0.9 V by calling 
     * Cy_SysLib_SetWaitStates(true, hfClkFreqMz), where hfClkFreqMz -
     * the desired frequency of HfClk0 in MHz
@@ -1161,10 +1283,13 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * \note 
     * The function is applicable for devices with the SIMO Buck regulator.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SwitchToSimoBuck
+    *
     *******************************************************************************/
     void Cy_SysPm_SwitchToSimoBuck(void)
     {
-        /* Disable the DeepSleep, nWell, and Retention regulators */
+        /* Disable the Deep Sleep, nWell, and Retention regulators */
         SRSS->PWR_CTL |= (_VAL2FLD(SRSS_PWR_CTL_DPSLP_REG_DIS, 1U) |
                           _VAL2FLD(SRSS_PWR_CTL_RET_REG_DIS, 1U) |
                           _VAL2FLD(SRSS_PWR_CTL_NWELL_REG_DIS, 1U));
@@ -1230,6 +1355,9 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * The desired output 1 regulator voltage (Vccbuck1).
     * See \ref cy_en_syspm_simo_buck_voltage1_t
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
+    *
     *******************************************************************************/
     void Cy_SysPm_SimoBuckSetVoltage1(cy_en_syspm_simo_buck_voltage1_t voltage)
     {
@@ -1288,6 +1416,9 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * Cy_SysPm_SimoBuckSetVoltage2() or Cy_SysPm_SimoBuckSetHwControl() to 
     * configure the SIMO Buck output 2.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnableVoltage2
+    *
     *******************************************************************************/
     void Cy_SysPm_EnableVoltage2(void)
     {
@@ -1325,6 +1456,9 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * \note The 200 uS delay is required only under changing from a
     * lower voltage to a higher voltage. Changing from a higher voltage to a lower
     * the delay is not required.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SimoBuckSetVoltage2
     *
     *******************************************************************************/
     void Cy_SysPm_SimoBuckSetVoltage2(cy_en_syspm_simo_buck_voltage2_t voltage, bool waitToSettle)
@@ -1365,6 +1499,9 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
     * The current state of the requested output. True if the requested output 
     * is enabled.
     * False if the requested output is disabled.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SimoBuckOutputIsEnabled
     *
     *******************************************************************************/
     bool Cy_SysPm_SimoBuckOutputIsEnabled(cy_en_syspm_buck_out_t output)
@@ -1413,7 +1550,16 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
 *
 * \warning NOTE: The Flash access time when the core
 * output voltage is 0.9 V (nominal) is longer than at 1.1 V (nominal). 
-* Therefore, the clock to the Flash should be decreased.
+* Therefore, the number of the wait states must be adjusted. Use the
+* Cy_SysLib_SetWaitStates() function to set the appropriate Wait state values 
+* for Flash. 
+* * Call the Cy_SysLib_SetWaitStates(true, hfClkFreqMz) function before changing 
+* the voltage to 0.9 V (nominal), where hfClkFreqMz - the frequency 
+* of HfClk0 in MHz.
+*
+* * Call the Cy_SysLib_SetWaitStates(false, hfClkFreqMz) function after changing
+* the voltage from 0.9 V (nominal) to 1.1 V (nominal), where hfClkFreqMz - 
+* the frequency of HfClk0 in MHz.
 *
 * In addition, if the 0.9 V (nominal) output is set, the Flash works in 
 * the Read-only operation.
@@ -1435,19 +1581,30 @@ void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource)
 * The desired output regulator voltage.
 * See \ref cy_en_syspm_ldo_voltage_t voltage
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
+*
 *******************************************************************************/
 void Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
 {
     CY_ASSERT_L3(CY_SYSPM_IS_LDO_VOLTAGE_VALID(voltage));
-    
+
     if(voltage != Cy_SysPm_LdoGetVoltage())
     {
+        uint32_t trimVoltage;
+        
         /* Set the analog signal bit for the flash before the voltage is changed 
-        * from 1.1V to 0.9V
+        * from 1.1V to 0.9V. Store trimmed voltage value into the local variable
         */
         if(CY_SYSPM_LDO_VOLTAGE_0_9V == voltage)
         {
             Cy_SetVoltageBitForFlash(true);
+
+            trimVoltage = SFLASH->LDO_0P9V_TRIM;
+        }
+        else
+        {
+            trimVoltage = SFLASH->LDO_1P1V_TRIM;
         }
 
         /* The system may continue operating while the voltage on Vccd 
@@ -1456,7 +1613,7 @@ void Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
         *  Vccd and the external capacitor size
         */
         SRSS->PWR_TRIM_PWRSYS_CTL = 
-        _CLR_SET_FLD32U((SRSS->PWR_TRIM_PWRSYS_CTL), SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, voltage);
+        _CLR_SET_FLD32U((SRSS->PWR_TRIM_PWRSYS_CTL), SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, trimVoltage);
 
         if(CY_SYSPM_LDO_VOLTAGE_1_1V == voltage)
         {
@@ -1501,6 +1658,10 @@ void Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage)
 * False if a callback was not registered or maximum callbacks were registered.
 *
 * It is allowed to register up to 32 callbacks.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Callback
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_RegisterCallback
 *
 *******************************************************************************/
 bool Cy_SysPm_RegisterCallback(cy_stc_syspm_callback_t* handler)
@@ -1588,6 +1749,9 @@ bool Cy_SysPm_RegisterCallback(cy_stc_syspm_callback_t* handler)
 * True if on success <br>
 * False if it was not unregistered or none callbacks were registered.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_UnregisterCallback
+*
 *******************************************************************************/
 bool Cy_SysPm_UnregisterCallback(cy_stc_syspm_callback_t const *handler)
 {
@@ -1659,8 +1823,13 @@ bool Cy_SysPm_UnregisterCallback(cy_stc_syspm_callback_t const *handler)
 ****************************************************************************//**
 *
 * The function executes all registered callbacks with provided type and mode.
-* \note The registered callbacks will be executed in order based on lastCallback
-* value. The are possible two orders of callbacks execution: <br>
+* \note This low-level function is being used by \ref Cy_SysPm_Sleep,
+* \ref Cy_SysPm_DeepSleep, \ref Cy_SysPm_Hibernate, \ref Cy_SysPm_EnterLpMode
+* and \ref Cy_SysPm_ExitLpMode API functions, however migh be also useful as
+* an independent API function in some custom applications.
+* \note The registered callbacks will be executed in order based on 
+* \ref cy_en_syspm_callback_type_t value. 
+* The are possible two orders of callbacks execution: <br>
 * * From first registered to last registered. Such order is relevant to 
 * callbacks with mode CY_SYSPM_CHECK_READY and CY_SYSPM_BEFORE_TRANSITION.
 * * Backward flow execution: from last executed callback to the 
@@ -1689,6 +1858,9 @@ bool Cy_SysPm_UnregisterCallback(cy_stc_syspm_callback_t const *handler)
 * CY_SYSPM_SUCCESS Callback successfully completed or nor callbacks registered.
 * CY_SYSPM_FAIL one of executed callback(s) returned fail.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_ExecuteCallback
+*
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SysPm_ExecuteCallback(cy_en_syspm_callback_type_t type, cy_en_syspm_callback_mode_t mode)
 {
@@ -1700,7 +1872,7 @@ cy_en_syspm_status_t Cy_SysPm_ExecuteCallback(cy_en_syspm_callback_type_t type, 
     CY_ASSERT_L3(CY_SYSPM_IS_CALLBACK_TYPE_VALID(type));
     CY_ASSERT_L3(CY_SYSPM_IS_CALLBACK_MODE_VALID(mode));
     
-   if((mode == CY_SYSPM_BEFORE_TRANSITION) || (mode == CY_SYSPM_CHECK_READY))
+    if((mode == CY_SYSPM_BEFORE_TRANSITION) || (mode == CY_SYSPM_CHECK_READY))
     {
         /* Execute registered callbacks with order from first registered to the
         *  last registered. The modes defined in the .skipMode element are not
@@ -1778,6 +1950,9 @@ cy_en_syspm_status_t Cy_SysPm_ExecuteCallback(cy_en_syspm_callback_type_t type, 
 * Hibernate. Do not call this function before entering the
 * Hibernate mode, because Cy_SysPm_Hibernate() function freezes the IO cells.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_IoFreeze
+*
 ******************************************************************************/
 void Cy_SysPm_IoFreeze(void)
 {
@@ -1828,6 +2003,9 @@ void Cy_SysPm_IoFreeze(void)
 * API. Furthermore, the drive mode must be re-programmed. If this is not done,
 * the pin state will change to the default state the moment the freeze 
 * is removed.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_GetIoFreezeStatus
 *
 *******************************************************************************/
 void Cy_SysPm_IoUnfreeze(void)
@@ -1931,85 +2109,68 @@ static void Cy_SetVoltageBitForFlash(bool setBit)
     }
 #endif /* CY_IP_MXUDB */
 
+#if defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE)
 
-/*******************************************************************************
-* Function Name: Cy_EnterDeepSleep
-****************************************************************************//**
-*
-* The internal function that prepares the system for Deep Sleep and 
-* restores the system after a wakeup from Deep Sleep.
-*
-* \param waitFor Selects wait for action. See \ref cy_en_syspm_waitfor_t.
-*
-*******************************************************************************/
-#if defined (__ICCARM__)
-    __ramfunc 
-#else
-    CY_SECTION(".cy_ramfunc")
-#endif
-static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
-{
-    /* Aquire the IPC to prevent changing of the shared resources at the same time */
-    while(0U == _FLD2VAL(IPC_STRUCT_ACQUIRE_SUCCESS, CY_SYSPM_IPC_STC->ACQUIRE))
+    /*******************************************************************************
+    * Function Name: Cy_EnterDeepSleep
+    ****************************************************************************//**
+    *
+    * The internal function that prepares the system for Deep Sleep and 
+    * restores the system after a wakeup from Deep Sleep.
+    *
+    * \param waitFor Selects wait for action. See \ref cy_en_syspm_waitfor_t.
+    *
+    *******************************************************************************/
+    #if defined (__ICCARM__)
+        __ramfunc 
+    #else
+        CY_SECTION(".cy_ramfunc")
+    #endif
+    static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
     {
-        /* Wait until the IPC structure is released by another core */
-    }
+        /* Aquire the IPC to prevent changing of the shared resources at the same time */
+        while(0U == _FLD2VAL(IPC_STRUCT_ACQUIRE_SUCCESS, CY_SYSPM_IPC_STC->ACQUIRE))
+        {
+            /* Wait until the IPC structure is released by another core */
+        }
 
-    /* Set the flag that current core went to Deep Sleep */
-    CY_SYSPM_IPC_STC->DATA |= CY_SYSPM_CUR_CORE_DP_MASK;
+        /* Set the flag that current core entered Deep Sleep */
+        CY_SYSPM_IPC_STC->DATA |= CY_SYSPM_CUR_CORE_DP_MASK;
 
-    /* Change the slow and fast clock dividers only under condition that 
-    *  the other core is already in Deep Sleep. Cypress ID #284516
-    */
-    if (0U != (CY_SYSPM_IPC_STC->DATA & CY_SYSPM_OTHER_CORE_DP_MASK))
-    {
-        /* Get the divider values of the slow and high clocks and store them into 
-        *  the IPC data register
+        /* Change the slow and fast clock dividers only under condition that 
+        *  the other core is already in Deep Sleep. Cypress ID #284516
         */
-        CY_SYSPM_IPC_STC->DATA = 
-        (CY_SYSPM_IPC_STC->DATA & ((uint32_t) ~(CY_SYSPM_FAST_CLK_DIV_Msk | CY_SYSPM_SLOW_CLK_DIV_Msk))) |
-        (((uint32_t) (_FLD2VAL(CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, CPUSS->CM0_CLOCK_CTL) << CY_SYSPM_SLOW_CLK_DIV_Pos)) |
-         ((uint32_t) (_FLD2VAL(CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, CPUSS->CM4_CLOCK_CTL) << CY_SYSPM_FAST_CLK_DIV_Pos)));
-        
-        /* Increase the clock divider for the slow and fast clocks to CY_SYSPM_CLK_DIVIDER */
-        CPUSS->CM0_CLOCK_CTL = 
-        _CLR_SET_FLD32U(CPUSS->CM0_CLOCK_CTL, CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, CY_SYSPM_CLK_DIVIDER);
+        if (0U != (CY_SYSPM_IPC_STC->DATA & CY_SYSPM_OTHER_CORE_DP_MASK))
+        {
+            /* Get the divider values of the slow and high clocks and store them into 
+            *  the IPC data register
+            */
+            CY_SYSPM_IPC_STC->DATA = 
+            (CY_SYSPM_IPC_STC->DATA & ((uint32_t) ~(CY_SYSPM_FAST_CLK_DIV_Msk | CY_SYSPM_SLOW_CLK_DIV_Msk))) |
+            (((uint32_t)(_FLD2VAL(CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, CPUSS->CM0_CLOCK_CTL) << CY_SYSPM_SLOW_CLK_DIV_Pos)) |
+             ((uint32_t)(_FLD2VAL(CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, CPUSS->CM4_CLOCK_CTL) << CY_SYSPM_FAST_CLK_DIV_Pos)));
 
-        CPUSS->CM4_CLOCK_CTL = 
-        _CLR_SET_FLD32U(CPUSS->CM4_CLOCK_CTL, CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, CY_SYSPM_CLK_DIVIDER);
+            /* Increase the clock divider for the slow and fast clocks to CY_SYSPM_CLK_DIVIDER */
+            CPUSS->CM0_CLOCK_CTL = 
+            _CLR_SET_FLD32U(CPUSS->CM0_CLOCK_CTL, CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, CY_SYSPM_CLK_DIVIDER);
 
-        /* Read the divider value to make sure it is set */
-        (void) CPUSS->CM0_CLOCK_CTL;
-        (void) CPUSS->CM4_CLOCK_CTL;
-    }
+            CPUSS->CM4_CLOCK_CTL = 
+            _CLR_SET_FLD32U(CPUSS->CM4_CLOCK_CTL, CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, CY_SYSPM_CLK_DIVIDER);
 
-    /* Release the IPC */
-    CY_SYSPM_IPC_STC->RELEASE = 0U;
+            /* Read the divider value to make sure it is set */
+            (void) CPUSS->CM0_CLOCK_CTL;
+            (void) CPUSS->CM4_CLOCK_CTL;
+        }
 
-    /* Read this register to make sure it is settled */
-    (void) CY_SYSPM_IPC_STC->RELEASE;
+        /* Release the IPC */
+        CY_SYSPM_IPC_STC->RELEASE = 0U;
 
-#if(0u != CY_CPU_CORTEX_M0P)
+        /* Read this register to make sure it is settled */
+        (void) CY_SYSPM_IPC_STC->RELEASE;
 
-    /* The CPU enters the deep sleep mode upon execution of WFI/WFE */
-    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+    #if(0u != CY_CPU_CORTEX_M0P)
 
-    if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
-    {
-        __WFI();
-    }
-    else
-    {
-        __WFE();
-    }
-#else
-
-    /* Repeat the WFI/WFE instructions if a wake up was not intended. 
-    *  Cypress ID #272909
-    */
-    do
-    {
-        /* The CPU enters Deep Sleep mode upon execution of WFI/WFE */
+        /* The CPU enters the Deep Sleep mode upon execution of WFI/WFE */
         SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
         if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
@@ -2019,46 +2180,67 @@ static void Cy_EnterDeepSleep(cy_en_syspm_waitfor_t waitFor)
         else
         {
             __WFE();
+        }
+    #else
 
-            /* Call the WFE instructions twice to clear the Event register 
-            *  of the CM4 core. Cypress ID #279077
-            */
-            if(wasEventSent)
+        /* Repeat the WFI/WFE instructions if a wake up was not intended. 
+        *  Cypress ID #272909
+        */
+        do
+        {
+            /* The CPU enters Deep Sleep mode upon execution of WFI/WFE */
+            SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+
+            if(waitFor != CY_SYSPM_WAIT_FOR_EVENT)
+            {
+                __WFI();
+            }
+            else
             {
                 __WFE();
+
+                /* Call the WFE instructions twice to clear the Event register 
+                *  of the CM4 core. Cypress ID #279077
+                */
+                if(wasEventSent)
+                {
+                    __WFE();
+                }
+
+                wasEventSent = true;
             }
+        } while (_FLD2VAL(CPUSS_CM4_PWR_CTL_PWR_MODE, CPUSS->CM4_PWR_CTL) == CY_SYSPM_CM4_PWR_RETAINED);
 
-            wasEventSent = true;
+    #endif /* (0u != CY_CPU_CORTEX_M0P) */
+
+        /* Aquire the IPC to prevent changing of the shared resources at the same time */
+        while(0U == _FLD2VAL(IPC_STRUCT_ACQUIRE_SUCCESS, CY_SYSPM_IPC_STC->ACQUIRE))
+        {
+            /* Wait until the IPC structure is released by another core */
         }
-    } while (_FLD2VAL(CPUSS_CM4_PWR_CTL_PWR_MODE, CPUSS->CM4_PWR_CTL) == CY_SYSPM_CM4_PWR_RETAINED);
 
-#endif /* (0u != CY_CPU_CORTEX_M0P) */
+        /* Read and change the slow and fast clock dividers only under condition 
+        * that the other core is already in Deep Sleep. Cypress ID #284516
+        */
+        if(0U != (CY_SYSPM_IPC_STC->DATA & CY_SYSPM_OTHER_CORE_DP_MASK))
+        {
+            /* Restore the clock dividers for the slow and fast clocks */
+            CPUSS->CM0_CLOCK_CTL = 
+            (_CLR_SET_FLD32U(CPUSS->CM0_CLOCK_CTL, CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, 
+                            (_FLD2VAL(CY_SYSPM_SLOW_CLK_DIV, CY_SYSPM_IPC_STC->DATA))));
 
-    /* Aquire the IPC to prevent changing of the shared resources at the same time */
-    while(0U == _FLD2VAL(IPC_STRUCT_ACQUIRE_SUCCESS, CY_SYSPM_IPC_STC->ACQUIRE))
-    {
-        /* Wait until the IPC structure is released by another core */
+            CPUSS->CM4_CLOCK_CTL = 
+            (_CLR_SET_FLD32U(CPUSS->CM4_CLOCK_CTL, CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, 
+                            (_FLD2VAL(CY_SYSPM_FAST_CLK_DIV, CY_SYSPM_IPC_STC->DATA))));
+        }
+
+        /* Indicate that the current core is out of Deep Sleep */
+        CY_SYSPM_IPC_STC->DATA &= ((uint32_t) ~CY_SYSPM_CUR_CORE_DP_MASK);
+
+        /* Release the IPC */
+        CY_SYSPM_IPC_STC->RELEASE = 0U;
     }
+#endif /* defined(CY_DEVICE_PSOC6ABLE2) && !defined(CY_PSOC6ABLE2_REV_0A_SUPPORT_DISABLE) */
 
-    /* Read and change the slow and fast clock dividers only under condition 
-    * that the other core is already in Deep Sleep. Cypress ID #284516
-    */
-    if(0U != (CY_SYSPM_IPC_STC->DATA & CY_SYSPM_OTHER_CORE_DP_MASK))
-    {
-        /* Restore the clock dividers for the slow and fast clocks */
-        CPUSS->CM0_CLOCK_CTL = 
-        (_CLR_SET_FLD32U(CPUSS->CM0_CLOCK_CTL, CPUSS_CM0_CLOCK_CTL_SLOW_INT_DIV, 
-                        (_FLD2VAL(CY_SYSPM_SLOW_CLK_DIV, CY_SYSPM_IPC_STC->DATA))));
 
-        CPUSS->CM4_CLOCK_CTL = 
-        (_CLR_SET_FLD32U(CPUSS->CM4_CLOCK_CTL, CPUSS_CM4_CLOCK_CTL_FAST_INT_DIV, 
-                        (_FLD2VAL(CY_SYSPM_FAST_CLK_DIV, CY_SYSPM_IPC_STC->DATA))));
-    }
-
-    /* Indicate that the current core is out of Deep Sleep */
-    CY_SYSPM_IPC_STC->DATA &= ((uint32_t) ~CY_SYSPM_CUR_CORE_DP_MASK);
-
-    /* Release the IPC */
-    CY_SYSPM_IPC_STC->RELEASE = 0U;
-}
 /* [] END OF FILE */

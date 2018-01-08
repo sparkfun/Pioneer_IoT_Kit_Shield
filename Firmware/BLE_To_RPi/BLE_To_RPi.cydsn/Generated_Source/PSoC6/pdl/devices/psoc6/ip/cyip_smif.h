@@ -5,8 +5,8 @@
 * SMIF IP definitions
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright

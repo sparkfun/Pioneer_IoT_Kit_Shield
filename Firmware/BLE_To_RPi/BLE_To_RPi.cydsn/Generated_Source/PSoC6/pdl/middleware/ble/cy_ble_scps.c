@@ -128,7 +128,7 @@ cy_en_ble_api_result_t Cy_BLE_SCPS_Init(cy_stc_ble_scps_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                     events from the BLE Component. The definition of
+*                     events from the BLE Middleware. The definition of
 *                     cy_ble_callback_t for ScPS is: \n
 *                     typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                       void *eventParam)
@@ -185,8 +185,8 @@ cy_en_ble_api_result_t Cy_BLE_SCPS_RegisterAttrCallback(cy_ble_callback_t callba
 *               stored to the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is absent
 *
@@ -279,8 +279,8 @@ cy_en_ble_api_result_t Cy_BLE_SCPSS_SetCharacteristicValue(cy_en_ble_scps_char_i
 *               should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional characteristic is absent
 *
@@ -371,8 +371,8 @@ cy_en_ble_api_result_t Cy_BLE_SCPSS_GetCharacteristicValue(cy_en_ble_scps_char_i
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -427,7 +427,7 @@ cy_en_ble_api_result_t Cy_BLE_SCPSS_GetCharacteristicDescriptor(cy_stc_ble_conn_
 *  \param eventParam: The pointer to the data structure specified by the event.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *   * CY_BLE_GATT_ERR_NONE - Write request handled successfully.
 *   * CY_BLE_GATT_ERR_UNLIKELY_ERROR - Internal error while writing attribute value
 *
@@ -470,16 +470,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_SCPSS_WriteEventHandler(cy_stc_ble_gatts
                         eventCode = (uint32_t)CY_BLE_EVT_SCPSS_NOTIFICATION_DISABLED;
                     }
                     Cy_BLE_SCPS_ApplCallback(eventCode, &locChar);
-
-                #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                    (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-
-                    /* Set flag to store bonding data to flash */
-                    if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                    {
-                        cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                    }
-                #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
                 }
                 else /* Scan Interval Window characteristic write without response request */
                 {
@@ -518,8 +508,8 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_SCPSS_WriteEventHandler(cy_stc_ble_gatts
 *               sent to the Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
@@ -702,7 +692,7 @@ static void Cy_BLE_SCPSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInf
 *                     sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
@@ -756,7 +746,7 @@ cy_en_ble_api_result_t Cy_BLE_SCPSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *  Parameters Service.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_SCPSS_NOTIFICATION_ENABLED
 *  * CY_BLE_EVT_SCPSS_NOTIFICATION_DISABLED
@@ -769,7 +759,7 @@ cy_en_ble_api_result_t Cy_BLE_SCPSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *              should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid
@@ -781,19 +771,19 @@ cy_en_ble_api_result_t Cy_BLE_SCPSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the SCPS service-specific callback is registered
 *      (with Cy_BLE_SCPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_SCPSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_SCPSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, descr index etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_scps_descr_value_t.
 *  .
 *   Otherwise (if the SCPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -877,22 +867,22 @@ cy_en_ble_api_result_t Cy_BLE_SCPSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the SCPS service-specific callback is registered
 *      (with Cy_BLE_SCPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_SCPSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_SCPSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with event parameter structure
 *                                of type cy_stc_ble_scps_descr_value_t.
 *  .
 *  Otherwise (if the SCPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1068,13 +1058,13 @@ static void Cy_BLE_SCPSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_par
 * Function Name: Cy_BLE_SCPS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Scan Parameter service.
+*  Handles the events from the BLE Stack for the Scan Parameter service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_SCPS_EventHandler(uint32_t eventCode,

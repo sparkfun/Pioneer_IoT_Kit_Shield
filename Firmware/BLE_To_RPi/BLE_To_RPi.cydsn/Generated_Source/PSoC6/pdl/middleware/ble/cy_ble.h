@@ -3,7 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  Contains the prototypes and constants used in the BLE Component.
+*  Contains the prototypes and constants used in the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -31,7 +31,7 @@
 #endif
 
 /***************************************
-* Stack includes
+* BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_host_main.h"
@@ -52,12 +52,18 @@ extern "C" {
 /***************************************
 * Type Definitions
 ***************************************/
-
-/** The event callback function prototype to receive events from the BLE Component */
+/**
+ * \addtogroup group_ble_common_api_gap_definitions
+ * @{
+ */
+/** The event callback function prototype to receive events from the BLE Middleware */
 typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam);
+/** @} */
+
+typedef void (* cy_ble_intr_callback_t) (uint32_t interruptType);
 
 #define CY_BLE_M0S8BLESS_VERSION             (4u)
-
+#define CY_BLE_SEMA                          (3u)
 #define CY_BLE_STACK_MODE                    (CY_BLE_CONFIG_STACK_MODE)
 #define CY_BLE_STACK_HOST_ONLY               (1u)
 #define CY_BLE_STACK_DEBUG                   (2u)
@@ -110,8 +116,16 @@ typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam);
 #define CY_BLE_SHARING_MODE_EXPORT           (CY_BLE_SHARING_MODE == CY_BLE_SHARING_EXPORT)
 #define CY_BLE_SHARING_MODE_IMPORT           (CY_BLE_SHARING_MODE == CY_BLE_SHARING_IMPORT)
 
+#ifdef CY_BLE_CONFIG_CYOS_SUPPORT
+    #define CY_BLE_CYOS_SUPPORT              (CY_BLE_CONFIG_CYOS_SUPPORT)
+#else
+    #define CY_BLE_CYOS_SUPPORT              (0u)
+#endif /* CY_BLE_CONFIG_CYOS_SUPPORT */ 
+    
 /* Align the buffer size value to 4 */
 #define CY_BLE_ALIGN_TO_4(x)    ((((x) & 3u) == 0u) ? (x) : (((x) - ((x) & 3u)) + 4u))
+
+#define CY_BLE_INTR_NOTIFY_Q_SIZE             (10u)
 
 #if (CY_BLE_MODE_PROFILE)
 
@@ -342,7 +356,7 @@ typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam);
  * @{
  */
 
-/** The size of RAM memory required for the stack */
+/** The size of RAM memory required for the Stack */
     #define CY_BLE_STACK_RAM_SIZE    (CY_BLE_ALIGN_TO_4(CY_BLE_DEFAULT_HOST_RAM_SIZE + CY_BLE_LL_CONTROLLER_HEAP_REQ +      \
                                                         CY_BLE_RAM_SECURE_CONNECTIONS_SIZE + CY_BLE_L2CAP_Q_HEAP +          \
                                                         CY_BLE_STACK_BOND_RAM_SIZE +                                        \
@@ -356,7 +370,7 @@ typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam);
                                                         (CY_BLE_RAM_SIZE_HOST_SINGLE_CONN * CY_BLE_CONN_COUNT) +  \
                                                         (CY_BLE_GATT_PREPARE_WRITE_BUFF_LEN))) /* This buffer must always be the latest */
 #else
-/** The size of RAM memory required for the stack */
+/** The size of RAM memory required for the Stack */
     #define CY_BLE_STACK_RAM_SIZE    (CY_BLE_LL_CONTROLLER_HEAP_REQ)
 #endif /* CY_BLE_MODE_PROFILE */
 
@@ -385,6 +399,12 @@ cy_en_syspm_status_t Cy_BLE_SleepCallback(cy_stc_syspm_callback_params_t *callba
 cy_en_ble_api_result_t Cy_BLE_Enable(void);
 cy_en_ble_api_result_t Cy_BLE_Disable(void);
 void Cy_BLE_ConfigureExtPA(uint32_t controlValue);
+
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+    cy_en_ble_api_result_t Cy_BLE_RegisterInterruptCallback(uint32_t intrMask, cy_ble_intr_callback_t CallBack);
+    cy_en_ble_api_result_t Cy_BLE_UnRegisterInterruptCallback(void);
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+
 /** @} */
 
 

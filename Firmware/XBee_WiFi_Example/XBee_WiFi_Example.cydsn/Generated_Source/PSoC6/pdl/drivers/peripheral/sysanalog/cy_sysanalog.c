@@ -24,7 +24,6 @@ const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_Local =
     /*.iztat      */ CY_SYSANALOG_IZTAT_SOURCE_LOCAL,
     /*.vref       */ CY_SYSANALOG_VREF_SOURCE_LOCAL_1_2V,
     /*.deepSleep  */ CY_SYSANALOG_DEEPSLEEP_DISABLE,
-    /*.enable     */ true,
 };
 
 /* Configure the AREF to use the SRSS Vref and SRSS IZTAT. Can be used with \ref Cy_SysAnalog_Init. */
@@ -34,7 +33,6 @@ const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_SRSS =
     /*.iztat      */ CY_SYSANALOG_IZTAT_SOURCE_SRSS,
     /*.vref       */ CY_SYSANALOG_VREF_SOURCE_SRSS,
     /*.deepSleep  */ CY_SYSANALOG_DEEPSLEEP_DISABLE,
-    /*.enable     */ true,
 };
 
 /* Configure the AREF to use the external Vref and local IZTAT. Can be used with \ref Cy_SysAnalog_Init. */
@@ -44,21 +42,24 @@ const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_External =
     /*.iztat      */ CY_SYSANALOG_IZTAT_SOURCE_LOCAL,
     /*.vref       */ CY_SYSANALOG_VREF_SOURCE_EXTERNAL,
     /*.deepSleep  */ CY_SYSANALOG_DEEPSLEEP_DISABLE,
-    /*.enable     */ true,
 };
 
 /*******************************************************************************
 * Function Name: Cy_SysAnalog_Init
 ****************************************************************************//**
 *
-* Initialize the AREF configuration register.
+* Initialize the AREF block.
 *
 * \param config
 * Pointer to structure containing configuration data. See \ref cy_stc_sysanalog_config_t
 *
-* \return cy_en_sysanalog_status_t
-* - CY_SYSANALOG_SUCCESS: initialization complete
-* - CY_SYSANALOG_BAD_PARAM: input pointers are null, initialization incomplete
+* \return
+* - \ref CY_SYSANALOG_SUCCESS : initialization complete
+* - \ref CY_SYSANALOG_BAD_PARAM : input pointers are null, initialization incomplete
+*
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_INIT
 *
 *******************************************************************************/
 cy_en_sysanalog_status_t Cy_SysAnalog_Init(const cy_stc_sysanalog_config_t *config)
@@ -83,8 +84,7 @@ cy_en_sysanalog_status_t Cy_SysAnalog_Init(const cy_stc_sysanalog_config_t *conf
                   | CY_SYSANALOG_DEFAULT_BIAS_SCALE \
                   | (uint32_t) config->iztat \
                   | (uint32_t) config->vref \
-                  | (uint32_t) config->deepSleep \
-                  | ((uint32_t) config->enable << PASS_AREF_AREF_CTRL_ENABLED_Pos);
+                  | (uint32_t) config->deepSleep;
 
         PASS_AREF->AREF_CTRL = ctrlReg;
 

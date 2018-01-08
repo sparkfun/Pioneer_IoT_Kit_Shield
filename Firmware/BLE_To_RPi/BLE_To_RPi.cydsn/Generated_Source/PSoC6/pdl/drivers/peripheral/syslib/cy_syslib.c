@@ -30,33 +30,13 @@
 #define CY_SYSLIB_FLASH_ULP_WS_1_FREQ_MAX    ( 33UL)
 #define CY_SYSLIB_FLASH_ULP_WS_2_FREQ_MAX    ( 50UL)
 
-/* ROM wait states for the slow clock domain (LP mode at 1.1v) */
-#define CY_SYSLIB_ROM_LP_SLOW_WS_0_FREQ_MAX  (100UL)
-#define CY_SYSLIB_ROM_LP_SLOW_WS_1_FREQ_MAX  (120UL)
+/* ROM and SRAM wait states for the slow clock domain (LP mode at 1.1v) */
+#define CY_SYSLIB_LP_SLOW_WS_0_FREQ_MAX      (100UL)
+#define CY_SYSLIB_LP_SLOW_WS_1_FREQ_MAX      (120UL)
 
-/* ROM wait states for the slow clock domain (ULP mode at 0.9v) */
-#define CY_SYSLIB_ROM_ULP_SLOW_WS_0_FREQ_MAX ( 25UL)
-#define CY_SYSLIB_ROM_ULP_SLOW_WS_1_FREQ_MAX ( 50UL)
-
-/* ROM wait states for the fast clock domain (LP mode at 1.1v) */
-#define CY_SYSLIB_ROM_LP_FAST_WS_0_FREQ_MAX  (120UL)
-
-/* ROM wait states for the slow clock domain (ULP mode at 0.9v) */
-#define CY_SYSLIB_ROM_ULP_FAST_WS_0_FREQ_MAX ( 50UL)
-
-/* SRAM wait states for the slow clock domain (LP mode at 1.1v) */
-#define CY_SYSLIB_RAM_LP_SLOW_WS_0_FREQ_MAX  (100UL)
-#define CY_SYSLIB_RAM_LP_SLOW_WS_1_FREQ_MAX  (120UL)
-
-/* SRAM wait states for the slow clock domain (ULP mode at 0.9v) */
-#define CY_SYSLIB_RAM_ULP_SLOW_WS_0_FREQ_MAX ( 25UL)
-#define CY_SYSLIB_RAM_ULP_SLOW_WS_1_FREQ_MAX ( 50UL)
-
-/* SRAM wait states for the fast clock domain (LP mode at 1.1v) */
-#define CY_SYSLIB_RAM_LP_FAST_WS_0_FREQ_MAX  (120UL)
-
-/* SRAM wait states for the fast clock domain (ULP mode at 0.9v) */
-#define CY_SYSLIB_RAM_ULP_FAST_WS_0_FREQ_MAX ( 50UL)
+/* ROM and SRAM wait states for the slow clock domain (ULP mode at 0.9v) */
+#define CY_SYSLIB_ULP_SLOW_WS_0_FREQ_MAX     ( 25UL)
+#define CY_SYSLIB_ULP_SLOW_WS_1_FREQ_MAX     ( 50UL)
 
 
 #if !defined(NDEBUG)
@@ -67,9 +47,6 @@
 #if (CY_ARM_FAULT_DEBUG == CY_ARM_FAULT_DEBUG_ENABLED)
     CY_NOINIT cy_stc_fault_frame_t cy_faultFrame;
 #endif /* (CY_ARM_FAULT_DEBUG == CY_ARM_FAULT_DEBUG_ENABLED) */
-
-static void Cy_SysLib_SetWaitStates_ULP(uint32_t clkHfMHz);
-static void Cy_SysLib_SetWaitStates_LP(uint32_t clkHfMHz);
 
 #if defined(__ARMCC_VERSION)
     static __ASM void Cy_SysLib_AsmInfiniteLoop(void) { b . };
@@ -156,7 +133,7 @@ void Cy_SysLib_DelayUs(uint16_t microseconds)
 *******************************************************************************/
 __NO_RETURN void Cy_SysLib_Halt(uint32_t reason)
 {
-    if(0u != reason)
+    if(0U != reason)
     {
         /* To remove an unreferenced local variable warning */
     }
@@ -281,16 +258,16 @@ cy_en_syslib_status_t Cy_SysLib_ResetBackupDomain(void)
 *******************************************************************************/
 uint32_t Cy_SysLib_GetResetReason(void)
 {
-    uint32_t retVal;
+    uint32_t retVal = SRSS->RES_CAUSE;
 
-    retVal = SRSS->RES_CAUSE;
+#if (SRSS_WCOCSV_PRESENT != 0U)
+    uint32_t resCause2 = SRSS->RES_CAUSE2;
 
-#if (SRSS_WCOCSV_PRESENT != 0u)
-    retVal |= ((CY_LO16(SRSS->RES_CAUSE2) > 0u) ? CY_SYSLIB_RESET_HFCLK_LOSS : 0u) |
-              ((CY_HI16(SRSS->RES_CAUSE2) > 0u) ? CY_SYSLIB_RESET_HFCLK_ERR  : 0u);
-#endif /* (SRSS_WCOCSV_PRESENT != 0u) */
+    retVal |= ((CY_LO16(resCause2) > 0U) ? CY_SYSLIB_RESET_HFCLK_LOSS : 0U) |
+              ((CY_HI16(resCause2) > 0U) ? CY_SYSLIB_RESET_HFCLK_ERR  : 0U);
+#endif /* (SRSS_WCOCSV_PRESENT != 0U) */
 
-    if(0u != _FLD2VAL(SRSS_PWR_HIBERNATE_TOKEN, SRSS->PWR_HIBERNATE))
+    if(0U != _FLD2VAL(SRSS_PWR_HIBERNATE_TOKEN, SRSS->PWR_HIBERNATE))
     {
         retVal |= CY_SYSLIB_RESET_HIB_WAKEUP;
     }
@@ -299,7 +276,7 @@ uint32_t Cy_SysLib_GetResetReason(void)
 }
 
 
-#if (SRSS_WCOCSV_PRESENT != 0u) || defined(CY_DOXYGEN)
+#if (SRSS_WCOCSV_PRESENT != 0U) || defined(CY_DOXYGEN)
 /*******************************************************************************
 * Function Name: Cy_SysLib_GetNumHfclkResetCause
 ****************************************************************************//**
@@ -322,7 +299,7 @@ uint32_t Cy_SysLib_GetNumHfclkResetCause(void)
 {
     return (SRSS->RES_CAUSE2);
 }
-#endif /* (SRSS_WCOCSV_PRESENT != 0u) || defined(CY_DOXYGEN) */
+#endif /* (SRSS_WCOCSV_PRESENT != 0U) || defined(CY_DOXYGEN) */
 
 
 /*******************************************************************************
@@ -338,10 +315,10 @@ void Cy_SysLib_ClearResetReason(void)
     /* RES_CAUSE and RES_CAUSE2 register's bits are RW1C (every bit is cleared upon writing 1),
      * so write all ones to clear all the reset reasons.
      */
-    SRSS->RES_CAUSE  = 0xFFFFFFFFu;
-    SRSS->RES_CAUSE2 = 0xFFFFFFFFu;
+    SRSS->RES_CAUSE  = 0xFFFFFFFFU;
+    SRSS->RES_CAUSE2 = 0xFFFFFFFFU;
     
-    if(0u != _FLD2VAL(SRSS_PWR_HIBERNATE_TOKEN, SRSS->PWR_HIBERNATE))
+    if(0U != _FLD2VAL(SRSS_PWR_HIBERNATE_TOKEN, SRSS->PWR_HIBERNATE))
     {
         /* Clears PWR_HIBERNATE token */
         SRSS->PWR_HIBERNATE &= ~SRSS_PWR_HIBERNATE_TOKEN_Msk;
@@ -367,17 +344,17 @@ void Cy_SysLib_ClearResetReason(void)
 *******************************************************************************/
 void Cy_SysLib_SoftResetCM4(void)
 {
-    volatile uint32_t msg = CY_IPC_DATA_FOR_CM4_SOFT_RESET;
+    static uint32_t msg = CY_IPC_DATA_FOR_CM4_SOFT_RESET;
 
     /* Tries to acquire the IPC structure and pass the arguments to SROM API.
     *  SROM API parameters:
     *   ipcPtr: IPC_STRUCT0 - IPC Structure 0 reserved for M0+ Secure Access.
-    *   notifyEvent_Intr: 1u - IPC Interrupt Structure 1 is used for Releasing IPC 0 (M0+ NMI Handler).
+    *   notifyEvent_Intr: 1U - IPC Interrupt Structure 1 is used for Releasing IPC 0 (M0+ NMI Handler).
     *   msgPtr: &msg - The address of SRAM with the API's parameters.
     */
-    if(CY_IPC_DRV_SUCCESS != Cy_IPC_Drv_SendMsgPtr(IPC_STRUCT0, 1u, (void *) &msg))
+    if(CY_IPC_DRV_SUCCESS != Cy_IPC_Drv_SendMsgPtr(IPC_STRUCT0, 1U, (void *) &msg))
     {
-        CY_ASSERT(0u != 0u);
+        CY_ASSERT(0U != 0U);
     }
 
     while(Cy_IPC_Drv_IsLockAcquired(IPC_STRUCT0))
@@ -410,19 +387,21 @@ void Cy_SysLib_SoftResetCM4(void)
 *******************************************************************************/
 uint64_t Cy_SysLib_GetUniqueId(void)
 {
-    uint64_t uniqueId;
+    uint32_t uniqueIdHi;
+    uint32_t uniqueIdLo;
 
-    uniqueId = ((uint64_t)SFLASH->DIE_YEAR         << CY_UNIQUE_ID_DIE_YEAR_Pos)  |
-               (((uint64_t)SFLASH->DIE_MINOR & 1u) << CY_UNIQUE_ID_DIE_MINOR_Pos) |
-               ((uint64_t)SFLASH->DIE_SORT         << CY_UNIQUE_ID_DIE_SORT_Pos)  |
-               ((uint64_t)SFLASH->DIE_Y            << CY_UNIQUE_ID_DIE_Y_Pos)     |
-               ((uint64_t)SFLASH->DIE_X            << CY_UNIQUE_ID_DIE_X_Pos)     |
-               ((uint64_t)SFLASH->DIE_WAFER        << CY_UNIQUE_ID_DIE_WAFER_Pos) |
-               ((uint64_t)SFLASH->DIE_LOT[2u]      << CY_UNIQUE_ID_DIE_LOT_2_Pos) |
-               ((uint64_t)SFLASH->DIE_LOT[1u]      << CY_UNIQUE_ID_DIE_LOT_1_Pos) |
-               ((uint64_t)SFLASH->DIE_LOT[0u]      << CY_UNIQUE_ID_DIE_LOT_0_Pos);
+    uniqueIdHi = ((uint32_t) SFLASH->DIE_YEAR        << (CY_UNIQUE_ID_DIE_YEAR_Pos  - CY_UNIQUE_ID_DIE_X_Pos)) |
+                 (((uint32_t)SFLASH->DIE_MINOR & 1U) << (CY_UNIQUE_ID_DIE_MINOR_Pos - CY_UNIQUE_ID_DIE_X_Pos)) |
+                 ((uint32_t) SFLASH->DIE_SORT        << (CY_UNIQUE_ID_DIE_SORT_Pos  - CY_UNIQUE_ID_DIE_X_Pos)) |
+                 ((uint32_t) SFLASH->DIE_Y           << (CY_UNIQUE_ID_DIE_Y_Pos     - CY_UNIQUE_ID_DIE_X_Pos)) |
+                 ((uint32_t) SFLASH->DIE_X);
 
-    return (uniqueId);
+    uniqueIdLo = ((uint32_t) SFLASH->DIE_WAFER       << CY_UNIQUE_ID_DIE_WAFER_Pos) |
+                 ((uint32_t) SFLASH->DIE_LOT[2U]     << CY_UNIQUE_ID_DIE_LOT_2_Pos) |
+                 ((uint32_t) SFLASH->DIE_LOT[1U]     << CY_UNIQUE_ID_DIE_LOT_1_Pos) |
+                 ((uint32_t) SFLASH->DIE_LOT[0U]);
+
+    return (((uint64_t) uniqueIdHi << CY_UNIQUE_ID_DIE_X_Pos) | uniqueIdLo);
 }
 
 
@@ -439,11 +418,7 @@ uint64_t Cy_SysLib_GetUniqueId(void)
 *                       address in the fault stack frame to be stored.
 * \note This function stores the fault stack frame only for the first occurred
 *       fault.
-* \note This function sets two flags into the fault structure: one flag checks
-*       which core caused the fault, another checks the type of the fault for
-*       the CM4 core. The flags should be cleared after analysis of the stored
-*       register values, to have a possibility to distinguish the next fault.
-* \note The PDL doesn't provide an API to analyse the stored register
+* \note The PDL doesn't provide an API to analyze the stored register
 *       values. The user has to add additional functions for the analysis,
 *       if necessary.
 * \note The CY_ARM_FAULT_DEBUG macro defines if the Fault Handler is enabled.
@@ -519,7 +494,7 @@ void Cy_SysLib_FaultHandler(uint32_t const *faultStackAddr)
 * function.
 *
 * \note This function has the WEAK option, so the user can redefine the function
-*       behaviour for a custom processing.
+*       behavior for a custom processing.
 *       For example, the function redefinition could be constructed from fault
 *       stack processing and NVIC_SystemReset() function call.
 *
@@ -571,159 +546,44 @@ __WEAK void Cy_SysLib_ProcessingFault(void)
 *******************************************************************************/
 void Cy_SysLib_SetWaitStates(bool ulpMode, uint32_t clkHfMHz)
 {
+    uint32_t waitStates;
+    uint32_t freqMax;
+
+    freqMax = ulpMode ? CY_SYSLIB_ULP_SLOW_WS_0_FREQ_MAX : CY_SYSLIB_LP_SLOW_WS_0_FREQ_MAX;
+    waitStates = (clkHfMHz <= freqMax) ? 0UL : 1UL;
+
+    /* ROM */
+    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_SLOW_WS, waitStates);
+    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_FAST_WS, 0UL);
+
+    /* SRAM */
+    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_SLOW_WS, waitStates);
+    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_FAST_WS, 0UL);
+    #if defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL)
+        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_SLOW_WS, waitStates);
+        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_FAST_WS, 0UL);
+    #endif /* defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL) */
+    #if defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL)
+        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_SLOW_WS, waitStates);
+        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_FAST_WS, 0UL);
+    #endif /* defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL) */
+
+    /* Flash */
     if (ulpMode)
     {
-        Cy_SysLib_SetWaitStates_ULP(clkHfMHz);
+        waitStates =  (clkHfMHz <= CY_SYSLIB_FLASH_ULP_WS_0_FREQ_MAX) ? 0UL :
+                     ((clkHfMHz <= CY_SYSLIB_FLASH_ULP_WS_1_FREQ_MAX) ? 1UL : 2UL);
     }
     else
     {
-        Cy_SysLib_SetWaitStates_LP(clkHfMHz);
-    }
-}
-
-
-/*******************************************************************************
-* Function Name: Cy_SysLib_SetWaitStates_LP
-****************************************************************************//**
-*
-* Sets the ROM, SRAM, and Flash Wait states for the low power mode.
-* This function is called by \ref Cy_SysLib_SetWaitStates().
-*
-* \param clkHfMHz  The HFClk0 clock frequency in MHz. Specifying a frequency
-*                  above the supported maximum will set the Wait states as for
-*                  the maximum frequency.
-*
-*******************************************************************************/
-static void Cy_SysLib_SetWaitStates_LP(uint32_t clkHfMHz)
-{
-    uint32_t waitStates;
-
-    /* ROM */
-    if (clkHfMHz < CY_SYSLIB_ROM_LP_SLOW_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else
-    {
-        waitStates = 1UL;
-    }
-    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_SLOW_WS, waitStates);
-
-    waitStates = 0UL;
-    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_FAST_WS, waitStates);
-
-    /* SRAM */
-    if (clkHfMHz < CY_SYSLIB_RAM_LP_SLOW_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else
-    {
-        waitStates = 1UL;
-    }
-    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_SLOW_WS, waitStates);
-    #if defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL)
-        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL) */
-    #if defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL)
-        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL) */
-
-    waitStates = 0UL;
-    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_FAST_WS, waitStates);
-    #if defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL)
-        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL) */
-    #if defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL)
-        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL) */
-
-    /* Flash */
-    if (clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else if (clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_1_FREQ_MAX)
-    {
-        waitStates = 1UL;
-    } else if (clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_2_FREQ_MAX)
-    {
-        waitStates = 2UL;
-    } else if (clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_3_FREQ_MAX)
-    {
-        waitStates = 3UL;
-    } else
-    {
-        waitStates = 4UL;
+        waitStates =  (clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_0_FREQ_MAX) ? 0UL :
+                     ((clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_1_FREQ_MAX) ? 1UL :
+                     ((clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_2_FREQ_MAX) ? 2UL :
+                     ((clkHfMHz <= CY_SYSLIB_FLASH_LP_WS_3_FREQ_MAX) ? 3UL : 4UL)));
     }
 
     FLASHC->FLASH_CTL = _CLR_SET_FLD32U(FLASHC->FLASH_CTL, FLASHC_FLASH_CTL_MAIN_WS, waitStates);
 }
 
-
-/*******************************************************************************
-* Function Name: Cy_SysLib_SetWaitStates_ULP
-****************************************************************************//**
-*
-* Sets the ROM, SRAM, and Flash Wait states for the ultra-low power mode.
-* This function is called by \ref Cy_SysLib_SetWaitStates().
-*
-* \param clkHfMHz  The HFClk0 clock frequency in MHz. Specifying a frequency
-*                  above the supported maximum will set the Wait states as for
-*                  the maximum frequency.
-*
-*******************************************************************************/
-static void Cy_SysLib_SetWaitStates_ULP(uint32_t clkHfMHz)
-{
-    uint32_t waitStates;
-
-    /* ROM */
-    if (clkHfMHz < CY_SYSLIB_ROM_ULP_SLOW_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else
-    {
-        waitStates = 1UL;
-    }
-    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_SLOW_WS, waitStates);
-
-    waitStates = 0UL;
-    CPUSS->ROM_CTL = _CLR_SET_FLD32U(CPUSS->ROM_CTL, CPUSS_ROM_CTL_FAST_WS, waitStates);
-
-    /* SRAM */
-    if (clkHfMHz < CY_SYSLIB_RAM_ULP_SLOW_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else
-    {
-        waitStates = 1UL;
-    }
-    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_SLOW_WS, waitStates);
-    #if defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL)
-        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL) */
-    #if defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL)
-        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL) */
-
-    waitStates = 0UL;
-    CPUSS->RAM0_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM0_CTL0, CPUSS_RAM0_CTL0_FAST_WS, waitStates);
-    #if defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL)
-        CPUSS->RAM1_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM1_CTL0, CPUSS_RAM1_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC1_PRESENT) && (RAMC1_PRESENT == 1UL) */
-    #if defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL)
-        CPUSS->RAM2_CTL0 = _CLR_SET_FLD32U(CPUSS->RAM2_CTL0, CPUSS_RAM2_CTL0_SLOW_WS, waitStates);
-    #endif /* defined (RAMC2_PRESENT) && (RAMC2_PRESENT == 1UL) */
-
-    /* Flash */
-    if (clkHfMHz <= CY_SYSLIB_FLASH_ULP_WS_0_FREQ_MAX)
-    {
-        waitStates = 0UL;
-    } else if (clkHfMHz <= CY_SYSLIB_FLASH_ULP_WS_1_FREQ_MAX)
-    {
-        waitStates = 1UL;
-    } else
-    {
-        waitStates = 2UL;
-    }
-    FLASHC->FLASH_CTL = _CLR_SET_FLD32U(FLASHC->FLASH_CTL, FLASHC_FLASH_CTL_MAIN_WS, waitStates);
-}
 
 /* [] END OF FILE */

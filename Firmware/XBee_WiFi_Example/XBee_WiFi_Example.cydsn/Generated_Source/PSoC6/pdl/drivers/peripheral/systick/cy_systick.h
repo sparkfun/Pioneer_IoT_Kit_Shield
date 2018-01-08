@@ -54,10 +54,12 @@
 *       <th>Description of Deviation(s)</th>
 *   </tr>
 *   <tr>
-*       <td>8.8</td>
+*       <td>8.12</td>
 *       <td>Required</td>
-*       <td>An external object or function shall be declared in one and only one file.</td>
-*       <td>The variable is not used within project, so is defined without previous declaration.</td>
+*       <td>When an array is declared with external linkage, its size shall be
+*           stated explicitly or defined implicitly by initialization.</td>
+*       <td>The warning is related to the __ramVectors symbol defined in the assembly startup code.
+*           It's size is device-specific and unknown to the SysTick driver.</td>
 *   </tr>
 * </table>
 *
@@ -66,14 +68,14 @@
 * <table class="doxtable">
 * <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 * <tr>
-* <td>1.0</td>
-* <td>Initial version</td>
-* <td></td>
-* </tr>
-* <tr>
 * <td>1.0.1</td>
 * <td>Fixed a warning issued when the compilation of C++ source code was
 *     enabled.</td> 
+* <td></td>
+* </tr>
+* <tr>
+* <td>1.0</td>
+* <td>Initial version</td>
 * <td></td>
 * </tr>
 * </table>

@@ -3,7 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the GAP API of the BLE Component.
+*  This file contains the source code for the GAP API of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -53,12 +53,25 @@ uint8_t cy_ble_scanIndex;
 
 #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
 
-/* This global variable is initialized after connection with peer device,
+/**
+ * \addtogroup group_ble_common_api_global_variables
+ * @{
+ */    
+/** 
+ * This global variable is initialized after connection with peer device,
  * after CY_BLE_EVT_GATT_CONNECT_IND event, and could be used by application code
  * to send data to peer device.
  */
 cy_stc_ble_conn_handle_t cy_ble_connHandle[CY_BLE_CONN_COUNT];
+/** @} group_ble_common_api_global_variables */
+
 cy_en_ble_conn_state_t cy_ble_connState[CY_BLE_CONN_COUNT];
+
+volatile uint8_t cy_ble_devConnRole[CY_BLE_CONN_COUNT] = {0u}; /* Store information that device connected as role:
+                                                                * CY_BLE_GAP_LL_ROLE_SLAVE or CY_BLE_GAP_LL_ROLE_MASTER 
+                                                                */
+
+volatile bool cy_ble_pairStatus[CY_BLE_CONN_COUNT] = {false};  /* Store information is device paired */
 
 #if (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES)
 uint8_t cy_ble_peerBonding[CY_BLE_CONN_COUNT];
@@ -83,6 +96,7 @@ cy_stc_ble_timer_info_t cy_ble_connectingTimeout;
 #endif /* CY_BLE_GAP_ROLE_CENTRAL */
 
 cy_stc_ble_gap_bd_addr_t * cy_ble_sflashDeviceAddress = CY_BLE_SFLASH_DEVICE_ADDRESS_PTR;
+
 
 
 /******************************************************************************
@@ -262,44 +276,56 @@ void Cy_BLE_ServiceInit(void)
     #endif /* CY_BLE_WSS */
 }
 
-
 /******************************************************************************
 * Function Name: Cy_BLE_StoreAppData
 ***************************************************************************//**
 *
-*  This function instructs the Stack to backup application specific data into
-*  flash. This API must be called by application to backup application specific
-*  data.
+*  This function is used to back up application-specific data into the flash.
 *
-*  \param param: parameter of type 'cy_stc_ble_app_flash_param_t
-*   * param->srcBuff: Source buffer
-*   * param->destAddr: Destination address
-*   * param->buffLen: Length of srcData
-*   * param->writeMode: blocked or non-blocked write mode
+*  This function works in two Write modes: blocking or non-blocking:
+*  * Blocking (#CY_BLE_STORE_DATA_MODE_BLOCKING) - The function writes 
+*    all data from srcBuff and returns #CY_BLE_SUCCESS when finishes.
+*  <br> 
+*  * Non-blocking (#CY_BLE_STORE_DATA_MODE_NON_BLOCKING) - The function initiate 
+*    Write data and returns #CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS when the Write
+*    is in progress, or #CY_BLE_SUCCESS when finishes. In order to have a complete
+*    data written, the application needs to continue calling this function with 
+*    the same input parameter (param), until this function returns CY_BLE_SUCCESS.
+*    The application must not change input parameter's structure and content until
+*    this function returns CY_BLE_SUCCESS.
 *
-*  This function works in two write modes: blocked or non-blocked :
-*    CY_BLE_STORE_DATA_MODE_BLOCKING (0x00) - the function writes all data from
-*       srcBuff and returns CY_BLE_SUCCESS when finish. After writing one rows, 
-*       the function calls Cy_BLE_ProcessEvents that allows stack to process 
-*       pending events.
-*    CY_BLE_STORE_DATA_MODE_NON_BLOCKING (0x01) - the function writes one row 
-*       per call and returns CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS when write in 
-*       progresing or CY_BLE_SUCCESS, when finish.  Afret writing one rows, the
-*       function calls Cy_BLE_ProcessEvents that allows stack to process pending
-*       events.
-*       Application should keep calling this function till it returns 
-*       CY_BLE_SUCCESS. 
+*  \param param: The parameter of type \ref cy_stc_ble_app_flash_param_t.
+*   * param->srcBuff:   The source buffer.
+*   * param->destAddr:  The destination address. The destination buffer size should 
+*                       be equal or bigger than source buffer.
+*   * param->buffLen:   The length of srcData (in bytes).
+*   * param->writeMode: Blocking or non-blocking Write mode.
+*
+*  param->destAddr - An array address to be defined in the 
+*  application and aligned to the size of the device's flash row. 
+*
+*  An example of a declaration of such an array (100 bytes): 
+*   - CY_ALIGN(CY_FLASH_SIZEOF_ROW) const uint8_t appBuff[100u] = {0u}; <br>
+*  <br>
+*  CY_ALIGN() - Aligns the array to the size of the device`s flash row. 
+*  Even if the length of srcData is not multiple of the flash row size, 
+*  the Cy_BLE_StoreAppData() forms a whole rows, and programs them in sequence
+*
+*  The approximate time to write one row - 16ms.
+*
+*  The following code snippet shows the usage of Cy_BLE_StoreAppData()
+* \snippet ble_sut_01_all_api.cydsn/snippets.c BLE Common API: Cy_BLE_StoreAppData()
 *
 * \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+* \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. Following are the possible error codes.
 *
-*  Errors codes                              | Description
+*   Error codes                              | Description
 *   ------------                             | -----------
-*   CY_BLE_SUCCESS                           | On successful operation
-*   CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS      | Write operation in progress
-*   CY_BLE_ERROR_INVALID_PARAMETER           | Invalid input parameter
-*   CY_BLE_ERROR_FLASH_WRITE                 | Error in flash Write
+*   CY_BLE_SUCCESS                           | On successful operation.
+*   CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS      | Write operation is in progress.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | An invalid input parameter.
+*   CY_BLE_ERROR_FLASH_WRITE                 | An error in the flash Write.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_StoreAppData(const cy_stc_ble_app_flash_param_t *param)
@@ -347,24 +373,35 @@ cy_en_ble_api_result_t Cy_BLE_StoreAppData(const cy_stc_ble_app_flash_param_t *p
         blockSize = (blockSize > tLength )? tLength : blockSize;
 
         /* Write 512 byte block */
-        storeState = Cy_BLE_HAL_NvramWrite(tSrcPtr, (uint8_t *)(tOffset + CY_FLASH_BASE), blockSize);
+        storeState = Cy_BLE_HAL_NvramNonBlockingRowWrite(tSrcPtr, (uint8_t *)(tOffset + CY_FLASH_BASE), blockSize);
 
-        tSrcPtr += blockSize;
-        tOffset += blockSize;
-        tLength -= blockSize;
+        
+        /* For CY_BLE_STORE_DATA_MODE_BLOCKING mode wait Write complete  */
+        if(param->writeMode == CY_BLE_STORE_DATA_MODE_BLOCKING)
+        {
+            while(storeState == CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS)
+            {
+                storeState = Cy_BLE_HAL_NvramNonBlockingRowWrite(tSrcPtr, (uint8_t *)(tOffset + CY_FLASH_BASE), blockSize); 
+                
+                /* Cy_BLE_ProcessEvents() allows BLE Stack to process pending events */
+                Cy_SysLib_Delay(1);
+                Cy_BLE_ProcessEvents();
+            }
+        }
         
         /* For CY_BLE_STORE_DATA_MODE_NON_BLOCKING mode write one row per call */
         if(param->writeMode == CY_BLE_STORE_DATA_MODE_NON_BLOCKING)
         {
-            if (storeState == CY_BLE_SUCCESS)
-            {
-                storeState = CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS;
-            } 
             exitFlag = true;
         }
+
+        tSrcPtr += blockSize;
+        tOffset += blockSize;
         
-        /* Cy_BLE_ProcessEvents() allows BLE stack to process pending events */
-        Cy_BLE_ProcessEvents();
+        if(storeState == CY_BLE_SUCCESS)
+        {
+            tLength -= blockSize;
+        }
     }
     
     return(storeState);
@@ -379,16 +416,17 @@ cy_en_ble_api_result_t Cy_BLE_StoreAppData(const cy_stc_ble_app_flash_param_t *p
 ***************************************************************************//**
 *
 *  This function writes the new bonding data from RAM to the dedicated Flash
-*  location as defined by the component. It performs data comparing between RAM
+*  location as defined by the BLE Middleware. It performs data comparing between RAM
 *  and Flash before writing to Flash. If there is no change between RAM and Flash
 *  data, then no write is performed. It writes only one flash row in one call.
-*  Application should keep calling this function till it returns CY_BLE_SUCCESS.
+*  Application should keep calling this function till it returns #CY_BLE_SUCCESS.
 *  This function is available only when Bonding requirement is selected in
 *  Security settings.
 *
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+* \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  failed. Following are the possible error codes.
 *
 *   Error Codes                           | Description
 *   ----------------------------------    | ------------------------------------
@@ -398,8 +436,8 @@ cy_en_ble_api_result_t Cy_BLE_StoreAppData(const cy_stc_ble_app_flash_param_t *p
 *   CY_BLE_ERROR_FLASH_WRITE              | Error in flash Write
 *
 *  \globalvars
-*   The cy_ble_pendingFlashWrite variable is used to detect status
-*   of pending write to flash operation for stack data and CCCD.
+*   The \ref cy_ble_pendingFlashWrite variable is used to detect status
+*   of pending write to flash operation for BLE Stack data and CCCD.
 *   This function automatically clears pending bits after write operation
 *   complete.
 *
@@ -408,7 +446,7 @@ cy_en_ble_api_result_t Cy_BLE_StoreBondingData(void)
 {
     cy_en_ble_api_result_t apiResult = CY_BLE_SUCCESS;
 
-    /* Store Stack data */
+    /* Store BLE Stack data */
     if((cy_ble_pendingFlashWrite & CY_BLE_PENDING_STACK_FLASH_WRITE_BIT) != 0u)
     {
         cy_stc_ble_stack_flash_param_t stackFlashParam =
@@ -522,21 +560,18 @@ cy_en_ble_api_result_t Cy_BLE_StoreBondingData(void)
 * Function Name: Cy_BLE_GAP_RemoveBondedDevice
 ***************************************************************************//**
 *
-*  This function marks the device untrusted. It removes the bonding information
-*  of the device including CCCD values. This function removes device from the
-*  white list also when auto-populate white list with bonded devices option is
-*  enabled.
+*  This function removes the bonding information of the device including CCCD
+*  values. 
 *
 *  This function is available only when Bonding requirement is selected in
 *  Security settings.
 *
-*  \param bdAddr: Pointer to peer device address, of type cy_stc_ble_gap_bd_addr_t.
-*                 If device address is set to 0, then all devices shall be
-*                 removed from trusted list and white list.
+*  \param bdAddr: Pointer to peer device address,
+*                   of type \ref cy_stc_ble_gap_bd_addr_t.
 *
-* \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
-*  failed. The following are possible error codes.
+*  \return
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function 
+*   succeeded or failed. The following are possible error codes.
 *
 *   Error Codes                       | Description
 *   --------------------------------- | ------------------------------------
@@ -546,8 +581,8 @@ cy_en_ble_api_result_t Cy_BLE_StoreBondingData(void)
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY     | Device does not exist in the bond list.
 *
 *  \globalvars
-*   The bdHandle is set in cy_ble_pendingFlashWrite variable to indicate that
-*   data should be stored to flash by Cy_BLE_StoreBondingData afterwards.
+*   The bdHandle is set in \ref cy_ble_pendingFlashWrite variable to indicate that
+*   data should be stored to flash by Cy_BLE_StoreBondingData() afterwards.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAP_RemoveBondedDevice(cy_stc_ble_gap_bd_addr_t* bdAddr)
@@ -555,7 +590,11 @@ cy_en_ble_api_result_t Cy_BLE_GAP_RemoveBondedDevice(cy_stc_ble_gap_bd_addr_t* b
     cy_en_ble_api_result_t apiResult = CY_BLE_SUCCESS;
     cy_stc_ble_gap_peer_addr_info_t peerAddrInfoParam;
 
-    if(cy_ble_pendingFlashWrite == 0u)
+    if(bdAddr == NULL)
+    {
+        apiResult = CY_BLE_ERROR_INVALID_PARAMETER;
+    }
+    else if(cy_ble_pendingFlashWrite == 0u)
     {
     #if (CY_BLE_GATT_DB_CCCD_COUNT != 0u)
         /* Request to clear CCCD values which will be done by Cy_BLE_StoreBondingData() */
@@ -603,32 +642,32 @@ cy_en_ble_api_result_t Cy_BLE_GAP_RemoveBondedDevice(cy_stc_ble_gap_bd_addr_t* b
  ***************************************************************************//**
  *
  *  This function is used to start the advertisement using the advertisement data
- *  set in the component customizer's GUI indicated by the advertisingParamIndex.
+ *  set in the BLE Component customizer's GUI indicated by the advertisingParamIndex.
  *  After invoking this function, the device will be available for connection by
  *  the devices configured for GAP central role. It is only included if the
  *  device is configured for GAP Peripheral or GAP Peripheral + Central role.
  *
  *  On start of advertisement, GAP Peripheral receives the
- *  CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP event. The following events are
+ *  #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP event. The following events are
  *  possible on invoking this function:
  *
- *  * CY_BLE_EVT_GAP_DEVICE_CONNECTED - If the device connects to a GAP Central and
- *     Link Layer Privacy is disabled in component customizer.
- *  * CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE - If the device connects to a GAP Central and
- *     Link Layer Privacy is enabled in component customizer.
- *  * CY_BLE_EVT_TIMEOUT: If no device in GAP Central mode connects to this
- *                       device within the specified timeout limit. Stack
+ *  * #CY_BLE_EVT_GAP_DEVICE_CONNECTED - If the device connects to a GAP Central and
+ *     Link Layer Privacy is disabled.
+ *  * #CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE - If the device connects to a GAP Central and
+ *     Link Layer Privacy is enabled.
+ *  * #CY_BLE_EVT_TIMEOUT: If no device in GAP Central mode connects to this
+ *                       device within the specified timeout limit. BLE Stack
  *                       automatically initiate stop advertising when Slow
  *                       advertising was initiated, or starts Slow advertising
  *                       after Fast advertising timeout occur.
- *  * CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP: If device started or stopped
- *                       advertising. Use Cy_BLE_GetAdvertisementState()to
+ *  * #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP: If device started or stopped
+ *                       advertising. Use Cy_BLE_GetAdvertisementState() to
  *                       determine the state. Sequential advertising could be
- *                       started when CY_BLE_ADV_STATE_STOPPED state is returned.
+ *                       started when #CY_BLE_ADV_STATE_STOPPED state is returned.
  *
  *  \param advertisingIntervalType: Fast or slow advertising interval with timings
- *                                 entered in Advertising settings section of the
- *                                 customizer.
+ *                                  entered in Advertising settings section of the
+ *                                  customizer.
  *  * CY_BLE_ADVERTISING_FAST   0x00u
  *  * CY_BLE_ADVERTISING_SLOW   0x01u
  *  * CY_BLE_ADVERTISING_CUSTOM 0x02u
@@ -638,8 +677,8 @@ cy_en_ble_api_result_t Cy_BLE_GAP_RemoveBondedDevice(cy_stc_ble_gap_bd_addr_t* b
  *  * CY_BLE_PERIPHERAL_CONFIGURATION_0_INDEX     0x00
  *  * CY_BLE_BROADCASTER_CONFIGURATION_0_INDEX    0x01
  *
- * \return
- *  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+ *  \return
+ *  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
  *  failed. The following are possible error codes.
  *
  *   Error Codes                       |  Description
@@ -717,17 +756,17 @@ cy_en_ble_api_result_t Cy_BLE_GAPP_StartAdvertisement(uint8_t advertisingInterva
 *
 *   This function can be used to exit from discovery mode. After the execution
 *   of this function, there will no longer be any advertisements. On stopping
-*   advertising, GAP Peripheral receives CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
+*   advertising, GAP Peripheral receives #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
 *   event. It is expected that the application layer tracks the function call
 *   performed before occurrence of this event as this event can occur on making
-*   a call to Cy_BleGappStartAdvertisement(), Cy_BLE_GAPP_EnterDiscoveryMode(),
-*   or Cy_BLE_GAPP_StartAdvertisement() functions as well.
+*   a call to Cy_BLE_GAPP_EnterDiscoveryMode()or Cy_BLE_GAPP_StartAdvertisement()
+*   functions as well.
 *
 *   The following event occurs on invoking this function:
-*   * CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
+*   * #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
 *
-* \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \return
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                           | Description
@@ -765,12 +804,12 @@ cy_en_ble_api_result_t Cy_BLE_GAPP_StopAdvertisement(void)
 *  This function is used to set the Bluetooth device address into the
 *  advertisement or scan response data structures.
 *
-*  \param bdAddr: Bluetooth Device address. The variable is of type cy_stc_ble_gap_bd_addr_t.
+*  \param bdAddr: Bluetooth Device address. The variable is of type #cy_stc_ble_gap_bd_addr_t.
 *  \param dest: 0 - selects advertisement structure, not zero value selects scan
 *               response structure.
 *
-* \return
-*  None
+*  \return
+*   None
 *
 *******************************************************************************/
 void Cy_BLE_ChangeAdDeviceAddress(const cy_stc_ble_gap_bd_addr_t* bdAddr,
@@ -855,11 +894,11 @@ void Cy_BLE_ChangeAdDeviceAddress(const cy_stc_ble_gap_bd_addr_t* bdAddr,
 *
 *   This function is used for discovering GAP peripheral devices that are
 *   available for connection. It performs the scanning routine using the
-*   parameters entered in the component's customizer indicated by
+*   parameters entered in the Component's customizer indicated by
 *   scanParamIndex parameter.
 *
-*   As soon as the discovery operation starts, CY_BLE_EVT_GAPC_SCAN_START_STOP
-*   event is generated. The CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT event is
+*   As soon as the discovery operation starts, #CY_BLE_EVT_GAPC_SCAN_START_STOP
+*   event is generated. The #CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT event is
 *   generated when a GAP peripheral device is located. There are three discovery
 *   procedures can be selected in the customizer's GUI:
 *
@@ -867,7 +906,7 @@ void Cy_BLE_ChangeAdDeviceAddress(const cy_stc_ble_gap_bd_addr_t* bdAddr,
 *                            advertisement data from devices irrespective of
 *                            their discoverable mode settings. Advertisement
 *                            data received is provided by the event,
-*                            CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT. This procedure
+*                            #CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT. This procedure
 *                            requires the scanType sub parameter to be passive
 *                            scanning.
 *
@@ -875,23 +914,23 @@ void Cy_BLE_ChangeAdDeviceAddress(const cy_stc_ble_gap_bd_addr_t* bdAddr,
 *                          the advertisement data and scan response data from
 *                          devices in both limited discoverable mode and the
 *                          general discoverable mode. Received data is provided
-*                          by the event, CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT.
+*                          by the event, #CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT.
 *                          This procedure requires the scanType sub-parameter
 *                          to be active scanning.
 *
 *   Every Advertisement / Scan response packet is received in a new event,
-*   CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT.
+*   #CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT.
 *   If 'scanTo' sub-parameter is a non-zero value, then upon commencement of
-*   discovery procedure and elapsed time = 'scanTo', CY_BLE_EVT_TIMEOUT event
-*   is generated with the event parameter indicating CY_BLE_GAP_SCAN_TO.
+*   discovery procedure and elapsed time = 'scanTo', #CY_BLE_EVT_TIMEOUT event
+*   is generated with the event parameter indicating #CY_BLE_GAP_SCAN_TO.
 *   Possible generated events are:
-*   * CY_BLE_EVT_GAPC_SCAN_START_STOP: If a device started or stopped scanning.
+*   * #CY_BLE_EVT_GAPC_SCAN_START_STOP: If a device started or stopped scanning.
 *                                     Use Cy_BLE_GetScanState() to determine the
 *                                     state. Sequential scanning could be
-*                                     started when CY_BLE_ADV_STATE_STOPPED
+*                                     started when #CY_BLE_ADV_STATE_STOPPED
 *                                     state is returned.
-*   * CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT
-*   * CY_BLE_EVT_TIMEOUT (CY_BLE_GAP_SCAN_TO)
+*   * #CY_BLE_EVT_GAPC_SCAN_PROGRESS_RESULT
+*   * #CY_BLE_EVT_TIMEOUT (CY_BLE_GAP_SCAN_TO)
 *
 *   \param scanningIntervalType:  Fast or slow scanning interval with
 *       timings entered in Scan settings section of the customizer.
@@ -899,12 +938,12 @@ void Cy_BLE_ChangeAdDeviceAddress(const cy_stc_ble_gap_bd_addr_t* bdAddr,
 *       * CY_BLE_SCANNING_SLOW   0x01u
 *       * CY_BLE_SCANNING_CUSTOM 0x02u
 *
-*  \param scanParamIndex:  The index of the central and scan configuration
-*                          in customizer.
+*   \param scanParamIndex:  The index of the central and scan configuration
+*                           in customizer.
 *
-* \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
-*  failed. The following are possible error codes.
+*   \return
+*   \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*   failed. The following are possible error codes.
 *
 *   Error Codes                        | Description
 *   ---------------------------------- | -----------------------------------
@@ -969,16 +1008,16 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StartScan(uint8_t scanningIntervalType,
 ***************************************************************************//**
 *
 *   This function used to stop the discovery of devices. On stopping discovery
-*   operation, CY_BLE_EVT_GAPC_SCAN_START_STOP event is generated. Application
+*   operation, #CY_BLE_EVT_GAPC_SCAN_START_STOP event is generated. Application
 *   layer needs to keep track of the function call made before receiving this
 *   event to associate this event with either the start or stop discovery
 *   function.
 *
 *   Possible events generated are:
-*    * CY_BLE_EVT_GAPC_SCAN_START_STOP
+*    * #CY_BLE_EVT_GAPC_SCAN_START_STOP
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                           | Description
@@ -1019,26 +1058,26 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StopScan(void)
 ***************************************************************************//**
 *
 *  This function is used to send a connection request to the remote device with
-*  the connection parameters set in the component customizer. This function needs
-*  to be called only once after the target device is discovered by
+*  the connection parameters set in the BLE Component customizer. This function 
+*  needs to be called only once after the target device is discovered by
 *  Cy_BLE_GAPC_StartScan() and further scanning has stopped. Scanning is
 *  successfully stopped on invoking Cy_BLE_GAPC_StopScan() and then receiving the
-*  event CY_BLE_EVT_GAPC_SCAN_START_STOP with sub-parameter 'success' = 0x01u.
+*  event #CY_BLE_EVT_GAPC_SCAN_START_STOP with sub-parameter 'success' = 0x01u.
 *
 *  On successful connection, the following events are generated at the GAP
 *  Central device (as well as the GAP Peripheral device), in the following order.
-*  * CY_BLE_EVT_GATT_CONNECT_IND
-*  * CY_BLE_EVT_GAP_DEVICE_CONNECTED - If the device connects to a GAP Central and
-*    Link Layer Privacy is disabled in component customizer.
-*  * CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE - If the device connects to a GAP Central and
-*    Link Layer Privacy is enabled in component customizer.
-*  * CY_BLE_EVT_GAP_DEVICE_CONNECTED
+*  * #CY_BLE_EVT_GATT_CONNECT_IND
+*  * #CY_BLE_EVT_GAP_DEVICE_CONNECTED - If the device connects to a GAP Central and
+*    Link Layer Privacy is disabled.
+*  * #CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE - If the device connects to a GAP Central and
+*    Link Layer Privacy is enabled.
+*  * #CY_BLE_EVT_GAP_DEVICE_CONNECTED
 *
 *  A procedure is considered to have timed out if a connection response packet is
 *  not received within time set by cy_ble_connectingTimeout global variable
-*  (30 seconds by default). CY_BLE_EVT_TIMEOUT event with CY_BLE_GENERIC_APP_TO parameter
+*  (30 seconds by default). #CY_BLE_EVT_TIMEOUT event with #CY_BLE_GENERIC_APP_TO parameter
 *  will indicate about connection procedure timeout. Connection will automatically
-*  be canceled and state will be changed to CY_BLE_STATE_ON.
+*  be canceled and state will be changed to #CY_BLE_STATE_ON.
 *
 *  \param address: The device address of the remote device to connect to.
 *  \param centralParamIndex: The index of the central configuration in customizer.
@@ -1047,17 +1086,15 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StopScan(void)
 *  * CY_BLE_CENTRAL_CONFIGURATION_1_INDEX    0x01
 *
 * \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+* \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                       | Description
 *   ------------                      | -----------
 *   CY_BLE_SUCCESS                    | On successful operation.
-*   CY_BLE_ERROR_STACK_INTERNAL       | On error occurred in the BLE stack.
 *   CY_BLE_ERROR_INVALID_PARAMETER    | On passing an invalid parameter.
 *   CY_BLE_ERROR_INVALID_STATE        | On calling this function not in Disconnected state.
-*   CY_BLE_ERROR_INVALID_OPERATION    | The operation is not permitted due to connection
-*                                     | limit exceeded. 
+*   CY_BLE_ERROR_INVALID_OPERATION    | The operation is not permitted due to connection limit exceeded. 
 *
 *   Note: Please refer the description of Cy_BLE_GAPC_InitConnection() for recommended
 *   Connection Interval values.
@@ -1074,7 +1111,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_ConnectDevice(const cy_stc_ble_gap_bd_addr_t 
     cy_en_ble_api_result_t apiResult;
     uint32_t i;
 
-    if(Cy_BLE_GetState() != CY_BLE_STATE_ON)
+    if(Cy_BLE_IsPeerConnected((uint8_t *)address->bdAddr) == true)
     {
         apiResult = CY_BLE_ERROR_INVALID_STATE;
     }
@@ -1155,13 +1192,12 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_ConnectDevice(const cy_stc_ble_gap_bd_addr_t 
 *  Cy_BLE_GAP_Disconnect() should be used.
 *
 * \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+* \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                         | Description
 *   ----------------------------------- | --------------------------------------
 *   CY_BLE_SUCCESS                      | On successful operation.
-*   CY_BLE_ERROR_STACK_INTERNAL         | An error occurred in the BLE stack.
 *   CY_BLE_ERROR_INVALID_STATE          | On calling this function not in Connecting state.
 *
 *******************************************************************************/
@@ -1303,21 +1339,21 @@ static void Cy_BLE_ChangeAdLocalName(const char8 name[],
  * Function Name: Cy_BLE_SetLocalName
  ***************************************************************************//**
  *  This function is used to set the local device name - a Characteristic of the
- *  GAP Service. If the characteristic length entered in the component customizer
+ *  GAP Service. If the characteristic length entered in the Component customizer
  *  is shorter than the string specified by the "name" parameter, the local device
  *  name will be cut to the length specified in the customizer.
  *
  *  \param name: The local device name string. The name string to be written as
  *              the local device name. It represents a UTF-8 encoded User
  *              Friendly Descriptive Name for the device. The length of the local
- *              device string is entered into the component customizer and it can
+ *              device string is entered into the Component customizer and it can
  *              be set to a value from 0 to 248 bytes. If the name contained in
  *              the parameter is shorter than the length from the customizer, the
  *              end of the name is indicated by a NULL octet (0x00).
  *
- * \return
- *  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
- *  failed. The following are possible error codes.
+ *  \return
+ *  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+ *   failed. The following are possible error codes.
  *
  *   Error Codes                         | Description
  *   ------------                        | -----------
@@ -1377,17 +1413,17 @@ cy_en_ble_api_result_t Cy_BLE_SetLocalName(const char8 name[])
 *  This function is used to read the local device name - a Characteristic of
 *  the GAP Service.
 *
-* \param name: The local device name string. Used to read the local name to the
+*  \param name: The local device name string. Used to read the local name to the
 *             given string array. It represents a UTF-8 encoded User Friendly
 *             Descriptive Name for the device. The length of the local device
-*             string is entered into the component customizer and it can be set
+*             string is entered into the Component customizer and it can be set
 *             to a value from 0 to 248 bytes. If the name contained in the
 *             parameter is shorter than the length from the customizer, the end
 *             of the name is indicated by a NULL octet (0x00).
 *
-* \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
-*  failed. The following are possible error codes.
+*  \return
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*   failed. The following are possible error codes.
 *
 *   Error Codes                         | Description
 *   ------------                        | -----------
@@ -1431,6 +1467,150 @@ cy_en_ble_api_result_t Cy_BLE_GetLocalName(char8 name[])
 }
 
 #endif /* (CY_BLE_GATT_ROLE_SERVER) */
+
+#if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+    
+/******************************************************************************
+* Function Name: Cy_BLE_IsPeerConnected
+***************************************************************************//**
+*
+*  This function checks if the peer device represented by the bdAddr parameter
+*  is connected or not.
+*
+*  \param *bdAddr: Pointer to the peer bdAddr array. Peer bdAddr is returned 
+*                  as an event parameter of #CY_BLE_EVT_GAP_DEVICE_CONNECTED 
+*                  or similar events.
+*
+*  \return
+*   * true  - The peer device is connected.
+*   * false - The peer device is not connected.
+*
+*******************************************************************************/
+bool Cy_BLE_IsPeerConnected(uint8_t *bdAddr)
+{ 
+    cy_en_ble_api_result_t apiResult = CY_BLE_SUCCESS;
+    uint32_t i;
+    bool isConnected = false;
+    
+    for(i = 0u; i < CY_BLE_CONN_COUNT; i++)
+    {
+        if(Cy_BLE_GetConnectionState(cy_ble_connHandle[i]) >= CY_BLE_CONN_STATE_CONNECTED)
+        {
+            /* Get BdAddress from bdHandle of the connected device */
+            cy_stc_ble_gap_peer_addr_info_t param = 
+            {
+                .bdHandle = cy_ble_connHandle[i].bdHandle
+            };
+            apiResult = Cy_BLE_GAP_GetPeerBdAddr(&param);
+            
+            if(apiResult == CY_BLE_SUCCESS) 
+            {
+                if(memcmp(&param.bdAddr.bdAddr,(void*) bdAddr, CY_BLE_GAP_BD_ADDR_SIZE) == 0u)
+                {
+                    isConnected = true;
+                    break;
+                } 
+            }
+        }
+    }
+    return (isConnected);
+} 
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_IsDevicePaired
+***************************************************************************//**
+*
+*  The function is used to get the device pairing state.
+*
+*  \param connHandle: Pointer to the connection handle of the peer device.
+*
+*  \return
+*   * true  - The peer device pairing is successful. A successful pairing is 
+*             indicated when #CY_BLE_EVT_GAP_AUTH_COMPLETE event is received.
+*   * false - The peer device is not yet paired.
+*
+******************************************************************************/
+bool Cy_BLE_IsDevicePaired(cy_stc_ble_conn_handle_t *connHandle)
+{
+    bool isPaired = false;
+    
+    if((connHandle != NULL) && (connHandle->attId < CY_BLE_CONN_COUNT))
+    {
+        isPaired = cy_ble_pairStatus[connHandle->attId];   
+    }
+   
+    return(isPaired);
+}
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_GetDeviceRole
+***************************************************************************//**
+*
+*  The function returns the local link layer device role which is connected 
+*  to peer device with connection handle indicated by connHandle parameter.
+*
+*  \param connHandle: Pointer to the connection handle of the peer device.
+*
+*  \return
+*  * CY_BLE_GAP_LL_ROLE_MASTER        (0x00): The local device is connected as a master.
+*  * CY_BLE_GAP_LL_ROLE_SLAVE         (0x01): The local device is connected as a slave.
+*  * CY_BLE_INVALID_CONN_HANDLE_VALUE (0xff): Invalid connection handle.
+*
+******************************************************************************/
+uint8_t Cy_BLE_GetDeviceRole(cy_stc_ble_conn_handle_t *connHandle)
+{
+    uint8_t ret = CY_BLE_INVALID_CONN_HANDLE_VALUE;
+    
+    if((connHandle != NULL) && (connHandle->attId < CY_BLE_CONN_COUNT))
+    {
+        ret = cy_ble_devConnRole[connHandle->attId];   
+    }
+   
+    return(ret);
+}
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_GetRssiPeer
+***************************************************************************//**
+*  
+*  Replacement for Cy_BLE_GetRssi() API where unused parameters are removed. 
+*
+*  This function reads the recorded Received Signal Strength Indicator (RSSI) 
+*  value of the last received packet on the specified connection.
+*  sub-system. 
+*  The RSSI value is informed through #CY_BLE_EVT_GET_RSSI_COMPLETE.
+*     
+*  Deprecate the Cy_BLE_GetRssi() API in BLE_PDL v2_0.
+*
+*  \param bdHandle: The bd handle of the peer device.
+* 
+*  \return
+*  \ref cy_en_ble_api_result_t : The return value indicates whether the 
+*   function succeeded or failed. Following are the possible error codes.
+*
+*   Errors codes                             | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | On successful operation.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY            | If there is no connection for corresponding bdHandle.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | If Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | If BLE Stack resources are unavailable.
+*
+*   Information     | Description
+*   -----------     | -----------
+*   Range           | -85 <= N <= 5
+*   \note: The value is in dBm.
+*     
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_GetRssiPeer(uint8_t  bdHandle)
+{
+    cy_stc_ble_rssi_info_t param = { .bdHandle = bdHandle };    
+    return(Cy_BLE_GetRssi(&param));
+}
+
+#endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
 
 #endif /* defined(CY_BLE_MODE_PROFILE) */
 #ifdef __cplusplus

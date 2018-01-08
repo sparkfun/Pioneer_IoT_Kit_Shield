@@ -1,15 +1,15 @@
 /***************************************************************************//**
 * \file CapSense_Processing.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
-* This file provides the source code for the Data Processing module APIs
-* of the component. The Data Processing module is responsible for the
-* low level raw counts processing provided by the sensing module, maintaining
-* baseline and difference values and performing high-level widget processing
-* like updating button status or calculating slider position.
+*   This file provides the source code for the Data Processing module APIs
+*   of the Component. The Data Processing module is responsible for the
+*   low level raw counts processing provided by the sensing module, maintaining
+*   baseline and difference values and performing high-level widget processing
+*   like updating button status or calculating slider position.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -59,36 +59,30 @@
     #include "CapSense_SelfTest.h"
 #endif
 
+#if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+    #include "CapSense_AdvancedCentroid_LL.h"
+#endif
+
+#if (CapSense_ENABLE == CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+    #include "CapSense_AdaptiveFilter_LL.h"
+#endif
+
+#if(CapSense_ENABLE == CapSense_BALLISTIC_MULTIPLIER_EN)
+    #include "CapSense_Gesture.h"
+#endif
+
 /***********************************************************************************************************************
 * Local definition
 ***********************************************************************************************************************/
 
-/* This definition resolves to TRUE if any of the FW filters for raw counts are enabled */
-#define DP_FW_FILTER_EN                                 \
-            (CapSense_REGULAR_RC_FILTER_EN |  \
-             CapSense_PROX_RC_FILTER_EN)
-
-/* This definition resolves to TRUE if any of the position filters are enabled */
-#define DP_POSITION_FILTER_EN                           \
-            (CapSense_POS_IIR_FILTER_EN      || \
-             CapSense_POS_MEDIAN_FILTER_EN   || \
-             CapSense_POS_AVERAGE_FILTER_EN  || \
-             CapSense_POS_JITTER_FILTER_EN)
-
-/* This definition resolves to TRUE if any of position filters are enabled and component has sliders or CSD touchpads.
- * The processing function of the CSD touchpad reuses the filtering function of the slider widget. */
-#define DP_LINEAR_SLIDER_FILTER_EN                                             \
-           (DP_POSITION_FILTER_EN && (CapSense_TOTAL_LINEAR_SLIDERS || \
-                                      CapSense_CSD_TOUCHPAD_WIDGET_EN))
-
 /* UINT32 constant with all odd bits set. It is used by the processing function of the Proximity widget to
 *  determine type of the status bit: odd bits report proximity status; even bits report touch status;
- */
+*/
 #define UINT32_ODD_BITS_CONST       (0x55555555u)
 
 /* Default value for the Off Debounce counter when the Off Debounce is disabled */
 #define DEFAULT_OFF_DEBOUNCE_VALUE  (1u)
-#define PERCENTAGE_100              (0x00000064Lu)
+#define PERCENTAGE_100              (100u)
 #define TEMP_BUFFER_MSB_SHIFT       (16)
 
 /***********************************************************************************************************************
@@ -103,8 +97,8 @@
 * Static Function Prototypes
 ***********************************************************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 #if (0u != CapSense_TOTAL_LINEAR_SLIDERS)
@@ -113,12 +107,6 @@
                         CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
                         CapSense_RAM_WD_SLIDER_STRUCT *ptrRamWdgt);
 #endif /* #if (0u != CapSense_TOTAL_LINEAR_SLIDERS) */
-
-#if (0u != DP_LINEAR_SLIDER_FILTER_EN)
-    __STATIC_INLINE void DpFilterLinSlider(
-                        uint16 newPos, uint32 staticConfig, uint16 *ptrCurrPos,
-                        CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory);
-#endif /* #if (0u != DP_LINEAR_SLIDER_FILTER_EN) */
 
 #if (0u != CapSense_TOTAL_RADIAL_SLIDERS)
     __STATIC_INLINE void DpUpdateRadSlider(
@@ -144,7 +132,7 @@
 #endif /* #if (0u != CapSense_CSD_MATRIX_WIDGET_EN) */
 
 /** \}
-* \endif */
+* \endcond */
 
 #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN)
 /*******************************************************************************
@@ -154,40 +142,92 @@
 * \brief
 *  Performs initialization of the CSD touchpad widget.
 *   - Resets the position data to NONE
-*   - Initializes the median filter history if the appropriate position filter is enabled.
+*   - Initializes the position filter history if enabled.
 *
 * \details
 *  The position data is always reset to the CapSense_TOUCHPAD_POS_NONE value.
-*  The same happens to the median filter history data if this type of filter is enabled.
+*  The same happens to the position filter history data if enabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void CapSense_DpInitCsdTouchpad(CapSense_FLASH_WD_STRUCT const * ptrFlashWdgt)
 {
+    #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+        uint32 touchIndex;
+    #endif
+
     CapSense_RAM_WD_CSD_TOUCHPAD_STRUCT *ptrWdTouchpad;
 
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+    #if (0u != CapSense_POSITION_FILTER_EN)
         CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory;
-    #endif  /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #endif  /* #if (0u != CapSense_POSITION_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT adpContext;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
 
     ptrWdTouchpad = ptrFlashWdgt->ptr2WdgtRam;
 
     /* Reset position data */
-    ptrWdTouchpad->posX = CapSense_TOUCHPAD_POS_NONE;
-    ptrWdTouchpad->posY = CapSense_TOUCHPAD_POS_NONE;
+    #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+        #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+            if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_5X5_MASK))
+            {
+        #endif
 
-    /* Reset median filter */
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+        ptrWdTouchpad->position.touchNum = 0u;
 
-        if (NULL != ptrHistory)
+        #if (0u != CapSense_POSITION_FILTER_EN)
+            ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+        #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+
+        for (touchIndex = 0u; touchIndex < ADVANCED_CENTROID_MAX_TOUCHES; touchIndex++)
         {
-            ptrHistory->xPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-            ptrHistory->xPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
+            ptrWdTouchpad->position.pos[touchIndex].x = ADVANCED_CENTROID_POSITION_NONE;
+            ptrWdTouchpad->position.pos[touchIndex].y = ADVANCED_CENTROID_POSITION_NONE;
+            ptrWdTouchpad->position.pos[touchIndex].zX = ADVANCED_CENTROID_POSITION_NONE;
+            ptrWdTouchpad->position.pos[touchIndex].zY = ADVANCED_CENTROID_POSITION_NONE;
 
-            ptrHistory->yPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-            ptrHistory->yPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
+            /* Clear position filter history data if available */
+            #if (0u != CapSense_POSITION_FILTER_EN)
+                if (NULL != ptrHistory)
+                {
+                    CapSense_InitPosFiltersDd(&ptrHistory[touchIndex], CapSense_TOUCHPAD_POS_NONE, CapSense_TOUCHPAD_POS_NONE);
+                    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                        AdaptiveFilter_Initialize(&ptrWdTouchpad->aiirConfig, &adpContext);
+                        ptrHistory[touchIndex].xPos.posAIIRCoeff = adpContext.coefficient;
+                        ptrHistory[touchIndex].yPos.posAIIRCoeff = adpContext.coefficient;
+                    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+                }
+            #endif /* (0u != CapSense_POSITION_FILTER_EN) */
         }
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+        #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+            }
+        #endif
+    #endif
+
+    #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+        if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_3X3_MASK))
+        {
+            ptrWdTouchpad->posX = CapSense_TOUCHPAD_POS_NONE;
+            ptrWdTouchpad->posY = CapSense_TOUCHPAD_POS_NONE;
+
+            /* Clear position filter history data if available */
+            #if (0u != CapSense_POSITION_FILTER_EN)
+                ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+                CapSense_InitPosFiltersDd(ptrHistory, CapSense_TOUCHPAD_POS_NONE, CapSense_TOUCHPAD_POS_NONE);
+
+                #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                    if (NULL != ptrHistory)
+                    {
+                        AdaptiveFilter_Initialize(&ptrWdTouchpad->aiirConfig, &adpContext);
+                        ptrHistory->xPos.posAIIRCoeff = adpContext.coefficient;
+                        ptrHistory->yPos.posAIIRCoeff = adpContext.coefficient;
+                    }
+                #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+            #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+        }
+    #endif
 }
 #endif /* #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
@@ -207,7 +247,20 @@ __STATIC_INLINE void CapSense_DpInitCsxTouchpad(CapSense_FLASH_WD_STRUCT const *
 {
     CapSense_RAM_WD_CSX_TOUCHPAD_STRUCT *ptrWdTouchpad;
 
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        uint32 touchIndex;
+        CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory;
+    #endif  /* #if (0u != CapSense_POSITION_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT adpContext;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
     ptrWdTouchpad = ptrFlashWdgt->ptr2WdgtRam;
+
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
     /* Reset position data for finger */
     ptrWdTouchpad->touch[0u].x = CapSense_TOUCHPAD_POS_NONE;
@@ -225,6 +278,22 @@ __STATIC_INLINE void CapSense_DpInitCsxTouchpad(CapSense_FLASH_WD_STRUCT const *
         ptrWdTouchpad->touch[2u].y = CapSense_TOUCHPAD_POS_NONE;
         ptrWdTouchpad->touch[2u].z = CY_LO8(CapSense_TOUCHPAD_POS_NONE);
     #endif /* #if (CapSense_CSX_MAX_FINGERS > 2u) */
+
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        for (touchIndex = 0u; touchIndex < CapSense_CSX_MAX_FINGERS; touchIndex++)
+        {
+            if (NULL != ptrHistory)
+            {
+                /* Clear position filter history data if available */
+                CapSense_InitPosFiltersDd(&ptrHistory[touchIndex], CapSense_TOUCHPAD_POS_NONE, CapSense_TOUCHPAD_POS_NONE);
+                #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                    AdaptiveFilter_Initialize(&ptrWdTouchpad->aiirConfig, &adpContext);
+                    ptrHistory[touchIndex].xPos.posAIIRCoeff = adpContext.coefficient;
+                    ptrHistory[touchIndex].yPos.posAIIRCoeff = adpContext.coefficient;
+                #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+            }
+        }
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 }
 #endif /* #if (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN) */
 
@@ -236,11 +305,11 @@ __STATIC_INLINE void CapSense_DpInitCsxTouchpad(CapSense_FLASH_WD_STRUCT const *
 * \brief
 *  Performs initialization of the Radial and Linear Slider widget.
 *   - Resets the position data to NONE
-*   - Initializes the median filter history to NONE if it is enabled.
+*   - Initializes the position filter history to NONE if enabled.
 *
 * \details
 *  Position data is always reset to the CapSense_SLIDER_POS_NONE value.
-*  The same happens to the median filter history data.
+*  The same happens to the position filter history data if enabled.
 *
 *******************************************************************************/
 __STATIC_INLINE void CapSense_DpInitSlider(CapSense_FLASH_WD_STRUCT const * ptrFlashWdgt)
@@ -248,9 +317,13 @@ __STATIC_INLINE void CapSense_DpInitSlider(CapSense_FLASH_WD_STRUCT const * ptrF
     uint32 idx;
     CapSense_RAM_WD_SLIDER_STRUCT *ptrWdSlider;
 
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+    #if (0u != CapSense_POSITION_FILTER_EN)
         CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory;
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #endif /* #if (0u != CapSense_POSITION_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT context;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
 
     ptrWdSlider = ptrFlashWdgt->ptr2WdgtRam;
 
@@ -259,15 +332,18 @@ __STATIC_INLINE void CapSense_DpInitSlider(CapSense_FLASH_WD_STRUCT const * ptrF
     {
         ptrWdSlider->position[idx] = CapSense_SLIDER_POS_NONE;
 
-        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+        #if (0u != CapSense_POSITION_FILTER_EN)
             ptrHistory = ptrFlashWdgt->ptr2PosHistory;
-
             if (NULL != ptrHistory)
             {
-                ptrHistory[idx].posMedianZ1 = CapSense_SLIDER_POS_NONE;
-                ptrHistory[idx].posMedianZ2 = CapSense_SLIDER_POS_NONE;
+                CapSense_InitPosFiltersSd(&ptrHistory[idx], CapSense_SLIDER_POS_NONE);
+                #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                    AdaptiveFilter_Initialize(&ptrWdSlider->aiirConfig, &context);
+                    ptrHistory->posAIIRCoeff = context.coefficient;
+                #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
             }
-        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+        #endif /* #if (0u != CapSense_POSITION_FILTER_EN) */
     }
 }
 #endif /* #if (0u != CapSense_SLIDER_WIDGET_EN) */
@@ -289,7 +365,7 @@ __STATIC_INLINE void CapSense_DpInitCsdMatrix(CapSense_FLASH_WD_STRUCT const * p
 {
     CapSense_RAM_WD_CSD_MATRIX_STRUCT *ptrRamWdgt;
 
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrRamWdgt = (CapSense_RAM_WD_CSD_MATRIX_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
 
     /* Reset sensor id, row and col registers in data structure */
     ptrRamWdgt->posRow   = CapSense_MATRIX_POS_NONE;
@@ -334,10 +410,10 @@ void CapSense_DpInitialize(void)
         /* Clear widget status */
         CapSense_dsRam.wdgtStatus[wdgtId] = 0u;
 
-        /* Enable all widgets */
+        /* Enable all the widgets */
         CapSense_dsRam.wdgtEnable[wdgtId] = 0xFFFFFFFFLu;
 
-        /* Set all widgets to working state if the Self-Test is not enabled */
+        /* Set all the widgets to working state if the Self-Test is not enabled */
         #if (0u != CapSense_SELF_TEST_EN)
             CapSense_dsRam.wdgtWorking[wdgtId] = 0xFFFFFFFFLu;
         #endif /* #if (0u == CapSense_SELF_TEST_EN) */
@@ -347,7 +423,7 @@ void CapSense_DpInitialize(void)
 
     for (wdgtId = CapSense_TOTAL_WIDGETS; wdgtId-- > 0u; )
     {
-        ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+        ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
         widgetType = (CapSense_WD_TYPE_ENUM)ptrFlashWdgt->wdgtType;
 
         /* Clear all sensor statuses */
@@ -480,18 +556,18 @@ uint32 CapSense_DpProcessCsxWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
     uint32 result = CY_RET_SUCCESS;
     uint32 widgetType;
     uint32 snsCount;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt;
 
-    #if (0u != DP_FW_FILTER_EN)
+    #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
         CapSense_PTR_FILTER_VARIANT fltrHistV;
 
         fltrHistV.ptr = ptrFlashWdgt->ptr2FltrHistory;
-    #endif /* #if (0u != DP_FW_FILTER_EN) */
+    #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
     snsCount = ptrFlashWdgt->totalNumSns;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     widgetType = ptrFlashWdgt->wdgtType;
 
     /* Run deconvolution algorithm for the widgets with multiphase TX support */
@@ -504,14 +580,14 @@ uint32 CapSense_DpProcessCsxWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 
     for (;snsCount-- > 0u;)
     {
-        #if (0u != DP_FW_FILTER_EN)
-            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSns, widgetType);
+        #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
+            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSnsTmp, widgetType);
             #if (CapSense_ALP_FILTER_EN)
-                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSns, widgetType);
+                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSnsTmp, widgetType);
             #endif
-        #endif /* #if (0u != DP_FW_FILTER_EN) */
+        #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
-        result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSns, widgetType);
+        result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSnsTmp, widgetType);
 
         #if (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN)
             if (CY_RET_SUCCESS != result)
@@ -520,13 +596,14 @@ uint32 CapSense_DpProcessCsxWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
             }
         #endif /* (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN) */
 
-        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSns);
-        /* Move pointers to the next sensor and filter history objects */
-        ptrSns++;
+        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSnsTmp);
 
-        #if (0u != DP_FW_FILTER_EN)
+        /* Move pointers to the next sensor and filter history objects */
+        ptrSnsTmp++;
+        
+        #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
             CapSense_INC_REG_FLTR_OBJ(fltrHistV);
-        #endif /* #if (0u != DP_FW_FILTER_EN) */
+        #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
     }
     return result;
 }
@@ -545,7 +622,7 @@ uint32 CapSense_DpProcessCsxWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 *   For the custom order this API can be called multiple times and execute one task at a time.
 *
 * \param ptrFlashWdgt The pointer to the Flash Widget Object.
-* \param ptrSns       The pointer to the specific RAM Sensor Object.
+* \param curSnsPtr    The pointer to the specific RAM Sensor Object.
 * \param fltrHistV    The pointer to the Filter History Object in RAM associated with specific sensor.
 * \param mode         The bit-mask with the data processing tasks to be executed.
 *   The mode parameters can take the following values:
@@ -564,7 +641,7 @@ uint32 CapSense_DpProcessCsxWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 *******************************************************************************/
 uint32 CapSense_DpProcessCsxSensorRawCountsExt(
                 CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
-                CapSense_RAM_SNS_STRUCT *ptrSns,
+                CapSense_RAM_SNS_STRUCT *curSnsPtr,
                 CapSense_PTR_FILTER_VARIANT fltrHistV,
                 uint32 mode)
 {
@@ -573,28 +650,28 @@ uint32 CapSense_DpProcessCsxSensorRawCountsExt(
     CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt;
 
     widgetType = ptrFlashWdgt->wdgtType;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
 
-    #if (0u != DP_FW_FILTER_EN)
+    #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
         if (0u != (mode & CapSense_PROCESS_FILTER))
         {
-            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSns, widgetType);
+            CapSense_FtRunEnabledFiltersInternal(fltrHistV, curSnsPtr, widgetType);
             #if (CapSense_ALP_FILTER_EN)
-                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSns, widgetType);
+                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, curSnsPtr, widgetType);
             #endif
         }
     #else
         (void)fltrHistV; /* This parameter is unused in such configurations */
-    #endif /* #if (0u != DP_FW_FILTER_EN) */
+    #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
     if (0u != (mode & CapSense_PROCESS_BASELINE))
     {
-        result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSns, widgetType);
+        result = CapSense_FtUpdateBaseline(ptrRamWdgt, curSnsPtr, widgetType);
     }
 
     if (0u != (mode & CapSense_PROCESS_DIFFCOUNTS))
     {
-        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSns);
+        CapSense_DpUpdateDifferences(ptrRamWdgt, curSnsPtr);
     }
     return result;
 }
@@ -656,7 +733,7 @@ void CapSense_DpProcessCsxWidgetStatus(uint32 widgetId, CapSense_FLASH_WD_STRUCT
     #endif /* #if (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN) */
 
     default:
-        CY_ASSERT(0u);
+        CY_ASSERT(0 != 0);
         break;
     }
 
@@ -715,7 +792,7 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 
     uint32  widgetType;
     uint32  snsId;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt;
 
     #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
@@ -726,19 +803,18 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
         #endif /* (0 != CapSense_PROXIMITY_WIDGET_EN) */
     #endif /* #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
 
-    #if (0u != DP_FW_FILTER_EN)
+    #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
         CapSense_PTR_FILTER_VARIANT fltrHistV;
 
         /* Determine if widget type is proximity */
-        uint32 isProxWdgt =
-                    (CapSense_GET_WIDGET_TYPE(ptrFlashWdgt) == CapSense_WD_PROXIMITY_E) ? 1u : 0u;
+        uint32 isProxWdgt = (CapSense_GET_WIDGET_TYPE(ptrFlashWdgt) == CapSense_WD_PROXIMITY_E) ? 1u : 0u;
 
         /* Get pointer to the filter history object */
         fltrHistV.ptr = ptrFlashWdgt->ptr2FltrHistory;
-    #endif /* #if (0u != DP_FW_FILTER_EN) */
+    #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     widgetType = ptrFlashWdgt->wdgtType;
 
     #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
@@ -749,16 +825,16 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
     for(snsId = 0u; snsId < ptrFlashWdgt->totalNumSns; snsId++)
     {
         /* Run all enabled filter on specified widget's sensor */
-        #if (0u != DP_FW_FILTER_EN)
-            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSns, widgetType);
+        #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
+            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSnsTmp, widgetType);
             #if (CapSense_ALP_FILTER_EN)
-                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSns, widgetType);
+                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSnsTmp, widgetType);
             #endif
-        #endif /* #if (0u != DP_FW_FILTER_EN) */
+        #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
         /* Run auto-tuning activities */
         #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
-            SmartSense_RunNoiseEnvelope(ptrSns->raw[0u], ptrRamWdgt->sigPFC, ptrNoiseEnvelope);
+            SmartSense_RunNoiseEnvelope(ptrSnsTmp->raw[0u], ptrRamWdgt->sigPFC, ptrNoiseEnvelope);
             CapSense_DpUpdateThresholds(ptrRamWdgt, ptrNoiseEnvelope, snsId);
 
             /* Calculate Proximity Touch Threshold in SmartSense mode based on Finger Threshold and PROX_TOUCH_COEFF */
@@ -780,24 +856,24 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
         #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
 
         #if (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN)
-            bslnTstResult = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSns, widgetType);
+            bslnTstResult = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSnsTmp, widgetType);
             if ((CY_RET_SUCCESS != bslnTstResult) && (CY_RET_SUCCESS == result))
             {
                 result = snsId | CapSense_PROCESS_BASELINE_FAILED;
             }
         #else /* (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN) */
-            result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSns, widgetType);
+            result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSnsTmp, widgetType);
         #endif /* (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN) */
 
-        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSns);
+        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSnsTmp);
 
         /* Move to next sensor object */
-        ptrSns++;
+        ptrSnsTmp++;
 
-        #if (0u != DP_FW_FILTER_EN)
+        #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
             /* Move to the next filter history object */
             CapSense_INC_FLTR_OBJ_VARIANT(isProxWdgt, fltrHistV);
-        #endif /* #if (0u != DP_FW_FILTER_EN) */
+        #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
     }
     return result;
 }
@@ -817,7 +893,7 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 *   widget status.
 *
 * \param ptrFlashWdgt The pointer to the Flash widget structure.
-* \param ptrSns       The pointer to the sensor object in RAM.
+* \param curSnsPtr    The pointer to the sensor object in RAM.
 * \param fltrHistV    The pointer to the Filter History Object in RAM.
 * \param mode         The bit-mask with the data processing tasks to be executed.
 *   The mode parameters can take the following values:
@@ -838,7 +914,7 @@ uint32 CapSense_DpProcessCsdWidgetRawCounts(CapSense_FLASH_WD_STRUCT const *ptrF
 *******************************************************************************/
 uint32 CapSense_DpProcessCsdSensorRawCountsExt(
                 CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
-                CapSense_RAM_SNS_STRUCT *ptrSns,
+                CapSense_RAM_SNS_STRUCT *curSnsPtr,
                 CapSense_PTR_FILTER_VARIANT fltrHistV,
                  uint32 mode)
 {
@@ -857,24 +933,24 @@ uint32 CapSense_DpProcessCsdSensorRawCountsExt(
     #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
 
     widgetType = ptrFlashWdgt->wdgtType;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
 
-    #if (0u != DP_FW_FILTER_EN)
+    #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
         if (0u != (mode & CapSense_PROCESS_FILTER))
         {
-            CapSense_FtRunEnabledFiltersInternal(fltrHistV, ptrSns, widgetType);
+            CapSense_FtRunEnabledFiltersInternal(fltrHistV, curSnsPtr, widgetType);
             #if (CapSense_ALP_FILTER_EN)
-                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, ptrSns, widgetType);
+                CapSense_ConfigRunALPInternal(fltrHistV, ptrRamWdgt, curSnsPtr, widgetType);
             #endif
         }
     #else
         (void)fltrHistV; /* This parameter is unused in such configurations */
-    #endif /* #if (0u != DP_FW_FILTER_EN) */
+    #endif /* #if (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
     #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
         if (0u != (mode & CapSense_PROCESS_CALC_NOISE))
         {
-            SmartSense_RunNoiseEnvelope(ptrSns->raw[0u], ptrRamWdgt->sigPFC, ptrNoiseEnvelope);
+            SmartSense_RunNoiseEnvelope(curSnsPtr->raw[0u], ptrRamWdgt->sigPFC, ptrNoiseEnvelope);
         }
 
         if (0u != (mode & CapSense_PROCESS_THRESHOLDS))
@@ -899,12 +975,12 @@ uint32 CapSense_DpProcessCsdSensorRawCountsExt(
 
     if (0u != (mode & CapSense_PROCESS_BASELINE))
     {
-        result = CapSense_FtUpdateBaseline(ptrRamWdgt, ptrSns, widgetType);
+        result = CapSense_FtUpdateBaseline(ptrRamWdgt, curSnsPtr, widgetType);
     }
 
     if (0u != (mode & CapSense_PROCESS_DIFFCOUNTS))
     {
-        CapSense_DpUpdateDifferences(ptrRamWdgt, ptrSns);
+        CapSense_DpUpdateDifferences(ptrRamWdgt, curSnsPtr);
     }
     return result;
 }
@@ -970,6 +1046,9 @@ void CapSense_DpProcessCsdWidgetStatus(uint32 widgetId, CapSense_FLASH_WD_STRUCT
     #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN)
         case CapSense_WD_TOUCHPAD_E:
             sensorStatus = CapSense_DpProcessCsdTouchpad(sensorStatus, ptrFlashWdgt);
+            #if (0u != CapSense_BALLISTIC_MULTIPLIER_EN)
+                CapSense_RunBallisticMultiplier(widgetId);
+            #endif /* (0u != CapSense_BALLISTIC_MULTIPLIER_EN) */
             break;
     #endif /* #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
@@ -980,7 +1059,7 @@ void CapSense_DpProcessCsdWidgetStatus(uint32 widgetId, CapSense_FLASH_WD_STRUCT
     #endif /* #if (0u != CapSense_PROXIMITY_WIDGET_EN) */
 
     default:
-        CY_ASSERT(0u);
+        CY_ASSERT(0 != 0);
         break;
     }
 
@@ -1044,7 +1123,7 @@ void CapSense_DpUpdateThresholds(CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt,
 *
 * \brief
 *   Calculates new difference values.
-*   Also, executes the frequency hopping algorithm if it is enabled.
+*   Also, executes the multi-frequency scan algorithm if it is enabled.
 *
 * \details
 *   This API calculates the difference between the baseline and raw counts.
@@ -1053,17 +1132,17 @@ void CapSense_DpUpdateThresholds(CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt,
 *   Otherwise the difference is set to zero. The final difference value is saved
 *   with the subtracted noise threshold value.
 *
-*   If the frequency hopping algorithm is enabled, the difference is calculated
+*   If the multi-frequency scan algorithm is enabled, the difference is calculated
 *   for the three sets of data available for each sensor. Then
 *   the median filter selects the final difference value.
 *
 * \param ptrRamWdgt The pointer to the RAR Widget Object.
-* \param ptrSns     The pointer to the sensor object in RAM.
+* \param curSnsPtr  The pointer to the sensor object in RAM.
 *
 *******************************************************************************/
 void CapSense_DpUpdateDifferences(
                         CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt,
-                        CapSense_RAM_SNS_STRUCT *ptrSns)
+                        CapSense_RAM_SNS_STRUCT *curSnsPtr)
 {
     register int32 diffValue = 0;
 
@@ -1073,11 +1152,11 @@ void CapSense_DpUpdateDifferences(
     #endif /* #if (0u != CapSense_MULTI_FREQ_SCAN_EN) */
 
     /* Calculate difference */
-    diffValue = (int32)ptrSns->raw[0u] - (int32)ptrSns->bsln[0u];
+    diffValue = (int32)curSnsPtr->raw[0u] - (int32)curSnsPtr->bsln[0u];
 
     #if (0u != CapSense_MULTI_FREQ_SCAN_EN)
-        diffValue_0 = (int32)ptrSns->raw[1u] - (int32)ptrSns->bsln[1u];
-        diffValue_2 = (int32)ptrSns->raw[2u] - (int32)ptrSns->bsln[2u];
+        diffValue_0 = (int32)curSnsPtr->raw[1u] - (int32)curSnsPtr->bsln[1u];
+        diffValue_2 = (int32)curSnsPtr->raw[2u] - (int32)curSnsPtr->bsln[2u];
 
         /* Find median and put it into [0u] element */
         if (diffValue_0 > diffValue)
@@ -1102,11 +1181,11 @@ void CapSense_DpUpdateDifferences(
         }
     #endif /* #if (0u != CapSense_MULTI_FREQ_SCAN_EN) */
 
-    ptrSns->diff = 0u;
+    curSnsPtr->diff = 0u;
 
     if (diffValue > (int32)ptrRamWdgt->noiseTh)
     {
-        ptrSns->diff = (CapSense_THRESHOLD_TYPE) diffValue;
+        curSnsPtr->diff = (CapSense_THRESHOLD_TYPE) diffValue;
     }
 }
 
@@ -1141,13 +1220,13 @@ uint32 CapSense_DpProcessButton(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
     uint32 snsMask;
     uint32 newStatus;
     uint32 touchTh;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_BASE_STRUCT *ptrRamWdgt;
     uint8 * ptrDebounceCnt;
 
     snsCnt = ptrFlashWdgt->totalNumSns;
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     ptrDebounceCnt = ptrFlashWdgt->ptr2DebounceArr;
 
     /* Go through all widget's sensors */
@@ -1161,7 +1240,7 @@ uint32 CapSense_DpProcessButton(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
                   ((uint32)ptrRamWdgt->fingerTh - ptrRamWdgt->hysteresis);
 
         /* Determine new potential sensor state */
-        newStatus = (ptrSns->diff > touchTh) ? snsMask : 0u;
+        newStatus = (ptrSnsTmp->diff > touchTh) ? snsMask : 0u;
 
         /* Sensor state changed ? */
         if (newStatus != (currStatus & snsMask))
@@ -1170,12 +1249,13 @@ uint32 CapSense_DpProcessButton(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
             (*ptrDebounceCnt)--;
         }
 
-        /* This piece of code has two objectives:
-           1. Reset de-bounce counter if the sensor state did not change.
-              (It is possible that during previous processing cycles sensor
-               was active and de-bounce counter was decremented.)
-           2. Set new sensor state after successful de-bounce.
-         */
+        /*
+        *  This piece of code has two objectives:
+        *  1. Reset de-bounce counter if the sensor state did not change.
+        *     (It is possible that during previous processing cycles sensor
+        *     was active and de-bounce counter was decremented.)
+        *  2. Set new sensor state after successful de-bounce.
+        */
         if ((newStatus == (currStatus & snsMask)) || (0u == (*ptrDebounceCnt)))
         {
             /* Set new sensor status */
@@ -1193,7 +1273,7 @@ uint32 CapSense_DpProcessButton(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
         /* Move mask to the next sensor */
         snsMask <<= 1u;
 
-        ptrSns++;
+        ptrSnsTmp++;
         ptrDebounceCnt++;
     }
 
@@ -1243,14 +1323,14 @@ uint32 CapSense_DpProcessProximity(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
     uint32 difference;
 
     uint8 *ptrDebounceCnt;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_PROXIMITY_STRUCT *ptrRamWdgt;
 
     /* Mask for proximity status bits. (All odd bits.) */
     const uint32 proxMask = UINT32_ODD_BITS_CONST;
 
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_PROXIMITY_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     ptrDebounceCnt = ptrFlashWdgt->ptr2DebounceArr;
 
     /* Get number of sensors and multiply it by 2 - proximity and touch statuses per sensor. */
@@ -1260,7 +1340,7 @@ uint32 CapSense_DpProcessProximity(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
     snsMask = 1Lu;
     for (; snsCnt-- > 0u;)
     {
-        difference = ptrSns->diff;
+        difference = ptrSnsTmp->diff;
 
         /* Determine current event (proximity - odd; touch - even) and get appropriate threshold. */
         currTh = ptrRamWdgt->fingerTh;
@@ -1268,7 +1348,7 @@ uint32 CapSense_DpProcessProximity(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
         if (0u == (snsMask & proxMask))
         {
             currTh = ptrRamWdgt->proxTouchTh;
-            ptrSns++;
+            ptrSnsTmp++;
         }
 
         /* Calculate finger threshold applying hysteresis based on current sensor state. */
@@ -1284,12 +1364,13 @@ uint32 CapSense_DpProcessProximity(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
             (*ptrDebounceCnt)--;
         }
 
-        /* This piece of code has two objectives:
-           1. Reset de-bounce counter if new sensor state has not changed.
-              (It is possible that during previous processing cycles the sensor
-               state was different which caused de-bounce counter change.)
-           2. Set new sensor state after successful de-bounce.
-         */
+        /*
+        *  This piece of code has two objectives:
+        *  1. Reset de-bounce counter if new sensor state has not changed.
+        *     (It is possible that during previous processing cycles the sensor
+        *     state was different which caused de-bounce counter change.)
+        *  2. Set new sensor state after successful de-bounce.
+        */
         if ((newStatus == (currStatus & snsMask)) || (0u == (*ptrDebounceCnt)))
         {
             /* Set new sensor status */
@@ -1351,25 +1432,25 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
     uint32 touchTh;
     uint32 newStatus = 0Lu;
     uint8 * ptrDebounceCnt;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_SLIDER_STRUCT *ptrRamWdgt;
 
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+    #if (0u != CapSense_POSITION_FILTER_EN)
         CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory;
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #endif /* #if (0u != CapSense_POSITION_FILTER_EN) */
 
     uint32 touchIdx;
     uint32 touchCnt = 0Lu;
     uint16 newPos[CapSense_NUM_CENTROIDS];
 
     snsCnt = ptrFlashWdgt->totalNumSns;
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_SLIDER_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     ptrDebounceCnt = ptrFlashWdgt->ptr2DebounceArr;
 
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+    #if (0u != CapSense_POSITION_FILTER_EN)
         ptrHistory = ptrFlashWdgt->ptr2PosHistory;
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #endif /* #if (0u != CapSense_POSITION_FILTER_EN) */
 
     /* Calculate touch threshold based on current slider state */
     touchTh = (0Lu == currStatus ) ?
@@ -1381,8 +1462,8 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
     for (; snsCnt-- > 0Lu; )
     {
         /* Determine new potential sensor state */
-        newStatus |= (ptrSns->diff > touchTh) ? snsMask : 0Lu;
-        ptrSns++;
+        newStatus |= (ptrSnsTmp->diff > touchTh) ? snsMask : 0Lu;
+        ptrSnsTmp++;
 
         snsMask <<= 1u;
     }
@@ -1412,7 +1493,6 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
     }
 
     /* Centroid processing */
-
     /* If there are active sensors after debounce run the centroid algorithm */
     if (0u != currStatus)
     {
@@ -1435,7 +1515,7 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
             {
                 /* Run local maximum search for NON-duplexed slider */
                 #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
-                	touchCnt = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
+                    touchCnt = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
                 #else
                     touchCnt = CapSense_DpFindLocalMaxSd(ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
                 #endif
@@ -1443,7 +1523,7 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
         #else
             /* Run local maximum search for NON-duplexed slider */
             #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
-            	touchCnt = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
+                touchCnt = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
             #else
                 touchCnt = CapSense_DpFindLocalMaxSd(ptrFlashWdgt->ptr2SnsRam, snsCnt, touchTh);
             #endif
@@ -1456,9 +1536,13 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
             #if (0u != CapSense_TOTAL_LINEAR_SLIDERS)
                 if ((CapSense_WD_TYPE_ENUM)ptrFlashWdgt->wdgtType == CapSense_WD_LINEAR_SLIDER_E)
                 {
-                    touchCnt = CapSense_DpCalcLinearCentroid(
-                                    newPos, (uint32)ptrFlashWdgt->xCentroidMultiplier, snsCnt);
-
+                    #if (CapSense_ENABLE == CapSense_SLIDER_MULT_METHOD)
+                        touchCnt = CapSense_DpCalcLinearCentroid(newPos, (uint32)ptrFlashWdgt->xCentroidMultiplier,
+                                    snsCnt, (uint32)(ptrFlashWdgt->xCentroidMultiplier >> 1));
+                    #else
+                        touchCnt = CapSense_DpCalcLinearCentroid(
+                                        newPos, (uint32)ptrFlashWdgt->xCentroidMultiplier, snsCnt, 0u);
+                    #endif
                     DpUpdateLinSlider(newPos, touchCnt, ptrFlashWdgt, ptrRamWdgt);
                 }
             #endif /* #if (0u != CapSense_TOTAL_LINEAR_SLIDERS) */
@@ -1468,7 +1552,6 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
                 {
                     touchCnt = CapSense_DpCalcRadialCentroid(
                                     newPos, (uint32)ptrFlashWdgt->xCentroidMultiplier, snsCnt);
-
                     DpUpdateRadSlider(newPos, touchCnt, ptrFlashWdgt, ptrRamWdgt);
                 }
             #endif /* #if (0u != CapSense_TOTAL_RADIAL_SLIDERS) */
@@ -1480,13 +1563,12 @@ uint32 CapSense_DpProcessSlider(uint32 currStatus, CapSense_FLASH_WD_STRUCT cons
     {
         ptrRamWdgt->position[touchIdx] = CapSense_SLIDER_POS_NONE;
 
-        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+        #if (0u != CapSense_POSITION_FILTER_EN)
             if (NULL != ptrHistory)
             {
-                ptrHistory[touchIdx].posMedianZ1 = CapSense_SLIDER_POS_NONE;
-                ptrHistory[touchIdx].posMedianZ2 = CapSense_SLIDER_POS_NONE;
+                CapSense_InitPosFiltersSd(&ptrHistory[touchIdx], CapSense_SLIDER_POS_NONE);
             }
-        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+        #endif /* #if (0u != CapSense_POSITION_FILTER_EN) */
     }
 
     return currStatus;
@@ -1520,134 +1602,99 @@ __STATIC_INLINE void DpUpdateLinSlider(
 {
     uint32 touchIdx;
 
-    #if (0u == DP_LINEAR_SLIDER_FILTER_EN)
+    #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+        uint16 tempPosition;
+    #endif /* (0u != CapSense_POS_AVERAGE_FILTER_EN) */
+
+    #if (0u == CapSense_POSITION_FILTER_EN)
         /* This parameter is unused in such configurations */
         (void)ptrFlashWdgt;
     #else
+        uint16 filteredPosition;
         /* Get bitmask with the enabled filters */
         uint32 filterConfig = (uint32)ptrFlashWdgt->staticConfig;
+        /* Get pointer to the position filter history */
+        CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+    #endif /* #if (0u == CapSense_POSITION_FILTER_EN) */
 
-        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-            /* Get median filter history */
-            CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory = ptrFlashWdgt->ptr2PosHistory;
-        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-    #endif /* #if (0u == DP_LINEAR_SLIDER_FILTER_EN) */
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT contextAIIR;
+        uint16 emptyPosition = 0;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
 
     /* Run Filter and update the position registers with the filtered data */
     for (touchIdx = 0u; touchIdx < numTouches; touchIdx++)
     {
-        #if (0u == DP_LINEAR_SLIDER_FILTER_EN)
+        #if (0u == CapSense_POSITION_FILTER_EN)
             /* If filters are not enabled just copy the position data */
             ptrRamWdgt->position[touchIdx] = newPos[touchIdx];
         #else
-            #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-                /* Median filter requires position history with the last two values */
-                DpFilterLinSlider(newPos[touchIdx], filterConfig, &(ptrRamWdgt->position[touchIdx]), ptrHistory);
+            filteredPosition = newPos[touchIdx];
 
-                ptrHistory = (NULL != ptrHistory) ? (ptrHistory + 1) : NULL;
-            #else
-                /* The rest filters work just with previous value hold in  */
-                DpFilterLinSlider(newPos[touchIdx], filterConfig, &(ptrRamWdgt->position[touchIdx]), NULL);
-            #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-        #endif /* #if (0u == DP_LINEAR_SLIDER_FILTER_EN) */
+            /* If there were no touch initialize the current position with new position data */
+            if (ptrRamWdgt->position[touchIdx] == CapSense_SLIDER_POS_NONE)
+            {
+                CapSense_InitPosFiltersSd(ptrHistory, filteredPosition);
+            }
+            else
+            {
+                #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_MEDIAN_FILTER_MASK))
+                    {
+                        filteredPosition = (uint16)CapSense_FtMedian((uint32)ptrHistory->posMedianZ2,
+                                            (uint32)ptrHistory->posMedianZ1, (uint32)newPos[touchIdx]);
+                        ptrHistory->posMedianZ2 = ptrHistory->posMedianZ1;
+                        ptrHistory->posMedianZ1 = newPos[touchIdx];
+                    }
+                #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+                #if (0u != CapSense_POS_IIR_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_IIR_FILTER_MASK))
+                    {
+                        filteredPosition = (uint16)CapSense_FtIIR1stOrder((uint32)filteredPosition, (uint32)ptrHistory->posIIR,
+                                            (uint32)ptrFlashWdgt->iirFilterCoeff, 0uL);
+                        ptrHistory->posIIR = filteredPosition;
+                    }
+                #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
+
+                #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_AIIR_FILTER_MASK))
+                    {
+                        contextAIIR.previousX = ptrHistory->posAIIR;
+                        contextAIIR.previousY = emptyPosition;
+                        contextAIIR.coefficient = ptrHistory->posAIIRCoeff;
+                        AdaptiveFilter_Run(&ptrRamWdgt->aiirConfig, &contextAIIR, &filteredPosition, &emptyPosition);
+                        ptrHistory->posAIIR = contextAIIR.previousX;
+                        ptrHistory->posAIIRCoeff = contextAIIR.coefficient;
+                    }
+                #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+                #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_AVERAGE_FILTER_MASK))
+                    {
+                        tempPosition = filteredPosition;
+                        filteredPosition = (uint16)(filteredPosition + ptrHistory->posAverage) >> 1u;
+                        ptrHistory->posAverage = tempPosition;
+                    }
+                #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
+
+                #if (0u != CapSense_POS_JITTER_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_JITTER_FILTER_MASK))
+                    {
+                        filteredPosition = (uint16)CapSense_FtJitter((uint32)filteredPosition, (uint32)ptrHistory->posJitter);
+                        ptrHistory->posJitter = filteredPosition;
+                    }
+                #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
+            }
+
+            /* Update position data */
+            ptrRamWdgt->position[touchIdx] = filteredPosition;
+
+            ptrHistory = (NULL != ptrHistory) ? (ptrHistory + 1) : NULL;
+        #endif /* (0u == CapSense_POSITION_FILTER_EN) */
     }
 }
 #endif /* #if (0u != CapSense_TOTAL_LINEAR_SLIDERS) */
-
-
-#if (0u != DP_LINEAR_SLIDER_FILTER_EN)
-/*******************************************************************************
-* Function Name: DpFilterLinSlider
-****************************************************************************//**
-*
-* \brief
-*   Filters the Linear Slider widget position.
-*
-* \details
-*   Runs the position filter for the Linear Slider or CSD touchpad axis data.
-*   The filtered position data is written by the address pointed by the ptrCurrPos.
-*
-* \param newPos       A new coordinate value.
-* \param staticConfig The static configuration of the widget.
-                          Includes information on the enabled filters.
-* \param ptrCurrPos   The pointer to the position register in the data structure.
-* \param ptrHistory   The pointer to the structure that holds previous historical position value.
-*
-*******************************************************************************/
-__STATIC_INLINE void DpFilterLinSlider(
-                        uint16 newPos, uint32 staticConfig, uint16 *ptrCurrPos,
-                        CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory)
-{
-    uint32 newPosition;
-    uint32 currPosition;
-
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-        uint32 medianPosition;
-    #else
-        (void)ptrHistory; /* This parameter is unused in such configurations */
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-
-    /* extend new and current position data to UINT32 */
-    newPosition  = newPos;
-    currPosition = *ptrCurrPos;
-
-    /* If there were no touch initialize the current position with new position data  */
-    if (currPosition == CapSense_SLIDER_POS_NONE)
-    {
-        currPosition = CY_LO16(newPosition);
-    }
-
-    /* Filter new slider position using the configured filter types */
-    #if (0u != CapSense_POS_IIR_FILTER_EN)
-        if (0u != (staticConfig & CapSense_POS_IIR_FILTER_MASK))
-        {
-            newPosition = CapSense_FtIIR1stOrder(newPosition, currPosition, CapSense_POS_IIR_COEFF, 0u);
-        }
-    #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
-
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-        if (0u != (staticConfig & CapSense_POS_MEDIAN_FILTER_MASK))
-        {
-            CY_ASSERT(ptrHistory); /* ptrHistory cannot be NULL if median filter is enabled*/
-
-            /* Initialize previousPosition if it is NONE */
-            if (ptrHistory->posMedianZ1 == CapSense_SLIDER_POS_NONE)
-            {
-                ptrHistory->posMedianZ1 = CY_LO16(newPosition);
-                ptrHistory->posMedianZ2 = CY_LO16(newPosition);
-            }
-
-            /* Run median filter */
-            medianPosition = CapSense_FtMedian(
-                                    (uint32)ptrHistory->posMedianZ2, (uint32)ptrHistory->posMedianZ1, newPosition);
-
-            /* Update history */
-            ptrHistory->posMedianZ2 = ptrHistory->posMedianZ1;
-            ptrHistory->posMedianZ1 = CY_LO16(newPosition);
-
-            newPosition = medianPosition;
-        }
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-
-    #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
-        if (0u != (staticConfig & CapSense_POS_AVERAGE_FILTER_MASK))
-        {
-            /* Run average filter */
-            newPosition = (currPosition + newPosition) >> 1u;
-        }
-    #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
-
-    #if (0u != CapSense_POS_JITTER_FILTER_EN)
-        if (0u != (staticConfig & CapSense_POS_JITTER_FILTER_MASK))
-        {
-            newPosition = CapSense_FtJitter(newPosition, currPosition);
-        }
-    #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN)  */
-
-    /* Update position data */
-    *ptrCurrPos = CY_LO16(newPosition);
-}
-#endif /* #if (0u != DP_LINEAR_SLIDER_FILTER_EN) */
 
 
 #if (0u != CapSense_TOTAL_RADIAL_SLIDERS)
@@ -1678,119 +1725,242 @@ __STATIC_INLINE void DpUpdateRadSlider(
                         CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
                         CapSense_RAM_WD_SLIDER_STRUCT *ptrRamWdgt)
 {
-    uint32 posNum;
-    uint32 currPosition;
-    uint32 newPosition;
+    uint32 touchIdx;
 
     #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-        uint32 medianPosition;
-        CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory;
+        uint16 z1;
+        uint16 z2;
+    #endif
 
-        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #if ((0u != CapSense_POS_IIR_FILTER_EN) || \
+         (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN))
+        uint16 delta;
+    #endif
 
-    for (posNum = 0u; posNum < numTouches; posNum++)
+    #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+        uint16 tempPosition;
+    #endif
+
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        uint16 filteredPosition;
+        /* Get resolution. The register contains max position value, so therefore it is increased by 1 */
+        uint16 tempResolution = (ptrFlashWdgt->xResolution + 1u);
+        uint16 resolutionHafl = (ptrFlashWdgt->xResolution + 1u) >> 1u;
+        /* Get bitmask with the enabled filters */
+        uint32 filterConfig = (uint32)ptrFlashWdgt->staticConfig;
+        /* Get pointer to the position filter history */
+        CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+    #endif
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT contextAIIR;
+        uint16 emptyPosition = 0;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+    /* Run Filter and update the position registers with the filtered data */
+    for (touchIdx = 0u; touchIdx < numTouches; touchIdx++)
     {
-        /* Get the current and new position data */
-        newPosition  = (uint32)newPos[posNum];
-        currPosition = (uint32)ptrRamWdgt->position[posNum];
+        #if (0u == CapSense_POSITION_FILTER_EN)
+            /* If filters are not enabled just copy the position data */
+            ptrRamWdgt->position[touchIdx] = newPos[touchIdx];
+        #else
+            filteredPosition = newPos[touchIdx];
 
-        /* The current position data is used as previous value for the filters so if it is NONE set it to new value */
-        if (currPosition == CapSense_SLIDER_POS_NONE)
-        {
-            currPosition = newPosition;
-        }
-
-        /* If new position crosses zero point in one or another direction the position variable with smaller value
-         * is increased by the slider resolution. It is done for the proper filtering. For example,
-         * yResolution = 100, currPosition = 95, newPosition = 5. If no actions are taken than the average filter
-         * will give value 50 - which is wrong. But if the position values are adusted as mentioned here we will get
-         * newPosition eqaul 105 and the average will be 100. Later this filtered value will be adusted further to not
-         * cross the yResolution and it will end up with 0u - which is correct average result for the provided example.
-         */
-        if (currPosition > newPosition)
-        {
-            if (((uint32)ptrFlashWdgt->xResolution >> 1u) < (currPosition - newPosition))
+            /* If there were no touch initialize the current position with new position data */
+            if (ptrRamWdgt->position[touchIdx] == CapSense_SLIDER_POS_NONE)
             {
-                newPosition += (uint32)ptrFlashWdgt->xResolution;
+                CapSense_InitPosFiltersSd(ptrHistory, filteredPosition);
             }
-        }
-        else
-        {
-            if (((uint32)ptrFlashWdgt->xResolution >> 1u) < (newPosition - currPosition))
+            else
             {
-                currPosition += (uint32)ptrFlashWdgt->xResolution;
-            }
-        }
-
-        /* Filter new slider position */
-        #if (0u != CapSense_POS_IIR_FILTER_EN)
-            if (0u != (ptrFlashWdgt->staticConfig & CapSense_POS_IIR_FILTER_MASK))
-            {
-                newPosition = CapSense_FtIIR1stOrder(
-                                    newPosition, currPosition, CapSense_POS_IIR_COEFF, 0u);
-            }
-        #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
-
-        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-            if (0u != (ptrFlashWdgt->staticConfig & CapSense_POS_MEDIAN_FILTER_MASK))
-            {
-                /* Adjust the median filter history values if needed */
-                if (CapSense_SLIDER_POS_NONE == ptrHistory[posNum].posMedianZ1)
-                {
-                    ptrHistory[posNum].posMedianZ1 = CY_LO16(newPosition);
-                    ptrHistory[posNum].posMedianZ2 = CY_LO16(newPosition);
-                }
-                else if (ptrHistory[posNum].posMedianZ1 < newPosition)
-                {
-                    if ((newPosition - ptrHistory[posNum].posMedianZ1) > ((uint32)ptrFlashWdgt->xResolution >> 1u))
+                /*
+                 * If new position crosses zero point in one or another direction the position variable with smaller value
+                 * is increased by the slider resolution. It is done for the proper filtering. For example,
+                 * yResolution = 100, currPosition = 95, newPosition = 5. If no actions are taken then the average filter
+                 * will give value 50 - which is wrong. But if the position values are adusted as mentioned here we will get
+                 * newPosition eqaul 105 and the average will be 100. Later this filtered value will be adusted further to not
+                 * cross the yResolution and it will end up with 0u - which is correct average result for the provided example.
+                 */
+                #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_MEDIAN_FILTER_MASK))
                     {
-                        ptrHistory[posNum].posMedianZ1 += ptrFlashWdgt->xResolution;
-                        ptrHistory[posNum].posMedianZ2 += ptrFlashWdgt->xResolution;
+                        /* Get the filter history for further zero-cross correction */
+                        z1 = ptrHistory->posMedianZ1;
+                        z2 = ptrHistory->posMedianZ2;
+
+                        /* Preserve the filter history without zero-cross correction */
+                        ptrHistory->posMedianZ2 = ptrHistory->posMedianZ1;
+                        ptrHistory->posMedianZ1 = filteredPosition;
+
+                        /* Perform zero-cross correction */
+                        if (z1 > (resolutionHafl + filteredPosition))
+                        {
+                            filteredPosition += tempResolution;
+                        }
+                        if (filteredPosition > (resolutionHafl + z1))
+                        {
+                            z1 += tempResolution;
+                            z2 += tempResolution;
+                        }
+                        if (z2 > (resolutionHafl + z1))
+                        {
+                            z1 += tempResolution;
+                            filteredPosition += tempResolution;
+                        }
+                        if (z1 > (resolutionHafl + z2))
+                        {
+                            z2 += tempResolution;
+                        }
+
+                        /* Perform filtering */
+                        filteredPosition = CapSense_FtMedian((uint32)z2, (uint32)z1, filteredPosition);
+
+                        /* Perform zero-cross correction of filtered position */
+                        if (filteredPosition >= tempResolution)
+                        {
+                            filteredPosition -= tempResolution;
+                        }
                     }
-                }
-                else
-                {
-                    if ((ptrHistory[posNum].posMedianZ1 - newPosition) > ((uint32)ptrFlashWdgt->xResolution >> 1u))
+                #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+                #if (0u != CapSense_POS_IIR_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_IIR_FILTER_MASK))
                     {
-                        newPosition += (uint32)ptrFlashWdgt->xResolution;
+                        /* Perform zero-cross correction */
+                        if (ptrHistory->posIIR > (resolutionHafl + filteredPosition))
+                        {
+                            filteredPosition += tempResolution;
+                        }
+                        if (filteredPosition > (resolutionHafl + ptrHistory->posIIR))
+                        {
+                            ptrHistory->posIIR += tempResolution;
+                        }
+                        /*
+                        * IIR filter can accumulate delay up to full circle and even more.
+                        * This situation is not supported by the Component. If difference between
+                        * between the new position and IIR filter history is bigher than
+                        * CapSense_POS_IIR_RESET_RADIAL_SLIDER percent of circle
+                        * then all enabled position filters are reset.
+                        */
+                        if (ptrHistory->posIIR > filteredPosition)
+                        {
+                            delta = ptrHistory->posIIR - filteredPosition;
+                        }
+                        else
+                        {
+                            delta = filteredPosition - ptrHistory->posIIR;
+                        }
+                        if (delta > ((tempResolution * CapSense_POS_IIR_RESET_RADIAL_SLIDER) / PERCENTAGE_100))
+                        {
+                            CapSense_InitPosFiltersSd(ptrHistory, filteredPosition);
+                        }
+                        else
+                        {
+                            /* Perform filtering */
+                            filteredPosition = (uint16)CapSense_FtIIR1stOrder(filteredPosition, (uint32)ptrHistory->posIIR,
+                                                ptrFlashWdgt->iirFilterCoeff, 0u);
+                        }
+                        /* Perform zero-cross correction of filtered position */
+                        if (filteredPosition >= tempResolution)
+                        {
+                            filteredPosition -= tempResolution;
+                        }
+                        ptrHistory->posIIR = filteredPosition;
                     }
-                }
+                #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
 
-                medianPosition = CapSense_FtMedian((uint32)ptrHistory[posNum].posMedianZ2,
-                                                           (uint32)ptrHistory[posNum].posMedianZ1,
-                                                            newPosition);
+                #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_AIIR_FILTER_MASK))
+                    {
+                        /* Perform zero-cross correction */
+                        if (ptrHistory->posAIIR > (resolutionHafl + filteredPosition))
+                        {
+                            filteredPosition += tempResolution;
+                        }
+                        if (filteredPosition > (resolutionHafl + ptrHistory->posAIIR))
+                        {
+                            ptrHistory->posAIIR += tempResolution;
+                        }
+                        if (ptrHistory->posAIIR > filteredPosition)
+                        {
+                            delta = ptrHistory->posAIIR - filteredPosition;
+                        }
+                        else
+                        {
+                            delta = filteredPosition - ptrHistory->posAIIR;
+                        }
+                        if (delta > ((tempResolution * CapSense_POS_IIR_RESET_RADIAL_SLIDER) / PERCENTAGE_100))
+                        {
+                            CapSense_InitPosFiltersSd(ptrHistory, filteredPosition);
+                        }
+                        else
+                        {
+                            contextAIIR.previousX = ptrHistory->posAIIR;
+                            contextAIIR.previousY = emptyPosition;
+                            contextAIIR.coefficient = ptrHistory->posAIIRCoeff;
+                            AdaptiveFilter_Run(&ptrRamWdgt->aiirConfig, &contextAIIR, &filteredPosition, &emptyPosition);
+                            ptrHistory->posAIIRCoeff = contextAIIR.coefficient;
+                        }
+                        /* Perform zero-cross correction of filtered position */
+                        if (filteredPosition >= tempResolution)
+                        {
+                            filteredPosition -= tempResolution;
+                        }
+                        ptrHistory->posAIIR = filteredPosition;
+                    }
+                #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
 
-                /* Update the median filter history */
-                ptrHistory[posNum].posMedianZ2 = ptrHistory[posNum].posMedianZ1;
-                ptrHistory[posNum].posMedianZ1 = CY_LO16(newPosition);
+                #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_AVERAGE_FILTER_MASK))
+                    {
+                        tempPosition = filteredPosition;
+                        /* Perform zero-cross correction */
+                        if (ptrHistory->posAverage > (resolutionHafl + filteredPosition))
+                        {
+                            filteredPosition += tempResolution;
+                        }
+                        if (filteredPosition > (resolutionHafl + ptrHistory->posAverage))
+                        {
+                            ptrHistory->posAverage += tempResolution;
+                        }
+                        /* Perform filtering */
+                        filteredPosition = (uint16)((filteredPosition + ptrHistory->posAverage) >> 1u);
+                        /* Perform zero-cross correction of filtered position */
+                        if (filteredPosition >= tempResolution)
+                        {
+                            filteredPosition -= tempResolution;
+                        }
+                        ptrHistory->posAverage = tempPosition;
+                    }
+                #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
 
-                newPosition = medianPosition;
+                #if (0u != CapSense_POS_JITTER_FILTER_EN)
+                    if (0u != (filterConfig & CapSense_POS_JITTER_FILTER_MASK))
+                    {
+                        /* Perform zero-cross correction */
+                        if (ptrHistory->posJitter > (resolutionHafl + filteredPosition))
+                        {
+                            filteredPosition += tempResolution;
+                        }
+                        if (filteredPosition > (resolutionHafl + ptrHistory->posJitter))
+                        {
+                            ptrHistory->posJitter += tempResolution;
+                        }
+                        /* Perform filtering */
+                        filteredPosition = (uint16)CapSense_FtJitter((uint32)filteredPosition, (uint32)ptrHistory->posJitter);
+                        /* Perform zero-cross correction of filtered position */
+                        if (filteredPosition >= tempResolution)
+                        {
+                            filteredPosition -= tempResolution;
+                        }
+                        ptrHistory->posJitter = filteredPosition;
+                    }
+                #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
             }
-        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-
-        #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
-            if (0u != (ptrFlashWdgt->staticConfig & CapSense_POS_AVERAGE_FILTER_MASK))
-            {
-                /* Run the average filter */
-                newPosition = (currPosition + newPosition) >> 1u;
-            }
-        #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
-
-        #if (0u != CapSense_POS_JITTER_FILTER_EN)
-            if (0u != (ptrFlashWdgt->staticConfig & CapSense_POS_JITTER_FILTER_MASK))
-            {
-                newPosition = CapSense_FtJitter(newPosition, currPosition);
-            }
-        #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
-
-        /* Update position value in Data Structure */
-        if (newPosition >= (uint32)ptrFlashWdgt->xResolution)
-        {
-            newPosition -= (uint32)ptrFlashWdgt->xResolution;
-        }
-
-        ptrRamWdgt->position[posNum] = CY_LO16(newPosition);
+            /* Update position data */
+            ptrRamWdgt->position[touchIdx] = filteredPosition;
+            ptrHistory = (NULL != ptrHistory) ? (ptrHistory + 1) : NULL;
+        #endif /* (0u == CapSense_POSITION_FILTER_EN) */
     }
 }
 #endif /* #if (0u != CapSense_TOTAL_RADIAL_SLIDERS) */
@@ -1836,7 +2006,7 @@ uint32 CapSense_DpProcessCsdMatrix(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
     uint32 newStatus;
     uint32 touchTh;
     uint8 * ptrDebounceCnt;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
     CapSense_RAM_WD_CSD_MATRIX_STRUCT *ptrRamWdgt;
 
     uint32 numActiveRows = 0u;
@@ -1845,8 +2015,8 @@ uint32 CapSense_DpProcessCsdMatrix(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
     uint32 activeRow = CapSense_MATRIX_POS_NONE;
     uint32 activeCol = CapSense_MATRIX_POS_NONE;
 
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_CSD_MATRIX_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     ptrDebounceCnt = ptrFlashWdgt->ptr2DebounceArr;
 
     /* Go through all widget's sensors */
@@ -1861,7 +2031,7 @@ uint32 CapSense_DpProcessCsdMatrix(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
                   ((uint32)ptrRamWdgt->fingerTh - ptrRamWdgt->hysteresis);
 
         /* Determine new potential sensor state */
-        newStatus = (ptrSns->diff > touchTh) ? snsMask : 0u;
+        newStatus = (ptrSnsTmp->diff > touchTh) ? snsMask : 0u;
 
         /* Sensor state changed ? */
         if (newStatus != (currStatus & snsMask))
@@ -1913,7 +2083,7 @@ uint32 CapSense_DpProcessCsdMatrix(uint32 currStatus, CapSense_FLASH_WD_STRUCT c
             }
         }
 
-        ptrSns++;
+        ptrSnsTmp++;
         ptrDebounceCnt++;
     }
 
@@ -1963,32 +2133,43 @@ uint32 CapSense_DpProcessCsdTouchpad(uint32 currStatus, CapSense_FLASH_WD_STRUCT
     uint32 snsCnt;
     uint32 snsMask;
     uint32 touchTh;
-    uint32 newStatus = 0Lu;
-    uint8 * ptrDebounceCnt;
-    CapSense_RAM_SNS_STRUCT *ptrSns;
-    CapSense_RAM_WD_CSD_TOUCHPAD_STRUCT *ptrRamWdgt;
-
-    uint32 numLocalMax;
-    uint16 newPosX;
-    uint16 newPosY;
-
     uint32 rowSnsMask;
     uint32 colSnsMask;
+    uint32 newStatus = 0Lu;
+    uint8 * ptrDebounceCnt;
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp;
+    CapSense_RAM_WD_CSD_TOUCHPAD_STRUCT *ptrRamWdgt;
 
-    #if (0u != DP_POSITION_FILTER_EN)
-        uint32 filterConfig;
-    #endif /* #if (0u != DP_POSITION_FILTER_EN) */
+    #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+        uint16 posXTmp;
+        uint16 posYTmp;
+        uint32 numLocalMax;
+    #endif
 
-    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+    #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+        uint32 i;
+        uint16 snsDiff[CapSense_MAX_SENSORS_PER_5X5_TOUCHPAD];
+        ADVANCED_CENTROID_CONFIG_STRUCT config5X5;
+        ADVANCED_CENTROID_CONTEXT_STRUCT context5X5;
+        #if (0u != CapSense_POSITION_FILTER_EN)
+            uint16 filteredX;
+            uint16 filteredY;
+            uint16 curPosX[ADVANCED_CENTROID_MAX_TOUCHES];
+        #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+    #endif
+
+    #if (0u != CapSense_POSITION_FILTER_EN)
         CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory;
-
-        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
-    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
     snsCnt = ptrFlashWdgt->totalNumSns;
-    ptrSns = ptrFlashWdgt->ptr2SnsRam;
-    ptrRamWdgt = ptrFlashWdgt->ptr2WdgtRam;
+    ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+    ptrRamWdgt = (CapSense_RAM_WD_CSD_TOUCHPAD_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
     ptrDebounceCnt = ptrFlashWdgt->ptr2DebounceArr;
+
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
     /* Build masks for status word of row and column sensors */
     colSnsMask = (1Lu << ptrFlashWdgt->numCols) - 1Lu;
@@ -2005,8 +2186,8 @@ uint32 CapSense_DpProcessCsdTouchpad(uint32 currStatus, CapSense_FLASH_WD_STRUCT
     for (; snsCnt-- > 0Lu;)
     {
         /* Determine new potential sensor state */
-        newStatus |= (ptrSns->diff > touchTh) ? snsMask : 0Lu;
-        ptrSns++;
+        newStatus |= (ptrSnsTmp->diff > touchTh) ? snsMask : 0Lu;
+        ptrSnsTmp++;
 
         snsMask <<= 1u;
     }
@@ -2038,115 +2219,232 @@ uint32 CapSense_DpProcessCsdTouchpad(uint32 currStatus, CapSense_FLASH_WD_STRUCT
         /* Reset current sensor state */
         currStatus = 0Lu;
 
-        /* Clear centroid position data */
-        ptrRamWdgt->posX = CapSense_TOUCHPAD_POS_NONE;
-        ptrRamWdgt->posY = CapSense_TOUCHPAD_POS_NONE;
-
-        /* Clear history data if available */
-        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-            if (NULL != ptrHistory)
+        /* Clear centroid position data for 5x5 CSD touchpad */
+        #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+            if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_5X5_MASK))
             {
-                ptrHistory->xPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-                ptrHistory->xPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
-                ptrHistory->yPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-                ptrHistory->yPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
+                ptrRamWdgt->position.touchNum = 0u;
+                for (i = 0u; i < ADVANCED_CENTROID_MAX_TOUCHES; i++)
+                {
+                    ptrRamWdgt->position.pos[i].x = ADVANCED_CENTROID_POSITION_NONE;
+                    ptrRamWdgt->position.pos[i].y = ADVANCED_CENTROID_POSITION_NONE;
+                    ptrRamWdgt->position.pos[i].zX = ADVANCED_CENTROID_POSITION_NONE;
+                    ptrRamWdgt->position.pos[i].zY = ADVANCED_CENTROID_POSITION_NONE;
+
+                    /* Clear position filter history data if available */
+                    #if (0u != CapSense_POSITION_FILTER_EN)
+                        if (NULL != ptrHistory)
+                        {
+                            CapSense_InitPosFiltersDd(&ptrHistory[i], CapSense_TOUCHPAD_POS_NONE,
+                                                            CapSense_TOUCHPAD_POS_NONE);
+                        }
+                    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+                }
             }
-        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+        #endif
+
+        /* Clear centroid position data for 3x3 CSD touchpad */
+        #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+            if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_3X3_MASK))
+            {
+                ptrRamWdgt->posX = CapSense_TOUCHPAD_POS_NONE;
+                ptrRamWdgt->posY = CapSense_TOUCHPAD_POS_NONE;
+
+                /* Clear position filter history data if available */
+                #if (0u != CapSense_POSITION_FILTER_EN)
+                    if (NULL != ptrHistory)
+                    {
+                        CapSense_InitPosFiltersDd(ptrHistory, CapSense_TOUCHPAD_POS_NONE,
+                                                            CapSense_TOUCHPAD_POS_NONE);
+                    }
+                #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+            }
+        #endif
     }
 
     /* If widget is still active after debounce run the centroid algorithm */
     if (0Lu != currStatus)
     {
-        /* Centroid processing */
-        ptrSns = ptrFlashWdgt->ptr2SnsRam;
-        snsCnt = ptrFlashWdgt->totalNumSns;
-        touchTh = (uint32)ptrRamWdgt->fingerTh - ptrRamWdgt->hysteresis;
+        /* 5x5 CSD Touchpad processing */
+        #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+            if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_5X5_MASK))
+            {
+                /* Init advanced centroid configuration structure */
+                config5X5.fingerTh = (uint16)ptrRamWdgt->fingerTh;
+                config5X5.penultimateTh = ptrRamWdgt->edgePenultimateTh;
+                config5X5.virtualSnsTh = ptrRamWdgt->edgeVirtualSensorTh;
+                config5X5.resolutionX = ptrFlashWdgt->xResolution;
+                config5X5.resolutionY = ptrFlashWdgt->yResolution;
+                config5X5.crossCouplingTh = ptrRamWdgt->crossCouplingPosTh;
+                config5X5.snsCountX = ptrFlashWdgt->numCols;
+                config5X5.snsCountY = ptrFlashWdgt->numRows;
+                config5X5.edgeCorrectionEn = (uint8)((ptrFlashWdgt->staticConfig & CapSense_EDGE_CORRECTION_MASK) >>
+                                            CapSense_EDGE_CORRECTION_SHIFT);
+                config5X5.twoFingersEn = (uint8)((ptrFlashWdgt->staticConfig & CapSense_TWO_FINGER_DETECTION_MASK) >>
+                                            CapSense_TWO_FINGER_DETECTION_SHIFT);
 
-        /* Run local maximum search for Column sensors of touchpad */
-        #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
-        	numLocalMax = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrSns, (uint32)ptrFlashWdgt->numCols, touchTh);
-        #else
-            numLocalMax = CapSense_DpFindLocalMaxSd(ptrSns, (uint32)ptrFlashWdgt->numCols, touchTh);
+                /* Collect sensor differences into an array */
+                ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+                for (i = 0u; i < ptrFlashWdgt->totalNumSns; i++)
+                {
+                    snsDiff[i] = ptrSnsTmp->diff;
+                    ptrSnsTmp++;
+                }
+
+                context5X5.ptrSns = snsDiff;
+                context5X5.touch = &ptrRamWdgt->position;
+
+                /* Save current position */
+                #if (0u != CapSense_POSITION_FILTER_EN)
+                    /* Do it for each detected position */
+                    for (i = 0u; i < ADVANCED_CENTROID_MAX_TOUCHES; i++)
+                    {
+                        curPosX[i] = ptrRamWdgt->position.pos[i].x;
+                    }
+                #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+
+                /*
+                * Calculate Advanced centroid.
+                * One of the function arguments is pointer to touch position structure. It is supposed that
+                * the function stores into the structure detected touches. If touch is not detected, then
+                * corresponding structure fields are filled in by ADVANCED_CENTROID_POSITION_NONE.
+                */
+                (void)AdvancedCentroid_GetTouchCoordinates(&config5X5, &context5X5);
+
+                /* Now filter the X and Y position data if configured */
+                #if (0u != CapSense_POSITION_FILTER_EN)
+                    /* Clear filter history for empty slots */
+                    for (i = ptrRamWdgt->position.touchNum; i < ADVANCED_CENTROID_MAX_TOUCHES; i++)
+                    {
+                        if (NULL != ptrHistory)
+                        {
+                            CapSense_InitPosFiltersDd(&ptrHistory[i], CapSense_TOUCHPAD_POS_NONE,
+                                                                    CapSense_TOUCHPAD_POS_NONE);
+                        }
+                    }
+                    /* Filter position for detected touches */
+                    for (i = 0u; i < ptrRamWdgt->position.touchNum; i++)
+                    {
+                        filteredX = ptrRamWdgt->position.pos[i].x;
+                        filteredY = ptrRamWdgt->position.pos[i].y;
+
+                        /* If there were no touch initialize the current position with new position data */
+                        if (curPosX[i] == CapSense_TOUCHPAD_POS_NONE)
+                        {
+                            if (NULL != ptrHistory)
+                            {
+                                CapSense_InitPosFiltersDd(&ptrHistory[i], filteredX, filteredY);
+                            }
+                        }
+                        else
+                        {
+                            CapSense_RunPosFiltersDd(ptrFlashWdgt, i, i, &filteredX, &filteredY);
+                            ptrRamWdgt->position.pos[i].x = filteredX;
+                            ptrRamWdgt->position.pos[i].y = filteredY;
+                        }
+                    }
+                #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+            }
         #endif
 
-        CY_ASSERT(numLocalMax); /* There must be at least one local maximum found */
-
-        /* Verify how many local maximums are found on X axis.
-         * The CSD Touchpads support only one finger touch so we should have only one local maximum per axis.
-         * If more are found then there are multiple finger touches and it is not possible to recover their position.
-         */
-        if (1u == numLocalMax)
-        {
-            /* Run centroid algorithm for the X axis */
-            (void)CapSense_DpCalcLinearCentroid(
-                        &newPosX, (uint32)ptrFlashWdgt->xCentroidMultiplier, (uint32)ptrFlashWdgt->numCols);
-
-            /* Get pointer to Row RAM sensor structure array */
-            ptrSns += ptrFlashWdgt->numCols;
-
-            /* Run local maximum search for Row sensors of touchpad */
-            #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
-            	numLocalMax = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrSns, (uint32)ptrFlashWdgt->numRows, touchTh);
-            #else
-                numLocalMax = CapSense_DpFindLocalMaxSd(ptrSns, (uint32)ptrFlashWdgt->numRows, touchTh);
-            #endif
-
-            CY_ASSERT(numLocalMax); /* There must be at least one local maximum found */
-
-            /* Verify how many local maximums are found on Y axis.
-             * The CSD Touchpads support only one finger touch so we should have only one local maximum per axis.
-             * If more are found then it is not possible to recover finger position.
-             */
-            if (1u == numLocalMax)
+        /* 3x3 CSD Touchpad processing */
+        #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+            if (0u != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_3X3_MASK))
             {
-                /* Run centroid algorithm for the Y axis */
-                (void)CapSense_DpCalcLinearCentroid(
-                            &newPosY, (uint32)ptrFlashWdgt->yCentroidMultiplier, (uint32)ptrFlashWdgt->numRows);
+                /* Centroid processing */
+                ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
+                snsCnt = ptrFlashWdgt->totalNumSns;
+                touchTh = (uint32)ptrRamWdgt->fingerTh - ptrRamWdgt->hysteresis;
 
-                /* Now filter the X and Y position data if needed */
-                #if (0u != DP_POSITION_FILTER_EN)
-                    /* Position filter configuration is stored in the widget static config register */
-                    filterConfig = (uint32)ptrFlashWdgt->staticConfig;
-
-                    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-                        /* Run filter for X position */
-                        DpFilterLinSlider(newPosX, filterConfig, &ptrRamWdgt->posX,
-                            (NULL != ptrHistory) ? &(ptrHistory->xPos) : NULL);
-
-                        /* Run filter for Y position */
-                        DpFilterLinSlider(newPosY, filterConfig, &ptrRamWdgt->posY,
-                            (NULL != ptrHistory) ? &(ptrHistory->yPos) : NULL);
-                    #else
-                        /* Run filter for X position */
-                        DpFilterLinSlider(newPosX, filterConfig, &ptrRamWdgt->posX, NULL);
-
-                        /* Run filter for Y position */
-                        DpFilterLinSlider(newPosY, filterConfig, &ptrRamWdgt->posY, NULL);
-                    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+                /* Run local maximum search for Column sensors of touchpad */
+                #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
+                    numLocalMax = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrSnsTmp,
+                                                                            (uint32)ptrFlashWdgt->numCols, touchTh);
                 #else
-                    ptrRamWdgt->posX = newPosX;
-                    ptrRamWdgt->posY = newPosY;
-                #endif /* #if (0u != DP_POSITION_FILTER_EN) */
-            }
-        }
+                    numLocalMax = CapSense_DpFindLocalMaxSd(ptrSnsTmp, (uint32)ptrFlashWdgt->numCols, touchTh);
+                #endif
 
-        if (numLocalMax > 1u)
-        {
-            /* Clear centroid position data */
-            ptrRamWdgt->posX = CapSense_TOUCHPAD_POS_NONE;
-            ptrRamWdgt->posY = CapSense_TOUCHPAD_POS_NONE;
+                CY_ASSERT(0u != numLocalMax); /* There must be at least one local maximum found */
 
-            /* Clear history data if available */
-            #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
-                if (NULL != ptrHistory)
+                /* Verify how many local maximums are found on X axis.
+                 * The CSD Touchpads support only one finger touch so we should have only one local maximum per axis.
+                 * If more are found then there are multiple finger touches and it is not possible to recover their position.
+                 */
+                if (1u == numLocalMax)
                 {
-                    ptrHistory->xPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-                    ptrHistory->xPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
-                    ptrHistory->yPos.posMedianZ1 = CapSense_TOUCHPAD_POS_NONE;
-                    ptrHistory->yPos.posMedianZ2 = CapSense_TOUCHPAD_POS_NONE;
+                    /* Run centroid algorithm for the X axis */
+                    #if (CapSense_ENABLE == CapSense_TOUCHPAD_MULT_METHOD)
+                        (void)CapSense_DpCalcLinearCentroid(&posXTmp, (uint32)ptrFlashWdgt->xCentroidMultiplier,
+                                    (uint32)ptrFlashWdgt->numCols, (uint32)(ptrFlashWdgt->xCentroidMultiplier >> 1));
+                    #else
+                        (void)CapSense_DpCalcLinearCentroid(&posXTmp, (uint32)ptrFlashWdgt->xCentroidMultiplier,
+                                    (uint32)ptrFlashWdgt->numCols, 0u);
+                    #endif
+
+                    /* Get pointer to Row RAM sensor structure array */
+                    ptrSnsTmp += ptrFlashWdgt->numCols;
+
+                    /* Run local maximum search for Row sensors of touchpad */
+                    #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
+                        numLocalMax = CapSense_DpFindLocalMaxSd4pts(ptrFlashWdgt, ptrSnsTmp,
+                                                                                (uint32)ptrFlashWdgt->numRows, touchTh);
+                    #else
+                        numLocalMax = CapSense_DpFindLocalMaxSd(ptrSnsTmp, (uint32)ptrFlashWdgt->numRows, touchTh);
+                    #endif
+
+                    CY_ASSERT(0u != numLocalMax); /* There must be at least one local maximum found */
+
+                    /* Verify how many local maximums are found on Y axis.
+                     * The CSD Touchpads support only one finger touch so we should have only one local maximum per axis.
+                     * If more are found then it is not possible to recover finger position.
+                     */
+                    if (1u == numLocalMax)
+                    {
+                        /* Run centroid algorithm for the Y axis */
+                        #if (CapSense_ENABLE == CapSense_TOUCHPAD_MULT_METHOD)
+                            (void)CapSense_DpCalcLinearCentroid(&posYTmp, (uint32)ptrFlashWdgt->yCentroidMultiplier,
+                                        (uint32)ptrFlashWdgt->numRows, (uint32)(ptrFlashWdgt->yCentroidMultiplier >> 1u));
+                        #else
+                            (void)CapSense_DpCalcLinearCentroid(&posYTmp, (uint32)ptrFlashWdgt->yCentroidMultiplier,
+                                        (uint32)ptrFlashWdgt->numRows, 0u);
+                        #endif
+
+                        /* Now filter the X and Y position data if needed */
+                        #if (0u != CapSense_POSITION_FILTER_EN)
+                            if (NULL != ptrHistory)
+                            {
+                                /* If there were no touch initialize the current position with new position data */
+                                if (ptrRamWdgt->posX == CapSense_TOUCHPAD_POS_NONE)
+                                {
+                                    CapSense_InitPosFiltersDd(ptrHistory, posXTmp, posYTmp);
+                                }
+                                else
+                                {
+                                    CapSense_RunPosFiltersDd(ptrFlashWdgt, 0u, 0u, &posXTmp, &posYTmp);
+                                }
+                            }
+                        #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+
+                        ptrRamWdgt->posX = posXTmp;
+                        ptrRamWdgt->posY = posYTmp;
+                    }
                 }
-            #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
-        }
+                if (numLocalMax > 1u)
+                {
+                    /* Clear centroid position data for 3x3 CSD touchpad */
+                    ptrRamWdgt->posX = CapSense_TOUCHPAD_POS_NONE;
+                    ptrRamWdgt->posY = CapSense_TOUCHPAD_POS_NONE;
+
+                    /* Clear position filter history data if available */
+                    #if (0u != CapSense_POSITION_FILTER_EN)
+                        if (NULL != ptrHistory)
+                        {
+                            CapSense_InitPosFiltersDd(ptrHistory, CapSense_TOUCHPAD_POS_NONE, CapSense_TOUCHPAD_POS_NONE);
+                        }
+                    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
+                }
+            }
+        #endif
     }
 
     return currStatus;
@@ -2229,9 +2527,7 @@ void CapSense_DpDeconvolution(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt)
     uint32 txCount = ptrFlashWdgt->numRows;
     uint32 rxCount = ptrFlashWdgt->numCols;
     const int16 *ptrSolveTable = ptrFlashWdgt->ptr2TxMultiphaseCoeff;
-    CapSense_RAM_SNS_STRUCT *ptrSns = (CapSense_RAM_SNS_STRUCT *)ptrFlashWdgt->ptr2SnsRam;
-
-    CY_ASSERT(ptrSolveTable);/* This table must be available for widgets with multiphase TX */
+    CapSense_RAM_SNS_STRUCT *ptrSnsTmp = (CapSense_RAM_SNS_STRUCT *)ptrFlashWdgt->ptr2SnsRam;
 
     /* Run deconvolution algorithm for each touchpad column */
     for (rxNum = 0u; rxNum < rxCount; rxNum++)
@@ -2253,7 +2549,7 @@ void CapSense_DpDeconvolution(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt)
                         stInd = stNum - txNum;
                     }
 
-                    accRaw += (int32)ptrSns[rxNum * txCount + stNum].raw[freqNum] * (int32)ptrSolveTable[stInd];
+                    accRaw += (int32)ptrSnsTmp[rxNum * txCount + stNum].raw[freqNum] * (int32)ptrSolveTable[stInd];
                 }
 
                 /* Save calculated raw value to the temporary buffer. It is not possible at
@@ -2265,7 +2561,7 @@ void CapSense_DpDeconvolution(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt)
 
             for (txNum = 0u; txNum < txCount; txNum++)
             {
-                ptrSns[rxNum * txCount + txNum].raw[freqNum] = deconvRowData[txNum];
+                ptrSnsTmp[rxNum * txCount + txNum].raw[freqNum] = deconvRowData[txNum];
             }
         }
     }

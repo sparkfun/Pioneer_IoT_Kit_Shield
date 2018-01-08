@@ -5,8 +5,8 @@
 * Common header file to be included by the drivers.
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright
@@ -51,6 +51,14 @@
     #include "cy8c68237bz_ble.h"
 #elif defined (CY8C68237FM_BLE)
     #include "cy8c68237fm_ble.h"
+#elif defined (CY8C6336BZI_BUD13)
+    #include "cy8c6336bzi_bud13.h"
+#elif defined (CY8C6347BZI_BUD43)
+    #include "cy8c6347bzi_bud43.h"
+#elif defined (CY8C6347BZI_BUD33)
+    #include "cy8c6347bzi_bud33.h"
+#elif defined (CY8C6347BZI_BUD53)
+    #include "cy8c6347bzi_bud53.h"
 #else
     #error Undefined part number
 #endif

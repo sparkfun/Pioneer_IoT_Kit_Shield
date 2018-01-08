@@ -3,7 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the HAL section of the BLE component
+*  This file contains the source code for the HAL section of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -21,15 +21,16 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include "cy_ble_hal_pvt.h"
+#include "ipc/cy_ipc_sema.h"
 
-#if ((CY_BLE_STACK_MODE_IPC) && (CY_BLE_HOST_CORE))
-    
+#if ((CY_BLE_MODE_PROFILE) && (CY_BLE_STACK_MODE_IPC) && (CY_BLE_HOST_CORE))
 /* BLE application IPC notification handler */
-static cy_ble_ipc_app_notif_callback_t Cy_BLE_IPC_HostRegisteredCallback;
-    
-#endif /* ((CY_BLE_STACK_MODE_IPC) && (CY_BLE_HOST_CORE)) */
-    
-
+static cy_ble_ipc_app_notif_callback_t Cy_BLE_IPC_HostRegisteredCallback;     
+#endif /* ((CY_BLE_MODE_PROFILE) && (CY_BLE_STACK_MODE_IPC) && (CY_BLE_HOST_CORE)) */
+   
+#if (CY_BLE_HOST_CORE)
+cy_ble_intr_callback_t Cy_BLE_InterruptCallback;    
+#endif /* (CY_BLE_HOST_CORE) */
 
 #if (CY_BLE_HOST_CONTR_CORE)
 #if (CY_BLE_STACK_MODE_HOST_UART)
@@ -39,8 +40,7 @@ static cy_ble_ipc_app_notif_callback_t Cy_BLE_IPC_HostRegisteredCallback;
 * Function Name: Cy_BLE_HAL_HOST_UART_Start
 ****************************************************************************//**
 *
-*  Enables the platform UART TX and RX interrupts and then enables the UART
-*  component.
+*  Enables the platform UART TX and RX interrupts and then enables the UART.
 *
 * \return
 *  None
@@ -197,7 +197,7 @@ void Cy_BLE_HAL_UART_Interrupt(void)
     /* Evaluate TX interrupt event in sequence */
     srcInterrupt = Cy_SCB_GetTxInterruptStatusMasked(cy_ble_configPtr->uartHw);
 
-    /* Stack manager TX UART complete */
+    /* BLE Stack manager TX UART complete */
     if(0u != (srcInterrupt & CY_SCB_TX_INTR_UART_DONE))
     {
         if(0u != (srcInterrupt & CY_SCB_TX_INTR_OVERFLOW))
@@ -218,8 +218,7 @@ void Cy_BLE_HAL_UART_Interrupt(void)
 * Function Name: Cy_BLE_HAL_UART_Start
 ****************************************************************************//**
 *
-*  Enables the platform UART TX and RX interrupts and then enables the UART
-*  component.
+*  Enables the platform UART TX and RX interrupts and then enables the UART.
 *
 * \return
 *  None
@@ -417,16 +416,17 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramWrite(const uint8_t buffer[],
     eeOffset = (uint32_t)varFlash;
     writeBufferPointer = (uint8_t*)writeBuffer;
 
-    /* Make sure, that varFlash[] points to Flash or WFlash */
+    /* Make sure, that varFlash[] points to Flash or Emulated EEPROM */
     if(((eeOffset >= CY_FLASH_BASE) &&
         ((eeOffset + length) <= (CY_FLASH_BASE + CY_FLASH_SIZE))) ||
-       ((eeOffset >= CY_WFLASH_BASE) &&
-        ((eeOffset + length) <= (CY_WFLASH_BASE + CY_WFLASH_SIZE))) ||
+       ((eeOffset >= CY_EM_EEPROM_BASE) &&
+        ((eeOffset + length) <= (CY_EM_EEPROM_BASE + CY_EM_EEPROM_SIZE))) ||
        ((eeOffset >= (uint32_t)SFLASH->BLE_DEVICE_ADDRESS) &&
         ((eeOffset + length) <= ((uint32_t)SFLASH->BLE_DEVICE_ADDRESS + CY_FLASH_SIZEOF_ROW))))
     {
         cy_en_syspm_simo_buck_voltage1_t simoVoltage = CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_1_1V;
         cy_en_syspm_ldo_voltage_t ldoVoltage = CY_SYSPM_LDO_VOLTAGE_1_1V;
+        bool writeFlag = false;
         
         if(Cy_SysPm_SimoBuckIsEnabled())
         {
@@ -449,7 +449,12 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramWrite(const uint8_t buffer[],
         rowId = eeOffset / CY_FLASH_SIZEOF_ROW;
         byteOffset = CY_FLASH_SIZEOF_ROW * rowId;
 
-        while((srcIndex < length) && (rc == CY_FLASH_DRV_SUCCESS))
+        
+        /* Inform Controller core about write operation */
+        (void)Cy_IPC_Sema_Set(CY_BLE_SEMA, true);
+        
+        
+        while((rc == CY_FLASH_DRV_SUCCESS) && (srcIndex < length))
         {
             rowsNotEqual = 0u;
             /* Copy data to the write buffer either from the source buffer or from the flash */
@@ -500,13 +505,23 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramWrite(const uint8_t buffer[],
                         }
                         while (rc == CY_FLASH_DRV_OPCODE_BUSY);
                     }
-                }
-                
+                } 
+                writeFlag = true;
             }
 
             /* Go to the next row */
             rowId++;
         }
+        
+        /* Clear Flash Cache and Buffer after write operation */
+        if(writeFlag == true)
+        {
+            Cy_SysLib_ClearFlashCacheAndBuffer();
+        }
+        
+        /* Inform Controller core about complete of write operation */
+        (void)Cy_IPC_Sema_Clear(CY_BLE_SEMA, false);
+              
         if((Cy_SysPm_SimoBuckIsEnabled()) && (simoVoltage == CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_0_9V))
         {   /* Return core voltage */
             Cy_SysPm_SimoBuckSetVoltage1(CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_0_9V);
@@ -591,9 +606,9 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
      
     writeBufferPointer = (uint8_t*)writeBuffer;
 
-    /* Make sure, that varFlash[] points to Flash or WFlash */
+    /* Make sure, that varFlash[] points to Flash or Emulated EEPROM */
     if((((eeOffset >= CY_FLASH_BASE) && ((eeOffset + length) <= (CY_FLASH_BASE + CY_FLASH_SIZE))) ||
-       ((eeOffset >= CY_WFLASH_BASE) && ((eeOffset + length) <= (CY_WFLASH_BASE + CY_WFLASH_SIZE)))) &&
+       ((eeOffset >= CY_EM_EEPROM_BASE) && ((eeOffset + length) <= (CY_EM_EEPROM_BASE + CY_EM_EEPROM_SIZE)))) &&
         (length <= CY_FLASH_SIZEOF_ROW)
     )
     {
@@ -632,7 +647,10 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
 
                 /* Start a new write */
                 if(rowNotEqual != false)
-                {         
+                {                     
+                    /* Inform BLE syspm callback about write operation */
+                    (void)Cy_IPC_Sema_Set(CY_BLE_SEMA, true);
+                            
                     /* Increase core voltage for write to flash operation */
                     if(Cy_SysPm_SimoBuckIsEnabled())
                     {
@@ -662,8 +680,10 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
                         /* Set flag for restore core voltage */
                         restoreCoreVoltage = true;
                     }
-                    
-                    nvramState = CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS;   
+                    else
+                    {
+                        nvramState = CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS;
+                    }
                 }
                 else
                 {
@@ -674,20 +694,29 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
             case CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS:
                 
                 /* Check the status of the Flash operation */
-                rc = Cy_Flash_IsWriteComplete();
+                rc = Cy_Flash_IsOperationComplete();
                 
                 if(rc == CY_FLASH_DRV_SUCCESS)
                 {
                     nvramState = CY_BLE_SUCCESS;
-                    restoreCoreVoltage = true;      
+                    restoreCoreVoltage = true;
                 }
-                             
-                if(rc == CY_FLASH_DRV_OPCODE_BUSY)
+                else if ((rc & CY_FLASH_ID_ERROR) == CY_FLASH_ID_ERROR)
+                {
+                    nvramState = CY_BLE_ERROR_FLASH_WRITE;
+                    restoreCoreVoltage = true;
+                    
+                }
+                else if((rc & CY_FLASH_ID_INFO) == CY_FLASH_ID_INFO)
                 {
                     nvramState = CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS;
                 }
+                else 
+                {
+                    /* empty else */
+                }
                 break;
-                
+               
             default:
                 break;
         }
@@ -703,6 +732,9 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
             {   /* Return core voltage */
                 Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_0_9V);
             }  
+                
+            /* Inform BLE syspm callback about complete of write operation */
+            (void)Cy_IPC_Sema_Clear(CY_BLE_SEMA, false);      
         }
     }
     else
@@ -711,6 +743,33 @@ cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[
     }
 
     return(nvramState);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_BLE_HAL_StackNvramWrite
+****************************************************************************//**
+*
+*  This function is used by stack to perform flash write
+*
+*  This function is designated for internal usage.
+*
+* \param buffer:   Pointer to the buffer containing the data to be stored.
+* \param varFlash: Pointer to the array or variable in the flash.
+* \param length:   The length of the data in bytes.
+*
+* \return
+*  CY_BLE_SUCCESS                       A successful write
+*  CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS  Row writing in progress
+*  CY_BLE_ERROR_INVALID_PARAMETER       At least one of the input parameters is invalid
+*  CY_BLE_ERROR_FLASH_WRITE             Error in flash Write
+*
+*******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_HAL_StackNvramWrite(const uint8_t buffer[],
+                                                  const uint8_t varFlash[],
+                                                  uint32_t length)
+{
+    return(Cy_BLE_HAL_NvramWrite(buffer, varFlash, length));
 }
 
 
@@ -800,17 +859,6 @@ uint8_t Cy_BLE_HAL_CalcCRC8(uint8_t data[], uint32_t length)
 *  1 - CSP package
 *  
 *******************************************************************************/
-/*******************************************************************************
-* Function Name: Cy_BLE_HAL_GetIcPackageType
-****************************************************************************//**
-*
-*  This function returns package type
-*
-* return:
-*  0 - BGA package
-*  1 - CSP package
-*  
-*******************************************************************************/
 uint32_t Cy_BLE_HAL_GetIcPackageType(void)
 {
     return((CY_GPIO_PACKAGE_TYPE == CY_GPIO_PACKAGE_CSP) ? 1u : 0u);
@@ -847,7 +895,7 @@ void Cy_BLE_HAL_DelayMs(uint32_t delayVal)
 * Function Name: Cy_BLE_HAL_EnableGlobalInterrupts
 ****************************************************************************//**
 *
-*  This function enables all interrupt used by the component.
+*  This function enables all interrupt used by the BLE Middleware.
 *
 *******************************************************************************/
 void Cy_BLE_HAL_EnableGlobalInterrupts(void)
@@ -875,7 +923,7 @@ void Cy_BLE_HAL_EnableGlobalInterrupts(void)
 * Function Name: Cy_BLE_HAL_DisableGlobalInterrupts
 ****************************************************************************//**
 *
-*  This disables all interrupt used by the component.
+*  This disables all interrupt used by the BLE Middleware.
 *
 *******************************************************************************/
 void Cy_BLE_HAL_DisableGlobalInterrupts(void)
@@ -898,7 +946,10 @@ void Cy_BLE_HAL_DisableGlobalInterrupts(void)
 #endif /* (CY_BLE_CONFIG_STACK_CONTR_CORE) */
 }
 
-/* Stack Interface to clock */
+
+/** 
+ * BLE Stack Interface to clock 
+ */
 
 /*******************************************************************************
 * Function Name: Cy_BLE_HAL_LfClkGetSource
@@ -925,7 +976,7 @@ int32_t Cy_BLE_HAL_ClkMeasurementCountersDone(void)
 }
 
 /*******************************************************************************
-* Function Name: Cy_BLE_HAL_ClkMeasurementCountersGetClock2Freq
+* Function Name: Cy_BLE_HAL_ClkMeasurementCountersGetFreq
 ****************************************************************************//**
 *
 *  Interface to Cy_SysClk_ClkMeasurementCountersGetFreq function.
@@ -979,13 +1030,17 @@ void Cy_BLE_HAL_BlessStart(void)
 {
     Cy_BLE_HAL_Init();
 
-    /* Configures external power apmlifier outputs. */
+    /* Configures external power amplifier outputs. */
     Cy_BLE_ConfigureExtPA(BLE_BLESS_EXT_PA_LNA_CTRL_ENABLE_EXT_PA_LNA_Msk |
                           (CY_BLE_CONFIG_EXT_PA_ENABLED ? BLE_BLESS_EXT_PA_LNA_CTRL_OUT_EN_DRIVE_VAL_Msk : 0u));
 
 #if (CY_BLE_CONFIG_STACK_CONTR_CORE)
     /* Setup BLESS ISR */
+#if (CY_BLE_CYOS_SUPPORT)
+    (void)Cy_SysInt_Init(cy_ble_configPtr->blessIsrConfig, &Cy_BLE_CyOsBlessInterrupt);
+#else
     (void)Cy_SysInt_Init(cy_ble_configPtr->blessIsrConfig, &Cy_BLE_BlessInterrupt);
+#endif /* (CY_BLE_CYOS_SUPPORT) */
     NVIC_EnableIRQ((IRQn_Type)cy_ble_configPtr->blessIsrConfig->intrSrc);
 #endif /* (CY_BLE_CONFIG_STACK_CONTR_CORE) */
 }
@@ -1062,7 +1117,11 @@ void Cy_BLE_HAL_SimoBuckSetVoltage2(cy_en_syspm_simo_buck_voltage2_t voltage)
 
 
 #if (CY_BLE_STACK_MODE_IPC)
-
+/**
+ *   
+ * BLE Stack Interface to IPC 
+ *
+ */
 
 /*******************************************************************************
 * Function Name: Cy_BLE_Ipc_Cypipe_Isr_Enable
@@ -1100,8 +1159,50 @@ void Cy_BLE_Ipc_Cypipe_Isr_Disable(void)
 }
 
 #if (CY_BLE_CONFIG_STACK_CONTR_CORE)
+static cy_ipc_pipe_callback_ptr_t Cy_BLE_IPC_CtrlMsgFlushRecvStackHandle;
+static void Cy_BLE_IPC_CtrlMsgFlushRecvCallBack(uint32_t * msgPtr);
+
+/*******************************************************************************
+* Function Name: Cy_BLE_IPC_CtrlMsgFlushRecvCallBack
+****************************************************************************//**
+*
+* This a callback to be called when a message is received on a pipe.
+*
+* \param msgPtr
+* Pointer to the callback message.
+*
+*******************************************************************************/    
+static void Cy_BLE_IPC_CtrlMsgFlushRecvCallBack(uint32_t * msgPtr)
+{
+    /* Call BLE Stack IPC handler */
+    Cy_BLE_IPC_CtrlMsgFlushRecvStackHandle(msgPtr);
+}
 
 
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+/*******************************************************************************
+* Function Name: Cy_BLE_IPC_ContrIntrFeatureCallBack
+****************************************************************************//**
+*
+* This a callback to be called when a message is received on a pipe.
+*
+* \param msgPtr
+* Pointer to the callback message.
+*
+*******************************************************************************/
+static void Cy_BLE_IPC_ContrIntrFeatureCallBack(uint32_t * msgPtr);
+static void Cy_BLE_IPC_ContrIntrFeatureCallBack(uint32_t * msgPtr)
+{
+    if((msgPtr != NULL) && (((cy_stc_ble_ipc_msg_t *)msgPtr)->pktType == 0xffu))
+    {
+        /* Set up Interrupt Notification Feature mask  */
+        cy_ble_interruptCallbackFeatureMask = ((cy_stc_ble_ipc_msg_t *)msgPtr)->data;
+    }   
+}
+
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+    
+    
 /*******************************************************************************
 * Function Name: Cy_BLE_IPC_ControllerRegisterClientCallbacks
 ****************************************************************************//**
@@ -1117,20 +1218,31 @@ void Cy_BLE_Ipc_Cypipe_Isr_Disable(void)
 *  \return
 *    CY_IPC_PIPE_SUCCESS          - Callback registered successfully
 *    CY_IPC_PIPE_ERROR_BAD_CLIENT - Client ID out of range, callback not registered.
+*
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_ControllerRegisterClientCallbacks(cy_ipc_pipe_callback_ptr_t ctrlMsgRecvCallBack,
                                                                      cy_ipc_pipe_callback_ptr_t ctrlMsgFlushRecvCallBack)
 {
     cy_en_ipc_pipe_status_t returnStatus;
 
+    Cy_BLE_IPC_CtrlMsgFlushRecvStackHandle = ctrlMsgFlushRecvCallBack;
+    
     returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_CONTROLLER_ADDR, ctrlMsgRecvCallBack,
                                                 CY_BLE_CYPIPE_MSG_SEND_ID);
 
     if(returnStatus == CY_IPC_PIPE_SUCCESS)
     {
-        returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_CONTROLLER_ADDR, ctrlMsgFlushRecvCallBack,
+        returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_CONTROLLER_ADDR, &Cy_BLE_IPC_CtrlMsgFlushRecvCallBack,
                                                     CY_BLE_CYPIPE_MSG_COMPLETE_ID);
     }
+
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)    
+    if(returnStatus == CY_IPC_PIPE_SUCCESS)
+    {
+        returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_CONTROLLER_ADDR, &Cy_BLE_IPC_ContrIntrFeatureCallBack,
+                                                    0x03u);
+    }
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
 
     return(returnStatus);
 }
@@ -1152,17 +1264,18 @@ cy_en_ipc_pipe_status_t Cy_BLE_IPC_ControllerRegisterClientCallbacks(cy_ipc_pipe
 * Pointer to the callback to be called when the handle has received a message.
 *
 *  \return
-*    CY_IPC_PIPE_SUCCESS - message was sent to the other end of the pipe
+*    CY_IPC_PIPE_SUCCESS    - message was sent to the other end of the pipe
 *    CY_IPC_PIPE_BAD_HANDLE - the handle provided for the pipe was not valid
-*    CY_IPC_PIPE_SEND_BUSY - the pipe is already busy sending a message
-*    CY_IPC_PIPE_DIR_ERROR - tried to send on the "to" end of a unidirectional pipe
+*    CY_IPC_PIPE_SEND_BUSY  - the pipe is already busy sending a message
+*    CY_IPC_PIPE_DIR_ERROR  - tried to send on the "to" end of a unidirectional pipe
+*
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_SendMessageToHost(uint32_t *msg,
                                                      cy_ipc_pipe_relcallback_ptr_t controllerIpcRelCallBack,
                                                      cy_ipc_pipe_relcallback_ptr_t controllerPollCallBack)
 {
     cy_en_ipc_pipe_status_t returnStatus;
-
+    
     returnStatus = Cy_IPC_Pipe_SendMessage(CY_BLE_IPC_HOST_ADDR, CY_BLE_IPC_CONTROLLER_ADDR, msg,
                                            controllerIpcRelCallBack);
 
@@ -1176,35 +1289,84 @@ cy_en_ipc_pipe_status_t Cy_BLE_IPC_SendMessageToHost(uint32_t *msg,
 
 #endif /* (CY_BLE_CONFIG_STACK_CONTR_CORE) */
 
-#if (CY_BLE_HOST_CORE)
+#if ((CY_BLE_MODE_PROFILE) && (CY_BLE_HOST_CORE))
 
-/* BLE stack IPC Host handler */
+/* BLE Stack IPC Host handler */
+static cy_ipc_pipe_callback_ptr_t Cy_BLE_IPC_HostMsgRecvStackHandle;
 static cy_ipc_pipe_callback_ptr_t Cy_BLE_IPC_HostMsgFlushRecvStackHandle;
-static void Cy_BLE_IPC_HostMsgFlushRecvCallBack(uint32_t * msgPtr);
-
     
+/* BLE Middleware IPC Host handler */
+static void Cy_BLE_IPC_HostMsgFlushRecvCallBack(uint32_t * msgPtr);
+static void Cy_BLE_IPC_HostMsgRecvCallBack(uint32_t * msgPtr);   
+
+
 /*******************************************************************************
 * Function Name: Cy_BLE_IPC_HostMsgFlushRecvCallBack
 ****************************************************************************//**
 *
-* This a callbacks to be called when a message is received on a pipe.
+* This a callback to be called when the handle has received a flush message.
 *
 * \param msgPtr
 * Pointer to the callback message.
 *
 *******************************************************************************/    
-static void Cy_BLE_IPC_HostMsgFlushRecvCallBack(uint32_t * msgPtr)
+static void Cy_BLE_IPC_HostMsgFlushRecvCallBack(uint32_t *msgPtr)
 {
-    /* Call BLE stack IPC handler */
+    /* Call the BLE Stack IPC handler */
     Cy_BLE_IPC_HostMsgFlushRecvStackHandle(msgPtr);
-    
+
     /* Call the application IPC notification handler */
     if(Cy_BLE_IPC_HostRegisteredCallback != NULL)
     {
         Cy_BLE_IPC_HostRegisteredCallback();
     }
 }
-    
+
+
+/*******************************************************************************
+* Function Name: Cy_BLE_IPC_HostMsgRecvCallBack
+****************************************************************************//**
+*
+* This a callback to be called when a message is received on a pipe.
+*
+* \param msgPtr
+* Pointer to the callback message.
+*
+*******************************************************************************/    
+static void Cy_BLE_IPC_HostMsgRecvCallBack(uint32_t *msgPtr)
+{
+    if(msgPtr != NULL)
+    {
+        /* Call the BLE Stack IPC handler */
+        Cy_BLE_IPC_HostMsgRecvStackHandle(msgPtr);
+    }
+}
+
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+/*******************************************************************************
+* Function Name: Cy_BLE_IPC_HostIntrFeatureCallBack
+****************************************************************************//**
+*
+* This a callback to be called when a message is received on a pipe.
+*
+* \param msgPtr
+* Pointer to the callback message.
+*
+*******************************************************************************/    
+static void Cy_BLE_IPC_HostIntrFeatureCallBack(uint32_t * msgPtr);
+static void Cy_BLE_IPC_HostIntrFeatureCallBack(uint32_t * msgPtr)
+{
+    if(msgPtr != NULL)
+    {
+        if( (((cy_stc_ble_ipc_msg_t *)msgPtr)->pktType == 0xffu) && (Cy_BLE_InterruptCallback != NULL))
+        {
+            /* Call the BLE interrupt feature handler */
+            Cy_BLE_InterruptCallback(((cy_stc_ble_ipc_msg_t *)msgPtr)->data);
+        }
+    }
+}
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+
 /*******************************************************************************
 * Function Name: Cy_BLE_IPC_HostRegisterClientCallbacks
 ****************************************************************************//**
@@ -1218,23 +1380,34 @@ static void Cy_BLE_IPC_HostMsgFlushRecvCallBack(uint32_t * msgPtr)
 * Pointer to the callback to be called when the handle has received a flush message.
 *
 *  \return
-*    CY_IPC_PIPE_SUCCESS       - Callback registered successfully
+*    CY_IPC_PIPE_SUCCESS          - Callback registered successfully
 *    CY_IPC_PIPE_ERROR_BAD_CLIENT - Client ID out of range, callback not registered.
+*
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_HostRegisterClientCallbacks(cy_ipc_pipe_callback_ptr_t hostMsgRecvCallBack,
                                                                cy_ipc_pipe_callback_ptr_t hostMsgFlushRecvCallBack)
 {
     cy_en_ipc_pipe_status_t returnStatus;
     
+    Cy_BLE_IPC_HostMsgRecvStackHandle      = hostMsgRecvCallBack;
     Cy_BLE_IPC_HostMsgFlushRecvStackHandle = hostMsgFlushRecvCallBack;
-
-    returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_HOST_ADDR, hostMsgRecvCallBack, CY_BLE_CYPIPE_MSG_SEND_ID);
+    
+    returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_HOST_ADDR, &Cy_BLE_IPC_HostMsgRecvCallBack,
+                                                CY_BLE_CYPIPE_MSG_SEND_ID);
 
     if(returnStatus == CY_IPC_PIPE_SUCCESS)
     {
         returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_HOST_ADDR, &Cy_BLE_IPC_HostMsgFlushRecvCallBack,
                                                     CY_BLE_CYPIPE_MSG_COMPLETE_ID);
     }
+    
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)    
+    if(returnStatus == CY_IPC_PIPE_SUCCESS)
+    {
+        returnStatus = Cy_IPC_Pipe_RegisterCallback(CY_BLE_IPC_HOST_ADDR, &Cy_BLE_IPC_HostIntrFeatureCallBack,
+                                                    0x03u);
+    }
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
 
     return(returnStatus);
 }
@@ -1290,6 +1463,7 @@ cy_en_ble_api_result_t Cy_BLE_IPC_RegisterAppHostCallback(cy_ble_ipc_app_notif_c
 *    CY_IPC_PIPE_BAD_HANDLE - the handle provided for the pipe was not valid
 *    CY_IPC_PIPE_SEND_BUSY - the pipe is already busy sending a message
 *    CY_IPC_PIPE_DIR_ERROR - tried to send on the "to" end of a unidirectional pipe
+*
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_SendMessageToController(uint32_t *msg,
                                                            cy_ipc_pipe_relcallback_ptr_t hostIpcRelCallBack,

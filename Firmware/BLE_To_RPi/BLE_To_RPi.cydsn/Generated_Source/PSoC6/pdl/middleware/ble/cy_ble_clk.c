@@ -248,7 +248,7 @@ static cy_en_ble_eco_status_t Cy_BLE_HalEcoSetTrim(uint8_t trim)
 ****************************************************************************//**
 *
 *  Enables and configures radio clock.
-*
+*  
 *  \param ecoConfig: Clock configuration of type 'cy_stc_ble_bless_eco_cfg_params_t'.
 *
 *  \return
@@ -326,8 +326,8 @@ static cy_en_ble_eco_status_t Cy_BLE_HalMxdRadioEnableClocks(const cy_stc_ble_bl
                           (CY_BLE_RF_DCXO_BUF_CFG_REG_BUF_AMP_SEL_MASK << CY_BLE_RF_DCXO_BUF_CFG_REG_BUF_AMP_SEL_SHIFT)));
 
         /* Total ECO divider consist of divider located on BLERD and BLESS divider
-         * Set BLERD divider to maximum value taking in to account that 8 Mhz is required for BLELL
-         * BLELL clock frequency is set to 8Mhz irrespective of the crystal value.
+         * Set BLERD divider to maximum value taking in to account that 8 MHz is required for BLELL
+         * BLELL clock frequency is set to 8 MHz irrespective of the crystal value.
          */
         if(ecoConfig->ecoFreq == CY_BLE_BLESS_ECO_FREQ_32MHZ)
         {
@@ -378,6 +378,49 @@ static cy_en_ble_eco_status_t Cy_BLE_HalMxdRadioEnableClocks(const cy_stc_ble_bl
         BLE->BLESS.XTAL_CLK_DIV_CONFIG = temp;
     }
     
+    /* Update RADIO LDO trim values */
+    if((Cy_SysLib_GetDeviceRevision() != CY_SYSLIB_DEVICE_REV_0A) && (SFLASH->RADIO_LDO_TRIMS != 0u))
+    {
+        if(status == CY_BLE_ECO_SUCCESS)
+        {
+            status = Cy_BLE_HalRcbRegRead(CY_BLE_RF_LDO_CFG_REG, &temp);
+        }
+        
+        if(status == CY_BLE_ECO_SUCCESS) 
+        {      
+            /* Update LDO_IF value */
+            temp &= (uint16_t)~(CY_BLE_RF_LDO_CFG_REG_LDO_IF_CFG_MASK << CY_BLE_RF_LDO_CFG_REG_LDO_IF_CFG_SHIFT); 
+            temp |= (uint16_t)(((SFLASH->RADIO_LDO_TRIMS & SFLASH_RADIO_LDO_TRIMS_LDO_IF_Msk) >>
+                       SFLASH_RADIO_LDO_TRIMS_LDO_IF_Pos) << CY_BLE_RF_LDO_CFG_REG_LDO_IF_CFG_SHIFT);
+            
+            /* Update LDO_ACT value */
+            temp &= (uint16_t)~(CY_BLE_RF_LDO_CFG_REG_LDO_ACT_CFG_MASK << CY_BLE_RF_LDO_CFG_REG_LDO_ACT_CFG_SHIFT);   
+            temp |= (uint16_t)(((SFLASH->RADIO_LDO_TRIMS & SFLASH_RADIO_LDO_TRIMS_LDO_ACT_Msk) >>
+                       SFLASH_RADIO_LDO_TRIMS_LDO_ACT_Pos) << CY_BLE_RF_LDO_CFG_REG_LDO_ACT_CFG_SHIFT);
+            
+            /* Update LDO_DIG value */
+            temp &= (uint16_t)~(CY_BLE_RF_LDO_CFG_REG_LDO10_CFG_MASK << CY_BLE_RF_LDO_CFG_REG_LDO10_CFG_SHIFT);
+            temp |= (uint16_t)(((SFLASH->RADIO_LDO_TRIMS & SFLASH_RADIO_LDO_TRIMS_LDO_DIG_Msk) >>
+                       SFLASH_RADIO_LDO_TRIMS_LDO_DIG_Pos) << CY_BLE_RF_LDO_CFG_REG_LDO10_CFG_SHIFT);
+            
+            status = Cy_BLE_HalRcbRegWrite(CY_BLE_RF_LDO_CFG_REG, temp);
+        }
+        
+        if(status == CY_BLE_ECO_SUCCESS)
+        {
+           status = Cy_BLE_HalRcbRegRead(CY_BLE_RF_LDO_EN_REG, &temp);
+        }
+        
+        if(status == CY_BLE_ECO_SUCCESS)
+        {  
+            /* Update LDO_LNA value */
+            temp &= (uint16_t)~(CY_BLE_RF_LDO_EN_REG_LDO_RF_CFG_MASK << CY_BLE_RF_LDO_EN_REG_LDO_RF_CFG_SHIFT);
+            temp |= (uint16_t)(((SFLASH->RADIO_LDO_TRIMS & SFLASH_RADIO_LDO_TRIMS_LDO_LNA_Msk) >>
+                       SFLASH_RADIO_LDO_TRIMS_LDO_LNA_Pos) << CY_BLE_RF_LDO_EN_REG_LDO_RF_CFG_SHIFT); 
+            
+            status = Cy_BLE_HalRcbRegWrite(CY_BLE_RF_LDO_EN_REG, temp);
+        }
+    }
     return(status);
 }
 
@@ -404,11 +447,12 @@ void Cy_BLE_EcoStop(void)
 ****************************************************************************//**
 *
 *  Configures and starts BLE ECO clock.
-*  By default, BLE stack starts BLE ECO clock with default parameters:
-*   CY_BLE_DEFAULT_OSC_STARTUP_DELAY_LF
-*   CY_BLE_DEFAULT_CAP_TRIM_VALUE
-*   CY_BLE_DEFAULT_ECO_FREQ
-*   CY_BLE_DEFAULT_ECO_DIV
+*  By default, BLE Stack starts BLE ECO clock with default parameters:
+*   * CY_BLE_DEFAULT_OSC_STARTUP_DELAY_LF
+*   * CY_BLE_DEFAULT_CAP_TRIM_VALUE
+*   * CY_BLE_DEFAULT_ECO_FREQ
+*   * CY_BLE_DEFAULT_ECO_DIV
+*
 *  In case BLE ECO is used with different parameters, enable it in DWR or call
 *  this function with custom configuration.
 *
@@ -427,12 +471,16 @@ void Cy_BLE_EcoStop(void)
 *   The I/O pins will be automatically unfrozen coming out of hibernate when 
 *   the BLE ECO is in use.
 *
+*  \note Limitation: Do not call this API in case if BLE is executed with LPM.
+*   There is a risk that when Cy_BLE_EcoStart() function is called on one core,
+*   the BLE is in deep-sleep mode on other. It will cause a fault hard exception.
+*
 *******************************************************************************/
 cy_en_ble_eco_status_t Cy_BLE_EcoStart(const cy_stc_ble_bless_eco_cfg_params_t *ecoConfig)
 {
     cy_en_ble_eco_status_t status = CY_BLE_ECO_SUCCESS;
-    uint32_t temp;
-
+    uint32_t temp = 0u;
+    
     if(ecoConfig == NULL)
     {
         status = CY_BLE_ECO_BAD_PARAM;
@@ -516,48 +564,52 @@ cy_en_ble_eco_status_t Cy_BLE_EcoStart(const cy_stc_ble_bless_eco_cfg_params_t *
                                                 BLE_BLESS_MISC_EN_CTRL_BUCK_EN_CTRL_Msk);
                 }
 
-                /* Enable the VIO supply and LDO in standby mode for slow ramp */
-                temp = BLE->BLESS.MT_CFG;
-                temp |= BLE_BLESS_MT_CFG_HVLDO_BYPASS_Msk |
-                        BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_BYPASS_Msk |
-                        BLE_BLESS_MT_CFG_HVLDO_EN_Msk |
-                        BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_EN_Msk;
-                BLE->BLESS.MT_CFG = temp;
-                Cy_SysLib_DelayUs(64u);
-
-                if((BLE->BLESS.MT_VIO_CTRL & BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk) == 0u)
+                if(status == CY_BLE_ECO_SUCCESS)
                 {
-                    /* Enable LDO */
-                    BLE->BLESS.MT_VIO_CTRL = BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk;
-
-                    /* Wait for 64us after turning HVLDO ON */
+                    /* Enable the VIO supply and LDO in standby mode for slow ramp */
+                    temp = BLE->BLESS.MT_CFG;
+                    temp |= BLE_BLESS_MT_CFG_HVLDO_BYPASS_Msk |
+                            BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_BYPASS_Msk |
+                            BLE_BLESS_MT_CFG_HVLDO_EN_Msk |
+                            BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_EN_Msk;
+                    BLE->BLESS.MT_CFG = temp;
                     Cy_SysLib_DelayUs(64u);
 
-                    /* Enable LDO Delayed */
-                    BLE->BLESS.MT_VIO_CTRL = BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk |
-                                             BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_DLY_Msk;
-                    /* Wait for 64us */
-                    Cy_SysLib_DelayUs(64u);
-                }
-
-                /* Disable override mode and let hardware take control of HVLDO */
-                temp &= ~(BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_BYPASS_Msk |
-                          BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_EN_Msk);
-                BLE->BLESS.MT_CFG = temp;
-
-                /* Wait for the VIO stable key write operation to complete */
-                {
-                    uint32_t timeout = CY_BLE_VIO_TIMEOUT;
-                    while(((GPIO->VDD_ACTIVE & 0x10u) == 0u) && (timeout > 0u))
+                    if((BLE->BLESS.MT_VIO_CTRL & BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk) == 0u)
                     {
-                        timeout--;
-                        Cy_SysLib_DelayUs(CY_BLE_DELAY_TIME);
+                        /* Enable LDO */
+                        BLE->BLESS.MT_VIO_CTRL = BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk;
+
+                        /* Wait for 64us after turning HVLDO ON */
+                        Cy_SysLib_DelayUs(64u);
+
+                        /* Enable LDO Delayed */
+                        BLE->BLESS.MT_VIO_CTRL = BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_Msk |
+                                                 BLE_BLESS_MT_VIO_CTRL_SRSS_SWITCH_EN_DLY_Msk;
+                        /* Wait for 64us */
+                        Cy_SysLib_DelayUs(64u);
                     }
-                    if(timeout == 0u)
+
+                    /* Disable override mode and let hardware take control of HVLDO */
+                    temp &= ~(BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_BYPASS_Msk |
+                              BLE_BLESS_MT_CFG_OVERRIDE_HVLDO_EN_Msk);
+                    BLE->BLESS.MT_CFG = temp;
+
+                    /* Wait for the VIO stable key write operation to complete */
                     {
-                        status = CY_BLE_ECO_HARDWARE_ERROR;
+                        uint32_t timeout = CY_BLE_VIO_TIMEOUT;
+                        while(((GPIO->VDD_ACTIVE & 0x10u) == 0u) && (timeout > 0u))
+                        {
+                            timeout--;
+                            Cy_SysLib_DelayUs(CY_BLE_DELAY_TIME);
+                        }
+                        if(timeout == 0u)
+                        {
+                            status = CY_BLE_ECO_HARDWARE_ERROR;
+                        }
                     }
                 }
+                
                 if(status == CY_BLE_ECO_SUCCESS)
                 {
                     uint32_t timeout = CY_BLE_ACT_TIMEOUT;
@@ -587,11 +639,13 @@ cy_en_ble_eco_status_t Cy_BLE_EcoStart(const cy_stc_ble_bless_eco_cfg_params_t *
                         status = CY_BLE_ECO_HARDWARE_ERROR;
                     }
                 }
+                
                 if(status == CY_BLE_ECO_SUCCESS)
                 {
                     /* Enable and configure radio clock */
                     status = Cy_BLE_HalMxdRadioEnableClocks(ecoConfig);
                 }
+                
                 if(status == CY_BLE_ECO_SUCCESS)
                 {
                     /* Set Load capacitance */

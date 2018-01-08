@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the source code for
-*  the Phone Alert Status Service of the BLE Component.
+*  the Phone Alert Status Service.
 *
 ********************************************************************************
 * \copyright
@@ -132,7 +132,7 @@ cy_en_ble_api_result_t Cy_BLE_PASS_Init(cy_stc_ble_pass_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                 events from the BLE Component. The definition of
+*                 events from the BLE Middleware. The definition of
 *                 cy_ble_callback_t for PASS is: \n
 *                 typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                   void *eventParam)
@@ -185,8 +185,8 @@ cy_en_ble_api_result_t Cy_BLE_PASS_RegisterAttrCallback(cy_ble_callback_t callba
 *                   stored to the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional characteristic is absent
 *
@@ -244,8 +244,8 @@ cy_en_ble_api_result_t Cy_BLE_PASSS_SetCharacteristicValue(cy_en_ble_pass_char_i
 *                   data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -304,8 +304,8 @@ cy_en_ble_api_result_t Cy_BLE_PASSS_GetCharacteristicValue(cy_en_ble_pass_char_i
 *                   stored to the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -372,8 +372,8 @@ cy_en_ble_api_result_t Cy_BLE_PASSS_GetCharacteristicDescriptor(cy_stc_ble_conn_
 *                   be sent to the client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
 *   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional characteristic is absent
@@ -484,15 +484,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_PASSS_WriteEventHandler(const cy_stc_ble
                     }
                 }
 
-            #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-                /* Set flag to store bonding data to flash */
-                if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                {
-                    cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                }
-            #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
-
                 cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
                 break;
             }
@@ -553,8 +544,8 @@ static void Cy_BLE_PASSS_WriteCmdEventHandler(cy_stc_ble_gatts_write_cmd_req_par
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_PASSS_WRITE_CHAR event is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_PASSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  \param connHandle:      The connection handle.
@@ -564,7 +555,7 @@ static void Cy_BLE_PASSS_WriteCmdEventHandler(cy_stc_ble_gatts_write_cmd_req_par
 *                   should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed
@@ -646,7 +637,7 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *  \param charIndex:       The index of a service characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -658,22 +649,22 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PASS service-specific callback is registered
 *      (with Cy_BLE_PASS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PASSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_PASSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_pass_char_value_t.
 *  .
 *   Otherwise (if the PASS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -728,7 +719,7 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *  which is identified by the charIndex.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_PASSS_NOTIFICATION_ENABLED
 *  * CY_BLE_EVT_PASSS_NOTIFICATION_DISABLED
@@ -741,7 +732,7 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *                   should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -753,19 +744,19 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PASS service-specific callback is registered
 *      (with Cy_BLE_PASS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PASSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_PASSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, descr index etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_pass_descr_value_t.
 *  .
 *   Otherwise (if the PASS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -829,7 +820,7 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *
 * \return
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -841,22 +832,22 @@ cy_en_ble_api_result_t Cy_BLE_PASSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the PASS service-specific callback is registered
 *      (with Cy_BLE_PASS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PASSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_PASSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with event parameter structure
 *                                of type cy_stc_ble_pass_descr_value_t.
 *  .
 *  Otherwise (if the PASS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1233,13 +1224,13 @@ static void Cy_BLE_PASSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_par
 * Function Name: Cy_BLE_PASS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Phone Alert Status Service.
+*  Handles the events from the BLE Stack for the Phone Alert Status Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_PASS_EventHandler(uint32_t eventCode,

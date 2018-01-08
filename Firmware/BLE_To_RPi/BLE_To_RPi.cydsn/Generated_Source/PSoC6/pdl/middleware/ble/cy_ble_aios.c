@@ -70,7 +70,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_AIOS_EventHandler(uint32_t eventCode, vo
 *  \param config: Configuration structure for the Environmental Sensing Service.
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                             | Description
@@ -151,20 +151,19 @@ cy_en_ble_api_result_t Cy_BLE_AIOS_Init(cy_stc_ble_aios_config_t *config)
 *  Service specific write requests from peer device will not be handled with
 *  unregistered callback function.
 *
-*  \param callbackFunc:  An application layer event callback function to receive
-*                 events from the BLE Component. The definition of
-*                 cy_ble_callback_t for AIOS Service is:\n
-*                 typedef void (* cy_ble_callback_t) (uint32_t eventCode,
-*                                                    void *eventParam)
-*                 * eventCode:  Indicates the event that triggered this callback
-*                   (e.g. CY_BLE_EVT_AIOS_NOTIFICATION_ENABLED).
-*                 * eventParam: Contains the parameters corresponding to the
-*                   current event. (e.g. Pointer to cy_stc_ble_aios_char_value_t
-*                   structure that contains details of the characteristic
-*                   for which the notification enabled event was triggered).
+*  \param callbackFunc: An application layer event callback function to receive
+*  events from the BLE Middleware. The definition of \ref cy_ble_callback_t 
+*  for AIOS Service is:\n
+*    typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam)
+*       * eventCode:  Indicates the event that triggered this callback
+*         (e.g. #CY_BLE_EVT_AIOSS_NOTIFICATION_ENABLED).
+*       * eventParam: Contains the parameters corresponding to the
+*         current event. (e.g. Pointer to \ref cy_stc_ble_aios_char_value_t
+*         structure that contains details of the characteristic
+*         for which the notification enabled event was triggered).
 *
 * \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes:
 *
 *   Error Codes                             | Description
@@ -288,15 +287,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_AIOSS_WriteEventHandler(cy_stc_ble_gatts
                                     {
                                         event = (uint32_t)CY_BLE_EVT_AIOSS_NOTIFICATION_DISABLED;
                                     }
-
-                            #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                                    (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-                                    /* Set a flag to store bonding data to flash */
-                                    if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                                    {
-                                        cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                                    }
-                            #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
                                 }
                                 else if(CY_BLE_IS_INDICATION_SUPPORTED(aiosCharInfoPtr->charHandle))
                                 {
@@ -308,15 +298,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_AIOSS_WriteEventHandler(cy_stc_ble_gatts
                                     {
                                         event = (uint32_t)CY_BLE_EVT_AIOSS_INDICATION_DISABLED;
                                     }
-
-                            #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                                    (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-                                    /* Set a flag to store bonding data to flash */
-                                    if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                                    {
-                                        cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                                    }
-                            #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
                                 }
                                 else
                                 {
@@ -450,19 +431,22 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_AIOSS_WriteEventHandler(cy_stc_ble_gatts
 *
 *  Sets the characteristic value of the service in the local database.
 *
-*  \param charIndex: The index of the service characteristic. Starts with zero.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size (in bytes) of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*             stored in the GATT database.
+*                       "charIndex".
+*  \param attrSize:     The size (in bytes) of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic value data that should be
+*                       stored in the GATT database.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
-*                                               absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                             | Description
+*   ------------                            | -----------
+*   CY_BLE_SUCCESS                          | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER          | Validation of the input parameter failed.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE| An optional characteristic is absent.
+*
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_SetCharacteristicValue(cy_en_ble_aios_char_index_t charIndex,
                                                            uint8_t charInstance,
@@ -524,19 +508,20 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_SetCharacteristicValue(cy_en_ble_aios_char_i
 *  Gets the characteristic value of the service, which is a value identified by
 *  charIndex.
 *
-*  \param charIndex: The index of the service characteristic. Starts with zero.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the location where characteristic value data
-*             should be stored.
-*
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the location where characteristic value
+*                       data should be stored.
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
-*                                               absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The characteristic value was read successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | A characteristic is absent.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_GetCharacteristicValue(cy_en_ble_aios_char_index_t charIndex,
@@ -578,7 +563,7 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_GetCharacteristicValue(cy_en_ble_aios_char_i
 
                 /* Set new length of the descriptor value */
                 CY_BLE_GATT_DB_ATTR_SET_ATTR_GEN_LEN(cy_ble_aiosConfigPtr->aioss->charInfoAddr[charIndex].
-                                                      charInfoPtr[charInstance].charHandle, attrSize);
+                                                     charInfoPtr[charInstance].charHandle, attrSize);
             }
         }
         else
@@ -597,20 +582,23 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_GetCharacteristicValue(cy_en_ble_aios_char_i
 *  Gets a characteristic descriptor of a specified characteristic of the
 *  Automation Input Output Service from the local GATT database.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the characteristic.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the characteristic.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param descrIndex: The index of the characteristic descriptor.
-*  \param attrSize: The size of the characteristic descriptor attribute.
-*  \param attrValue: The pointer to the location where characteristic descriptor
-*               value data should be stored.
+*                       "charIndex".
+*  \param descrIndex:   The index of the characteristic descriptor.
+*  \param attrSize:     The size of the characteristic descriptor attribute.
+*  \param attrValue:    The pointer to the location where characteristic 
+*                       descriptor value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The Characteristic Descriptor value was read successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | A descriptor is absent.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_GetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -676,23 +664,26 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_GetCharacteristicDescriptor(cy_stc_ble_conn_
 * Function Name: Cy_BLE_AIOSS_SetCharacteristicDescriptor
 ***************************************************************************//**
 *
-*  Set a characteristic descriptor of a specified characteristic of the Indoor
-*  Positioning Service from the local GATT database.
+*  Set a characteristic descriptor of a specified characteristic of the 
+*  Automation Input Output Service from the local GATT database.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the characteristic.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the characteristic.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param descrIndex: The index of the characteristic descriptor.
-*  \param attrSize: The size of the characteristic descriptor attribute.
-*  \param attrValue: The pointer to the descriptor value data to
-*             be stored in the GATT database.
+*                       "charIndex".
+*  \param descrIndex:   The index of the characteristic descriptor.
+*  \param attrSize:     The size of the characteristic descriptor attribute.
+*  \param attrValue:    The pointer to the descriptor value data to
+*                       be stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The Characteristic Descriptor value was read successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | A descriptor is absent.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_SetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -756,27 +747,29 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *  Service, which is a value specified by charIndex, to the client's device.
 *
 *  On enabling notification successfully for a service characteristic it sends out a
-*  'Handle Value Notification' which results in CY_BLE_EVT_AIOSC_NOTIFICATION event
+*  'Handle Value Notification' which results in #CY_BLE_EVT_AIOSC_NOTIFICATION event
 *  at the GATT Client's end.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the service characteristic. Starts with zero.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*               sent to the client's device.
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic value data that should be
+*                       sent to the client's device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
-*   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
-*   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
-*   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*   * CY_BLE_ERROR_NTF_DISABLED - A notification is not enabled by the client.
-*   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
-*                                               absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | This operation is not permitted.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | An optional characteristic is absent.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Client is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*   CY_BLE_ERROR_NTF_DISABLED                | Notification is not enabled by the Client.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_SendNotification(cy_stc_ble_conn_handle_t connHandle,
@@ -838,39 +831,41 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_SendNotification(cy_stc_ble_conn_handle_t co
 *  Service, which is a value specified by charIndex, to the client's device.
 *
 *  On enabling indication successfully it sends out a 'Handle Value Indication' which
-*  results in CY_BLE_EVT_AIOSC_INDICATION or CY_BLE_EVT_GATTC_HANDLE_VALUE_IND (if
-*  service specific callback function is not registered) event at the GATT Client's end.
+*  results in #CY_BLE_EVT_AIOSC_INDICATION or #CY_BLE_EVT_GATTC_HANDLE_VALUE_IND 
+*  (if service specific callback function is not registered) event
+*  at the GATT Client's end.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the service characteristic.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*               sent to the client's device.
-*
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic value data that should be
+*                       sent to the client's device.
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
-*   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
-*   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
-*   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*   * CY_BLE_ERROR_IND_DISABLED - Indication is not enabled by the client.
-*   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
-*                                               absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
 *
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | This operation is not permitted.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | An optional characteristic is absent.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Client is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*   CY_BLE_ERROR_IND_DISABLED                | Indication is not enabled by the Client.
+
 * \events
-*  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*   In case of successful execution (return value = #CY_BLE_SUCCESS)
+*   the following events can appear: \n
 *   If the AIOS service-specific callback is registered
-*      (with Cy_BLE_AIOS_RegisterAttrCallback):
-*  * CY_BLE_EVT_AiosS_INDICATION_CONFIRMED - in case if the indication is
-*                                successfully delivered to the peer device.
-*  .
+*   with Cy_BLE_AIOS_RegisterAttrCallback():
+*   * #CY_BLE_EVT_AIOSS_INDICATION_CONFIRMED - In case if the indication is
+*     successfully delivered to the peer device.
+*   .
 *   Otherwise (if the AIOS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - in case if the indication is
-*                                successfully delivered to the peer device.
+*   * #CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - In case if the indication is
+*     successfully delivered to the peer device.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSS_SendIndication(cy_stc_ble_conn_handle_t connHandle,
@@ -936,7 +931,7 @@ cy_en_ble_api_result_t Cy_BLE_AIOSS_SendIndication(cy_stc_ble_conn_handle_t conn
 * Function Name: Cy_BLE_AIOSS_ConfirmationEventHandler
 ***************************************************************************//**
 *
-*  Handles a Value Confirmation request event from the BLE stack.
+*  Handles a Value Confirmation request event from the BLE Stack.
 *
 *  eventParam - The pointer to a structure of type cy_stc_ble_conn_handle_t.
 *
@@ -993,7 +988,7 @@ static void Cy_BLE_AIOSS_ConfirmationEventHandler(const cy_stc_ble_conn_handle_t
 *  The first analog input follows directly after the last Digital characteristic.
 *
 * \return
-*  A return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *  * CY_BLE_GATT_ERR_NONE - The advertisement packet collected successfully.
 *  * CY_BLE_GATT_ERR_INVALID_HANDLE - 'handleValuePair.attrHandle' is not valid.
 *  * Other GATT Error codes are specified in 'cy_en_ble_gatt_err_code_t'
@@ -1722,48 +1717,46 @@ static void Cy_BLE_AIOSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_par
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_AIOSS_WRITE_CHAR events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the #CY_BLE_EVT_AIOSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the service characteristic. Starts with zero.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*             sent to the server device.
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic value data that
+*                       should be sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request was sent successfully
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_STATE - Connection with the server is not established.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
-*                                               the particular characteristic.
-*  * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
-*                                     characteristic.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
 *
 * \events
-*  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*   In case of successful execution (return value = #CY_BLE_SUCCESS)
+*   the following events can appear: \n
 *   If the AIOS service-specific callback is registered
-*      (with Cy_BLE_AIOS_RegisterAttrCallback):
-*  * CY_BLE_EVT_AIOSC_WRITE_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index, etc.) are
-*                                provided with event parameter structure
-*                                of type cy_stc_ble_aios_char_value_t.
-*  .
-*   Otherwise (if the AIOS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
-*                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*   with Cy_BLE_AIOS_RegisterAttrCallback():
+*   * #CY_BLE_EVT_AIOSC_WRITE_CHAR_RESPONSE - In case if the requested attribute is
+*     successfully written on the peer device, the details (char index, etc.) are
+*     provided with event parameter structure of type \ref cy_stc_ble_aios_char_value_t.
+*   .
+*   Otherwise (if an AIOS service-specific callback is not registered):
+*   * #CY_BLE_EVT_GATTC_WRITE_RSP - If the requested attribute is successfully 
+*     written on the peer device.
+*
+*   * #CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the requested 
+*     attribute on the peer device, the details are provided with an event
+*     parameter structure \ref cy_stc_ble_gatt_err_param_t.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicValue(cy_stc_ble_conn_handle_t connHandle,
@@ -1822,45 +1815,42 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *  This function is used to read a characteristic value, which is a value
 *  identified by charIndex, from the server.
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the service characteristic. Starts with zero.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*
+*                       "charIndex".
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The read request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
-*                                              the particular characteristic.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_STATE - Connection with the server is not established.
-*  * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
-*                                     characteristic.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is
-*                                              absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
 *
 * \events
-*  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*   In case of successful execution (return value = #CY_BLE_SUCCESS)
+*   the following events can appear: \n
 *   If the AIOS service-specific callback is registered
-*      (with Cy_BLE_AIOS_RegisterAttrCallback):
-*  * CY_BLE_EVT_AIOSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index , value, etc.) are
-*                                provided with event parameter structure
-*                                of type cy_stc_ble_aios_char_value_t.
-*  .
-*   Otherwise (if the AIOS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
-*                                successfully read on the peer device,
-*                                the details (handle, value, etc.) are
-*                                provided with event parameters
-*                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*   with Cy_BLE_AIOS_RegisterAttrCallback():
+*   * #CY_BLE_EVT_AIOSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*     successfully read on the peer device, the details (char index,
+*     value, etc.) are provided with event parameter structure
+*     of type \ref cy_stc_ble_aios_char_value_t.
+*   .
+*   Otherwise (if an AIOS service-specific callback is not registered):
+*   * #CY_BLE_EVT_GATTC_READ_RSP - If the requested attribute is
+*     successfully read on the peer device, the details (handle, value, etc.) are
+*     provided with an event parameter structure 
+*     \ref cy_stc_ble_gattc_read_rsp_param_t.
+*
+*   * #CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
+*     requested attribute on the peer device, the details are provided with 
+*     an event parameter structure \ref cy_stc_ble_gatt_err_param_t.
+*
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSC_GetCharacteristicValue(cy_stc_ble_conn_handle_t connHandle,
@@ -1916,56 +1906,56 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_AIOSS_DESCR_WRITE events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the #CY_BLE_EVT_AIOSS_DESCR_WRITE event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
-*  * CY_BLE_EVT_AIOSS_NOTIFICATION_ENABLED
-*  * CY_BLE_EVT_AIOSS_NOTIFICATION_DISABLED
-*  * CY_BLE_EVT_AIOSS_INDICATION_ENABLED
-*  * CY_BLE_EVT_AIOSS_INDICATION_DISABLED
+*       * #CY_BLE_EVT_AIOSS_NOTIFICATION_ENABLED
+*       * #CY_BLE_EVT_AIOSS_NOTIFICATION_DISABLED
+*       * #CY_BLE_EVT_AIOSS_INDICATION_ENABLED
+*       * #CY_BLE_EVT_AIOSS_INDICATION_DISABLED
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex: The index of the service characteristic. Starts with zero.
-*  \param descrIndex: The index of the service characteristic descriptor.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic. Starts with zero.
+*  \param descrIndex:   The index of the service characteristic descriptor.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic descriptor value data that
-*             should be sent to the server device.
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic descriptor value
+*                       data that should be sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted on
-*                                    the specified attribute.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional Characteristic Descriptor
-*                                              is absent.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this descriptor.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular descriptor.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
 *
 * \events
-*  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*   In case of successful execution (return value = #CY_BLE_SUCCESS)
+*   the following events can appear: \n
 *   If the AIOS service-specific callback is registered
-*      (with Cy_BLE_AIOS_RegisterAttrCallback):
-*  * CY_BLE_EVT_AIOSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index, descr index etc.) are
-*                                provided with event parameter structure
-*                                of type cy_stc_ble_aios_descr_value_t.
-*  .
-*   Otherwise (if the AIOS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
-*                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*   with Cy_BLE_AIOS_RegisterAttrCallback():
+*
+*   * #CY_BLE_EVT_AIOSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
+*     successfully written on the peer device, the details (char index,
+*     descr index etc.) are provided with event parameter structure
+*     of type \ref cy_stc_ble_aios_descr_value_t.
+*   .
+*   Otherwise (if an AIOS service-specific callback is not registered):
+*   * #CY_BLE_EVT_GATTC_WRITE_RSP - If the requested attribute is
+*     successfully written on the peer device.
+*   * #CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
+*     requested attribute on the peer device, the details are provided with 
+*     an event parameter structure ( \ref cy_stc_ble_gatt_err_param_t).
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -2040,36 +2030,37 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *                "charIndex".
 *  \param descrIndex: The index of the service characteristic descriptor.
 *
-*  \return
-*  * CY_BLE_SUCCESS - The request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted on
-*                                     the specified attribute.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional Characteristic Descriptor
-*                                              is absent.
+* \return
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this descriptor.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular descriptor.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*
 *  \events
-*  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
-*  If the AIOS service-specific callback is registered
-*      (with Cy_BLE_AIOS_RegisterAttrCallback):
-*  * CY_BLE_EVT_AIOSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index, descr index, value, etc.)
-*                                are provided with event parameter structure
-*                                of type cy_stc_ble_aios_descr_value_t.
-*  .
-*  Otherwise (if the AIOS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
-*                                successfully read on the peer device,
-*                                the details (handle, value, etc.) are
-*                                provided with event parameters
-*                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*   In case of successful execution (return value = #CY_BLE_SUCCESS)
+*   the following events can appear: \n
+*   If the AIOS service-specific callback is registered
+*     with Cy_BLE_AIOS_RegisterAttrCallback():
+*   * #CY_BLE_EVT_AIOSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*     successfully read on the peer device, the details (char index,
+*     descr index, value, etc.) are provided with event parameter structure
+*     of type \ref cy_stc_ble_aios_descr_value_t.
+*   .
+*   Otherwise (if an AIOS service-specific callback is not registered):
+*   * #CY_BLE_EVT_GATTC_READ_RSP - If the requested attribute is
+*     successfully read on the peer device, the details (handle, value, etc.) are
+*     provided with an event parameter structure 
+*     \ref cy_stc_ble_gattc_read_rsp_param_t.
+*
+*   * #CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
+*     requested attribute on the peer device, the details are provided with 
+*     an event parameter structure \ref cy_stc_ble_gatt_err_param_t.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSC_GetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -2127,24 +2118,25 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_GetCharacteristicDescriptor(cy_stc_ble_conn_
 *  charIndex) value attribute in the server without response.
 *
 *
-*  \param connHandle: The connection handle.
-*  \param charIndex:  The index of the service characteristic.
+*  \param connHandle:   The connection handle.
+*  \param charIndex:    The index of the service characteristic.
 *  \param charInstance: The instance number of the characteristic specified by
-*                "charIndex".
-*  \param attrSize:   The size of the characteristic value attribute.
-*  \param attrValue:  The pointer to the characteristic value data that should be
-*                     sent to the server device.
+*                       "charIndex".
+*  \param attrSize:     The size of the characteristic value attribute.
+*  \param attrValue:    The pointer to the characteristic value data that should be
+*                       sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_STATE - Connection with the server is not established.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
-*                                              the particular characteristic.
-*  * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
-*                                    characteristic.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this descriptor.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicValueWithoutResponse(cy_stc_ble_conn_handle_t connHandle,
@@ -2215,13 +2207,13 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_SetCharacteristicValueWithoutResponse(cy_stc
 * Function Name: Cy_BLE_AIOS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Automation Input Output Service.
+*  Handles the events from the BLE Stack for the Automation Input Output Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_AIOS_EventHandler(uint32_t eventCode,

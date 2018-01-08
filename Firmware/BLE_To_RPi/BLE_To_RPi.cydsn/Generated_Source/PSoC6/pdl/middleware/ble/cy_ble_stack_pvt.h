@@ -3,8 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  Contains the function prototypes and constants for the HAL section
-*  of the BLE component.
+*  Contains the function prototypes and constants for the HAL section.
 *
 * Note:
 *
@@ -28,6 +27,28 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+
+/***************************************
+* Data Types
+***************************************/
+/**
+ * Structure containing the parameters required for IPC message from controller to host 
+ */
+typedef struct 
+{
+    /** ID of the message client*/
+    uint8_t     clientID;
+    /** Type of message */
+    uint8_t     pktType;
+    /** Message Interrupt Rel. Mask */
+    uint16_t    intrRelMask;
+    /** Pointer to Data in message */
+    uint32_t    pktDataPointer;
+    /** Meta Data of the message */
+    uint16_t    pktMetaData;
+
+}cy_stc_ble_ipc_ctrl_msg;
 
 
 /***************************************
@@ -102,7 +123,10 @@ extern "C" {
     uint16_t BLE_CMP_FTR_API_lec_hci_handle_generate_DHkey_command(void *param CY_UNUSED);
 #endif /* CY_BLE_SECURE_CONN_FEATURE_ENABLED*/
 
+    cy_en_ble_api_result_t Cy_BLE_ControllerIpcHalSendEnqueue(cy_stc_ble_ipc_ctrl_msg* msg);
+    void Cy_BLE_LlIsrExitLowPowerMode(void);
 
+    
 /***************************************
 *     Stack manager prototypes
 ***************************************/

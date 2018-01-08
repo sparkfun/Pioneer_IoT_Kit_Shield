@@ -37,6 +37,10 @@ extern "C" {
 *
 * \return error / status code. See \ref cy_en_tcpwm_status_t.
 *
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_pwm_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_PWM_Config
+* \snippet tcpwm/tcpwm_v1_0_pwm_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_PWM_Init
+*
 *******************************************************************************/
 cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_stc_tcpwm_pwm_config_t const *config)
 {
@@ -122,6 +126,9 @@ cy_en_tcpwm_status_t Cy_TCPWM_PWM_Init(TCPWM_Type *base, uint32_t cntNum,  cy_st
 *
 * \param config
 * The pointer to a configuration structure. See \ref cy_stc_tcpwm_pwm_config_t.
+*
+* \funcusage
+* \snippet tcpwm/tcpwm_v1_0_pwm_sut_01.cydsn/main_cm4.c snippet_Cy_TCPWM_PWM_DeInit
 *
 *******************************************************************************/
 void Cy_TCPWM_PWM_DeInit(TCPWM_Type *base, uint32_t cntNum, cy_stc_tcpwm_pwm_config_t const *config)

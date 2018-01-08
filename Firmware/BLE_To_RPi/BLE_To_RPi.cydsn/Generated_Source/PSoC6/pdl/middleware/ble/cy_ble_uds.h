@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the User Data Service of the BLE Component.
+*  the User Data Service.
 *
 ********************************************************************************
 * \copyright
@@ -145,7 +145,7 @@ typedef struct
     /** User Data Service GATT DB handles structure */
     const cy_stc_ble_udss_t *udss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_uds_config_t;
 

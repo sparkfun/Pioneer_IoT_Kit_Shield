@@ -170,12 +170,12 @@ static void ClockInit(void)
 	{
 		const cy_stc_fll_manual_config_t fllConfig = 
 		{
-			.fllMult =         1725u,
-			.refDiv =          69u,
+			.fllMult =         500u,
+			.refDiv =          20u,
 			.ccoRange =        CY_SYSCLK_FLL_CCO_RANGE4,
 			.enableOutputDiv = true,
-			.lockTolerance =   33u,
-			.igain =           7u,
+			.lockTolerance =   10u,
+			.igain =           9u,
 			.pgain =           5u,
 			.settlingCount =   8u,
 			.outputMode =      CY_SYSCLK_FLLPLL_OUTPUT_AUTO,
@@ -187,6 +187,7 @@ static void ClockInit(void)
 			CyClockStartupError(CYCLOCKSTART_FLL_ERROR);
 		}
 	}
+	SRSS->CLK_TRIM_CCO_CTL |= 1u << 31;
 	status = Cy_SysClk_FllEnable(200000u);
 	if (CY_RET_SUCCESS != status)
 	{
@@ -198,7 +199,7 @@ static void ClockInit(void)
 	Cy_SysClk_ClkTimerSetDivider(0);
 	Cy_SysClk_ClkTimerEnable();
 	Cy_SysClk_ClkPumpSetSource(CY_SYSCLK_PUMP_IN_CLKPATH0);
-	Cy_SysClk_ClkPumpSetDivider(CY_SYSCLK_PUMP_NO_DIV);
+	Cy_SysClk_ClkPumpSetDivider(CY_SYSCLK_PUMP_DIV_4);
 	Cy_SysClk_ClkPumpEnable();
 	Cy_SysClk_ClkBakSetSource(CY_SYSCLK_BAK_IN_CLKLF);
 	Cy_SysTick_SetClockSource(CY_SYSTICK_CLOCK_SOURCE_CLK_LF);
@@ -267,6 +268,9 @@ void Cy_SystemInit(void)
 	{
 		Cy_SysLib_ResetBackupDomain();
 	}
+
+	/* Power Mode */
+	Cy_SysPm_LdoSetVoltage(CY_SYSPM_LDO_VOLTAGE_1_1V);
 
 	/* PMIC Control */
 	Cy_SysPm_UnlockPmic();

@@ -230,7 +230,7 @@ typedef struct
     const cy_stc_ble_params_t        *params;
 
     /** An application layer event callback function to
-    *  receive service events from the BLE Component */
+    *  receive service events from the BLE Middleware */
     cy_ble_callback_t        callbackFunc;
 
     /** Bluetooth Device Address */
@@ -273,7 +273,6 @@ typedef struct
 cy_en_ble_api_result_t Cy_BLE_Init(cy_stc_ble_config_t *config);
 /** \endcond */
 
-
 #if (CY_BLE_MODE_PROFILE)
 
 #if (CY_BLE_GATT_ROLE_SERVER)
@@ -298,29 +297,50 @@ cy_en_ble_api_result_t Cy_BLE_GATTC_StartDiscovery(cy_stc_ble_conn_handle_t conn
 cy_en_ble_api_result_t Cy_BLE_GATTC_StartPartialDiscovery(cy_stc_ble_conn_handle_t connHandle,
                                                           cy_ble_gatt_db_attr_handle_t startHandle,
                                                           cy_ble_gatt_db_attr_handle_t endHandle);
+
+cy_en_ble_api_result_t Cy_BLE_GATTC_SendConfirmation(cy_stc_ble_conn_handle_t *connHandle);
+
 /** @} group_ble_common_api_gatt_client_functions
  */
 #endif /* CY_BLE_GATT_ROLE_CLIENT */
 
 
-
-/***************************************
-* Private Function Prototypes
-***************************************/
-
 #if (CY_BLE_GATT_ROLE_SERVER)
-
-cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteEventHandler(cy_stc_ble_gatts_write_cmd_req_param_t *eventParam);
-cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValueCCCDReqHandler(const cy_stc_ble_gatts_char_val_read_req_t *param);
-
 /**
  * \addtogroup group_ble_common_api_gatt_server_functions
  * @{
  */
 cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteAttributeValueCCCD(cy_stc_ble_gatts_db_attr_val_info_t *param);
 cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValueCCCD(cy_stc_ble_gatts_db_attr_val_info_t *param);
-/** @} group_ble_common_api_gatt_server_functions */
 
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteAttributeValuePeer(cy_stc_ble_conn_handle_t *connHandle,
+                                                               const cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteAttributeValueLocal(const cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValueLocal(cy_stc_ble_conn_handle_t *connHandle,
+                                                               const cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValuePeer(cy_stc_ble_conn_handle_t *connHandle,
+                                                              const cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+cy_en_ble_api_result_t Cy_BLE_GATTS_ReadCccd(cy_stc_ble_conn_handle_t *connHandle, cy_ble_gatt_db_attr_handle_t attrHandle, 
+                                             uint16_t *value);
+cy_en_ble_api_result_t Cy_BLE_GATTS_SendNotification(cy_stc_ble_conn_handle_t *connHandle,
+                                                     cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+cy_en_ble_api_result_t Cy_BLE_GATTS_SendIndication(cy_stc_ble_conn_handle_t *connHandle,
+                                                   cy_stc_ble_gatt_handle_value_pair_t *handleValuePair);
+bool Cy_BLE_GATTS_IsNotificationEnabled(cy_stc_ble_conn_handle_t *connHandle, cy_ble_gatt_db_attr_handle_t attrHandle);
+bool Cy_BLE_GATTS_IsIndicationEnabled(cy_stc_ble_conn_handle_t *connHandle, cy_ble_gatt_db_attr_handle_t attrHandle);
+cy_en_ble_api_result_t Cy_BLE_GATTS_SendErrorRsp(cy_stc_ble_conn_handle_t *connHandle, 
+                                                 const cy_stc_ble_gatt_err_info_t *errRspParam);
+
+/** @} group_ble_common_api_gatt_server_functions */
+#endif /* CY_BLE_GATT_ROLE_SERVER */
+
+/***************************************
+* Private Function Prototypes
+***************************************/
+
+#if (CY_BLE_GATT_ROLE_SERVER)
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteEventHandler(cy_stc_ble_gatts_write_cmd_req_param_t *eventParam);
+cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValueCCCDReqHandler(const cy_stc_ble_gatts_char_val_read_req_t *param);
 #endif /* CY_BLE_GATT_ROLE_SERVER */
 
 #if (CY_BLE_GATT_ROLE_CLIENT)
@@ -796,7 +816,7 @@ extern cy_stc_ble_config_t *cy_ble_configPtr;
 #define CY_BLE_APPEARANCE_GENERIC_HID                          (960u)  /**< Human Interface Device (HID) */
 #define CY_BLE_APPEARANCE_HIDS_KEYBOARD                        (961u)  /**< Keyboard (HID Subtype) */
 #define CY_BLE_APPEARANCE_HIDS_MOUSE                           (962u)  /**< Mouse (HID Subtype) */
-#define CY_BLE_APPEARANCE_HIDS_JOYSTICK                        (963u)  /**< Joystiq (HID Subtype) */
+#define CY_BLE_APPEARANCE_HIDS_JOYSTICK                        (963u)  /**< Joystick (HID Subtype) */
 #define CY_BLE_APPEARANCE_HIDS_GAMEPAD                         (964u)  /**< Gamepad (HID Subtype) */
 #define CY_BLE_APPEARANCE_HIDS_DIGITIZERSUBTYPE                (965u)  /**< Digitizer Tablet (HID Subtype) */
 #define CY_BLE_APPEARANCE_HIDS_CARD_READER                     (966u)  /**< Card Reader (HID Subtype) */

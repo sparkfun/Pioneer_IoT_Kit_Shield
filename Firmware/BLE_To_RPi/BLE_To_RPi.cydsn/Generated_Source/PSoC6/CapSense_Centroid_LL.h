@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Centroid_LL.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file provides the function prototypes for the centroid calculation 
 *   methods.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -37,8 +37,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_CENTROID_LL_H)
-#define CY_CAPSENSE_CapSense_CENTROID_LL_H
+#if !defined(CY_SENSE_CapSense_CENTROID_LL_H)
+#define CY_SENSE_CapSense_CENTROID_LL_H
 
 #include "CapSense_Configuration.h"
 #include "CapSense_Structure.h"
@@ -63,12 +63,12 @@
 * Function Prototypes - internal functions
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
-#if ((CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN) || \
+#if ((CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN) || \
      (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN))
     #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
         uint32 CapSense_DpFindLocalMaxSd4pts(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
@@ -89,8 +89,8 @@
 #endif
 
 #if ((0u != CapSense_TOTAL_LINEAR_SLIDERS) || \
-     (CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN))
-    uint32 CapSense_DpCalcLinearCentroid(uint16 *position, uint32 multiplier, uint32 snsCount);
+     (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN))
+    uint32 CapSense_DpCalcLinearCentroid(uint16 *position, uint32 multiplier, uint32 snsCount, uint32 offset);
 #endif
 
 #if (0u != CapSense_TOTAL_RADIAL_SLIDERS)
@@ -104,10 +104,19 @@
     uint32 CapSense_DpFilterTouchRecord(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt);
 #endif
 
-/** \}
-* \endif */
+#if (0u != CapSense_POSITION_FILTER_EN)
+    void CapSense_InitPosFiltersSd(CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory, uint16 value);
+    #if ((0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) || (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN))
+        void CapSense_InitPosFiltersDd(CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory, uint16 posX, uint16 posY);
+        void CapSense_RunPosFiltersDd(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt, uint32 i, uint32 j, 
+                    uint16 * posX, uint16 * posY);
+    #endif /* ((0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) || (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN)) */
+#endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
-#endif /* End CY_CAPSENSE_CapSense_CENTROID_LL_H */
+/** \}
+* \endcond */
+
+#endif /* End CY_SENSE_CapSense_CENTROID_LL_H */
 
 
 /* [] END OF FILE */

@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in the
-*  Continuous Glucose Monitoring Service of the BLE Component.
+*  Continuous Glucose Monitoring Service.
 *
 ********************************************************************************
 * \copyright
@@ -121,7 +121,7 @@ typedef struct
     /** Continuous Glucose Monitoring Service GATT DB handles structure */
     const cy_stc_ble_cgmss_t *cgmss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_cgms_config_t;
 

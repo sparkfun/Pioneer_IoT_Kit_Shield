@@ -51,7 +51,7 @@ extern "C" {
 #define CY_BLE_DEFAULT_ACT_TO_SWITCH_DELAY                   (0UL)
 #define CY_BLE_DEFAULT_HVLDO_DISABLE_DELAY                   (1UL)
 
-#define CY_BLE_DEFAULT_ACT_STARTUP_DELAY                     (0UL)
+#define CY_BLE_DEFAULT_ACT_STARTUP_DELAY                     (4UL)
 #define CY_BLE_DEFAULT_DIG_LDO_STARTUP_DELAY                 (0UL)
 
 #define CY_BLE_DEFAULT_XTAL_DISABLE_DELAY                    (1UL)
@@ -92,6 +92,20 @@ extern "C" {
 #define CY_BLE_RF_DCXO_BUF_CFG_REG_BUF_AMP_SEL_MASK          (0x03UL)
 #define CY_BLE_RF_DCXO_BUF_CFG_REG_CLK_DIV_SHIFT             (0u)
 #define CY_BLE_RF_DCXO_BUF_CFG_REG_CLK_DIV_MASK              (0x0fUL)
+
+#define CY_BLE_RF_LDO_CFG_REG                                (0x1e07u)
+#define CY_BLE_RF_LDO_CFG_REG_LDO10_CFG_SHIFT                (11u)
+#define CY_BLE_RF_LDO_CFG_REG_LDO10_CFG_MASK                 ((1<<2)-1)
+#define CY_BLE_RF_LDO_CFG_REG_LDO_ACT_CFG_SHIFT              (7u)
+#define CY_BLE_RF_LDO_CFG_REG_LDO_ACT_CFG_MASK               ((1<<4)-1)
+#define CY_BLE_RF_LDO_CFG_REG_LDO_IF_CFG_SHIFT               (5u)
+#define CY_BLE_RF_LDO_CFG_REG_LDO_IF_CFG_MASK                ((1<<2)-1)
+
+#define CY_BLE_RF_LDO_EN_REG                                 (0x1e06u)
+#define CY_BLE_RF_LDO_EN_REG_LDO_RF_CFG_SHIFT                (6u)
+#define CY_BLE_RF_LDO_EN_REG_LDO_RF_CFG_MASK                 ((1<<2)-1)
+
+
 
 #define CY_BLE_DELAY_TIME                                    (1u) /* in us */
 #define CY_BLE_RCB_TIMEOUT                                   (1000u / CY_BLE_DELAY_TIME)   /* 1ms */

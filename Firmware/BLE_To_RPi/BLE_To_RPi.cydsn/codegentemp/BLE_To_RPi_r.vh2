@@ -1,5 +1,5 @@
 -- Project:   BLE_To_RPi
--- Generated: 12/11/2017 15:01:20
+-- Generated: 01/08/2018 09:58:24
 -- PSoC Creator  4.2
 
 ENTITY BLE_To_RPi IS
@@ -124,26 +124,44 @@ ARCHITECTURE __DEFAULT__ OF BLE_To_RPi IS
     ATTRIBUTE POWER OF one : SIGNAL IS true;
     SIGNAL zero : bit;
     ATTRIBUTE GROUND OF zero : SIGNAL IS true;
+    SIGNAL periclk_App : bit;
     ATTRIBUTE Location OF ClockGenBlock : LABEL IS "F(CLK_GEN,0)";
     ATTRIBUTE Location OF ClockBlock : LABEL IS "F(Clock,0)";
     ATTRIBUTE Location OF SRSS : LABEL IS "F(SRSS,0)";
+    ATTRIBUTE lib_model OF CY_SRSS_WCO_IN(0) : LABEL IS "iocell1";
     ATTRIBUTE Location OF CY_SRSS_WCO_IN(0) : LABEL IS "P0[0]";
+    ATTRIBUTE lib_model OF CY_SRSS_WCO_OUT(0) : LABEL IS "iocell2";
     ATTRIBUTE Location OF CY_SRSS_WCO_OUT(0) : LABEL IS "P0[1]";
     ATTRIBUTE Location OF CPUSS : LABEL IS "F(CPUSS,0)";
+    ATTRIBUTE lib_model OF CY_CPUSS_SWJ_SWCLK_TCLK(0) : LABEL IS "iocell3";
     ATTRIBUTE Location OF CY_CPUSS_SWJ_SWCLK_TCLK(0) : LABEL IS "P6[7]";
+    ATTRIBUTE lib_model OF CY_CPUSS_SWJ_SWDIO_TMS(0) : LABEL IS "iocell4";
     ATTRIBUTE Location OF CY_CPUSS_SWJ_SWDIO_TMS(0) : LABEL IS "P6[6]";
+    ATTRIBUTE lib_model OF Pin_Blue(0) : LABEL IS "iocell5";
     ATTRIBUTE Location OF Pin_Blue(0) : LABEL IS "P11[1]";
+    ATTRIBUTE lib_model OF Pin_Green(0) : LABEL IS "iocell6";
     ATTRIBUTE Location OF Pin_Green(0) : LABEL IS "P1[1]";
+    ATTRIBUTE lib_model OF Pin_Red(0) : LABEL IS "iocell7";
     ATTRIBUTE Location OF Pin_Red(0) : LABEL IS "P0[3]";
+    ATTRIBUTE lib_model OF \CapSense:Cmod(0)\ : LABEL IS "iocell8";
     ATTRIBUTE Location OF \CapSense:Cmod(0)\ : LABEL IS "P7[1]";
+    ATTRIBUTE lib_model OF \CapSense:Csh(0)\ : LABEL IS "iocell9";
     ATTRIBUTE Location OF \CapSense:Csh(0)\ : LABEL IS "P7[2]";
+    ATTRIBUTE lib_model OF \CapSense:Shield(0)\ : LABEL IS "iocell10";
     ATTRIBUTE Location OF \CapSense:Shield(0)\ : LABEL IS "P1[0]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(0)\ : LABEL IS "iocell11";
     ATTRIBUTE Location OF \CapSense:Sns(0)\ : LABEL IS "P8[1]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(1)\ : LABEL IS "iocell12";
     ATTRIBUTE Location OF \CapSense:Sns(1)\ : LABEL IS "P8[2]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(2)\ : LABEL IS "iocell13";
     ATTRIBUTE Location OF \CapSense:Sns(2)\ : LABEL IS "P8[3]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(3)\ : LABEL IS "iocell14";
     ATTRIBUTE Location OF \CapSense:Sns(3)\ : LABEL IS "P8[4]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(4)\ : LABEL IS "iocell15";
     ATTRIBUTE Location OF \CapSense:Sns(4)\ : LABEL IS "P8[5]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(5)\ : LABEL IS "iocell16";
     ATTRIBUTE Location OF \CapSense:Sns(5)\ : LABEL IS "P8[6]";
+    ATTRIBUTE lib_model OF \CapSense:Sns(6)\ : LABEL IS "iocell17";
     ATTRIBUTE Location OF \CapSense:Sns(6)\ : LABEL IS "P8[7]";
     ATTRIBUTE Location OF \PWM_Red:TCPWM\ : LABEL IS "F(TCPWM,9)";
     ATTRIBUTE Location OF \PWM_Green:TCPWM\ : LABEL IS "F(TCPWM,3)";
@@ -592,7 +610,8 @@ BEGIN
             ff_div_12 => Net_266_ff13,
             ff_div_13 => open,
             ff_div_14 => Net_230_ff12,
-            ff_div_20 => Net_144_ff11);
+            ff_div_20 => Net_144_ff11,
+            periclk_App => periclk_App);
 
     SRSS:SRSS;
 
@@ -1142,7 +1161,7 @@ BEGIN
         GENERIC MAP(
             cy_registers => "",
             drive_mode => "000_000_000_000_000_000_000",
-            drive_strength => "0,0,0,0,0,0,0",
+            drive_strength => "0_0_0_0_0_0_0",
             hotswap_needed => "0_0_0_0_0_0_0",
             i2c_mode => "0,0,0,0,0,0,0",
             ibuf_enabled => "0_0_0_0_0_0_0",
@@ -1358,7 +1377,8 @@ BEGIN
 
     \BLE:cy_mxs40_ble\:BLE
         GENERIC MAP(
-            cy_registers => "")
+            cy_registers => "",
+            low_power => 1)
         PORT MAP(
             ext_pa_lna_chip_en_out => Net_45,
             ext_lna_rx_ctl_out => Net_44,
@@ -1368,7 +1388,7 @@ BEGIN
     \BLE:bless_isr\:interrupt
         GENERIC MAP(
             cy_registers => "",
-            deepsleep_required => 0,
+            deepsleep_required => 1,
             int_type => "10")
         PORT MAP(
             interrupt => \BLE:Net_1\,

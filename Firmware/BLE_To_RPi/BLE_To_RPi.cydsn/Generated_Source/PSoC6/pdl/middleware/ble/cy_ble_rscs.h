@@ -114,7 +114,7 @@ typedef struct
     /** Running Speed and Cadence Service GATT DB handles structure */
     const cy_stc_ble_rscss_t *rscss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_rscs_config_t;
 /** @} */

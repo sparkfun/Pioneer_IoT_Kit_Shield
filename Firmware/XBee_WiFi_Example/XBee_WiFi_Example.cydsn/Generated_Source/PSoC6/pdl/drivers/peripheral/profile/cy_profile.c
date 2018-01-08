@@ -19,17 +19,17 @@
 extern "C" {
 #endif /* __cplusplus */
 
-/* # of elements in an array */
+/* Number of elements in an array */
 #define CY_N_ELMTS(a) (sizeof(a)/sizeof((a)[0]))
 
 static cy_en_profile_status_t Cy_Profile_IsPtrValid(const cy_stc_profile_ctr_ptr_t ctrAddr);
 
-/* control and status information for each counter */
+/* Internal structure - Control and status information for each counter */
 static cy_stc_profile_ctr_t cy_ep_ctrs[PROFILE_PRFL_CNT_NR];
 
 
 /* ========================================================================== */
-/* =====================    LOCAL FUNCTIONS SECTION    ====================== */
+/* =====================     LOCAL FUNCTION SECTION    ====================== */
 /* ========================================================================== */
 /*******************************************************************************
 * Function Name: Cy_Profile_IsPtrValid
@@ -104,15 +104,22 @@ void Cy_Profile_ISR(void)
 
 
 /* ========================================================================== */
-/* ==================    GENERAL EP FUNCTIONS SECTION    ==================== */
+/* ==================      GENERAL PROFILE FUNCTIONS     ==================== */
 /* ========================================================================== */
 /*******************************************************************************
 * Function Name: Cy_Profile_StartProfiling
 ****************************************************************************//**
 *
-* Starts profiling.
+* Starts the profiling/measurement window.
 *
-* \note Before calling this function, the user must enable the profiler interrupt.
+* This operation allows the enabled profile counters to start counting.
+*
+* \note The profile interrupt should be enabled before calling this function
+* in order for the firmware to be notified when a counter overflow occurs.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_StartProfiling
+*
 *******************************************************************************/
 void Cy_Profile_StartProfiling(void)
 {
@@ -132,8 +139,11 @@ void Cy_Profile_StartProfiling(void)
 * Function Name: Cy_Profile_ClearConfiguration
 ****************************************************************************//**
 *
-* Clears all counter configuration and sets all counters and overflow counters to 0.
-* Calls Cy_Profile_ClearCounters() to clear counter registers.
+* Clears all counter configurations and sets all counters and overflow counters 
+* to 0. Calls Cy_Profile_ClearCounters() to clear counter registers.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_ClearConfiguration
 *
 *******************************************************************************/
 void Cy_Profile_ClearConfiguration(void)
@@ -142,32 +152,33 @@ void Cy_Profile_ClearConfiguration(void)
     Cy_Profile_ClearCounters();
 }
 
+
 /*******************************************************************************
 * Function Name: Cy_Profile_ConfigureCounter
 ****************************************************************************//**
 *
-* Assigns a given monitor source to a counter, and loads the CTL register
-* bitfields of an assigned counter.
+* Configures and assigns a hardware profile counter to the list of used counters.
 *
-* The available monitor sources vary per device series. Refer to the series-specific 
-* configuration header file for the list of available monitor sources.
+* This function assigns an available profile counter to a slot in the internal 
+* software data structure and returns the handle for that slot location. The data
+* structure is used to keep track of the counter status and to implement a 64-bit
+* profile counter. If no counter slots are available, the function returns a
+* NULL pointer.
 * 
-* \param monitor The monitor source #
+* \param monitor The monitor source number
 *
 * \param duration Events are monitored (0), or duration is monitored (1)
 *
-* \param refClk The reference clock to use; see \ref cy_en_profile_ref_clk_t.
-* In general, it is recommended to use CY_PROFILE_CLK_HF to maximize resolution.
+* \param refClk Counter reference clock
 *
 * \param weight Weighting factor for the counter value
 * 
 * \return A pointer to the counter data structure. NULL if no counter is
 * available.
 *
-* \note The counter is not enabled by this function. See functions
-* \ref Cy_Profile_EnableCounter() and \ref Cy_Profile_DisableCounter(). See the
-* Technical Reference Manual (TRM) chapter on the EP for reference clock considerations.
-* 
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_ConfigureCounter
+*
 *******************************************************************************/
 cy_stc_profile_ctr_ptr_t Cy_Profile_ConfigureCounter(en_ep_mon_sel_t monitor, cy_en_profile_duration_t duration,
                                                      cy_en_profile_ref_clk_t refClk,  uint32_t weight)
@@ -199,21 +210,27 @@ cy_stc_profile_ctr_ptr_t Cy_Profile_ConfigureCounter(en_ep_mon_sel_t monitor, cy
     return (retVal);
 }
 
+
 /*******************************************************************************
 * Function Name: Cy_Profile_FreeCounter
 ****************************************************************************//**
 *
 * Frees up a counter from a previously-assigned monitor source.
-* \ref Cy_Profile_ConfigureCounter() must have been called for this counter before
-* calling this function.
 *
-* \param ctrAddr The handle to (address of) the assigned counter, which is
-* obtained by a call to \ref Cy_Profile_ConfigureCounter().
+* \ref Cy_Profile_ConfigureCounter() must have been called for this counter
+* before calling this function.
+*
+* \param ctrAddr The handle to the assigned counter (returned by calling
+* \ref Cy_Profile_ConfigureCounter()).
 * 
-* \return \ref CY_PROFILE_SUCCESS, or \ref CY_PROFILE_BAD_PARAM for counter not in use.
+* \return 
+* Status of the operation.
 *
-* \note The counter is not disabled by this function. See functions
-* \ref Cy_Profile_EnableCounter() and \ref Cy_Profile_DisableCounter().
+* \note The counter is not disabled by this function.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_FreeCounter
+*
 *******************************************************************************/
 cy_en_profile_status_t Cy_Profile_FreeCounter(cy_stc_profile_ctr_ptr_t ctrAddr)
 {
@@ -227,17 +244,24 @@ cy_en_profile_status_t Cy_Profile_FreeCounter(cy_stc_profile_ctr_ptr_t ctrAddr)
     return (retStatus);
 }
 
+
 /*******************************************************************************
 * Function Name: Cy_Profile_EnableCounter
 ****************************************************************************//**
 *
-* Enables an assigned counter. \ref Cy_Profile_ConfigureCounter() must have been
-* called for this counter before calling this function.
+* Enables an assigned counter. 
 *
-* \param ctrAddr The handle to (address of) the assigned counter, which is
-* obtained by a call to \ref Cy_Profile_ConfigureCounter().
+* \ref Cy_Profile_ConfigureCounter() must have been called for this counter
+* before calling this function.
+*
+* \param ctrAddr The handle to the assigned counter, (returned by calling
+* \ref Cy_Profile_ConfigureCounter()).
 * 
-* \return \ref CY_PROFILE_SUCCESS, or \ref CY_PROFILE_BAD_PARAM for counter not in use.
+* \return 
+* Status of the operation.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_EnableCounter
 *
 *******************************************************************************/
 cy_en_profile_status_t Cy_Profile_EnableCounter(cy_stc_profile_ctr_ptr_t ctrAddr)
@@ -255,17 +279,24 @@ cy_en_profile_status_t Cy_Profile_EnableCounter(cy_stc_profile_ctr_ptr_t ctrAddr
     return (retStatus);
 }
 
+
 /*******************************************************************************
 * Function Name: Cy_Profile_DisableCounter
 ****************************************************************************//**
 *
-* Disables an assigned counter. \ref Cy_Profile_ConfigureCounter() must have been
-* called for this counter before calling this function.
+* Disables an assigned counter.
 *
-* \param ctrAddr The handle to (address of) the assigned counter, which is
-* obtained by a call to \ref Cy_Profile_ConfigureCounter().
+* \ref Cy_Profile_ConfigureCounter() must have been called for this counter
+* before calling this function.
+*
+* \param ctrAddr The handle to the assigned counter, (returned by calling
+* \ref Cy_Profile_ConfigureCounter()).
 * 
-* \return \ref CY_PROFILE_SUCCESS, or \ref CY_PROFILE_BAD_PARAM for counter not in use.
+* \return 
+* Status of the operation.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_DisableCounter
 *
 *******************************************************************************/
 cy_en_profile_status_t Cy_Profile_DisableCounter(cy_stc_profile_ctr_ptr_t ctrAddr)
@@ -289,14 +320,18 @@ cy_en_profile_status_t Cy_Profile_DisableCounter(cy_stc_profile_ctr_ptr_t ctrAdd
 * Function Name: Cy_Profile_GetRawCount
 ****************************************************************************//**
 *
-* Reports the count value for a specified counter.
+* Reports the raw count value for a specified counter.
 *
-* \param ctrAddr the handle to (address of) the assigned counter, which is
-* obtained by a call to \ref Cy_Profile_ConfigureCounter().
+* \param ctrAddr The handle to the assigned counter, (returned by calling
+* \ref Cy_Profile_ConfigureCounter()).
 *
-* \param result The address to which to write the result.
+* \param result Output parameter used to write in the result.
 * 
-* \return \ref CY_PROFILE_SUCCESS, or \ref CY_PROFILE_BAD_PARAM for counter not in use.
+* \return 
+* Status of the operation.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_GetRawCount
 *
 *******************************************************************************/
 cy_en_profile_status_t Cy_Profile_GetRawCount(cy_stc_profile_ctr_ptr_t ctrAddr, uint64_t *result)
@@ -319,14 +354,18 @@ cy_en_profile_status_t Cy_Profile_GetRawCount(cy_stc_profile_ctr_ptr_t ctrAddr, 
 ****************************************************************************//**
 *
 * Reports the count value for a specified counter, multiplied by the weight
-* factor set in \ref Cy_Profile_ConfigureCounter() for that counter.
+* factor for that counter.
 *
-* \param ctrAddr the handle to (address of) the assigned counter, which is
-* obtained by a call to \ref Cy_Profile_ConfigureCounter().
+* \param ctrAddr The handle to the assigned counter, (returned by calling
+* \ref Cy_Profile_ConfigureCounter()).
 *
-* \param result The address to which to write the result.
+* \param result Output parameter used to write in the result.
 * 
-* \return \ref CY_PROFILE_SUCCESS, or \ref CY_PROFILE_BAD_PARAM for counter not in use.
+* \return 
+* Status of the operation.
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_GetWeightedCount
 *
 *******************************************************************************/
 cy_en_profile_status_t Cy_Profile_GetWeightedCount(cy_stc_profile_ctr_ptr_t ctrAddr, uint64_t *result)
@@ -345,14 +384,21 @@ cy_en_profile_status_t Cy_Profile_GetWeightedCount(cy_stc_profile_ctr_ptr_t ctrA
 * Function Name: Cy_Profile_GetSumWeightedCounts
 ****************************************************************************//**
 *
-* Calls \ref Cy_Profile_GetWeightedCount() for all specified counters. Reports the sum
-* across all valid counters.
+* Reports the weighted sum result of the first n number of counter count values
+* starting from the specified profile counter data structure base address.
 *
-* \param ptrsArray Array of handles to (addresses of) assigned counters
+* Each count value is multiplied by its weighing factor before the summing
+* operation is performed.
 *
-* \param numCounters Number of scanned elements in ptrsArray[]
+* \param ptrsArray Base address of the profile counter data structure
 *
-* \return The sum 
+* \param numCounters Number of measured counters in ptrsArray[]
+*
+* \return
+* The weighted sum of the specified counters
+*
+* \funcusage
+* \snippet profile/profile_v1_0_sut_01.cydsn/main_cm4.c snippet_Cy_Profile_GetSumWeightedCounts
 *
 *******************************************************************************/
 uint64_t Cy_Profile_GetSumWeightedCounts(cy_stc_profile_ctr_ptr_t ptrsArray[],

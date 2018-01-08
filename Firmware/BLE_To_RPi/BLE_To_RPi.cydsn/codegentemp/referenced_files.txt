@@ -74,6 +74,10 @@
             <file fileName="cy_tcpwm_quaddec.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\tcpwm\cy_tcpwm_quaddec.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cy_tcpwm_quaddec.c" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\tcpwm\cy_tcpwm_quaddec.c" buildType="SOURCE_C;;;;" copyLocal="True" isTemplate="False" />
           </folder>
+          <folder folderName="efuse">
+            <file fileName="cy_efuse.c" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\efuse\cy_efuse.c" buildType="SOURCE_C;;;;" copyLocal="True" isTemplate="False" />
+            <file fileName="cy_efuse.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\efuse\cy_efuse.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
+          </folder>
           <folder folderName="flash">
             <file fileName="cy_flash.c" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\flash\cy_flash.c" buildType="SOURCE_C;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cy_flash.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\drivers\peripheral\flash\cy_flash.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
@@ -251,6 +255,7 @@
             <file fileName="cyip_backup.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_backup.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cyip_dw.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_dw.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cyip_efuse.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_efuse.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
+            <file fileName="cyip_efuse_data.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_efuse_data.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cyip_profile.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_profile.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cyip_hsiom.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_hsiom.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />
             <file fileName="cyip_gpio.h" physicalFilePath="C:\Program Files (x86)\Cypress\PDL\3.0.1\devices\psoc6\ip\cyip_gpio.h" buildType="HEADER;;;;" copyLocal="True" isTemplate="False" />

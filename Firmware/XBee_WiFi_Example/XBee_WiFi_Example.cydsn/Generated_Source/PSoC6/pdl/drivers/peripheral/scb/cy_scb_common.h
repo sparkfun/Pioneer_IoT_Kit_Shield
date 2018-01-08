@@ -371,7 +371,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel   (CySCB_Type const *base);
 * \defgroup group_scb_common_macros_master_intr Master Interrupt Statuses
 * \{
 */
-/** The I2C master's lost arbitration */
+/** The I2C master lost arbitration */
 #define CY_SCB_MASTER_INTR_I2C_ARB_LOST    SCB_INTR_M_I2C_ARB_LOST_Msk
 
 /** The I2C master received a NACK */
@@ -410,7 +410,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel   (CySCB_Type const *base);
 * \{
 */
 /**
-* Wake up request: the SPI slave detected an active edge of the slave select
+* Wake up request: the SPI slave detects an active edge of the slave select
 * signal. Note that this interrupt source triggers in active mode.
 */
 #define CY_SCB_SPI_INTR_WAKEUP     SCB_INTR_SPI_EC_WAKE_UP_Msk
@@ -467,6 +467,12 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel   (CySCB_Type const *base);
 #define CY_SCB_I2C_CTRL_MODE_Pos    SCB_I2C_CTRL_SLAVE_MODE_Pos
 #define CY_SCB_I2C_CTRL_MODE_Msk    (SCB_I2C_CTRL_SLAVE_MODE_Msk | \
                                      SCB_I2C_CTRL_MASTER_MODE_Msk)
+
+/* Cypress ID #282226:
+* SCB_I2C_CFG_SDA_IN_FILT_TRIM[1]: SCB clock enable (1), clock disable (0).
+*/
+#define CY_SCB_I2C_CFG_CLK_ENABLE_Msk  (_VAL2FLD(SCB_I2C_CFG_SDA_IN_FILT_TRIM, 2UL))
+
 /* I2C has fixed data width */
 #define CY_SCB_I2C_DATA_WIDTH   (7UL)
 
@@ -561,7 +567,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel   (CySCB_Type const *base);
 ****************************************************************************//**
 *
 * Reads a data element directly out of the RX FIFO.
-* This function does not check if the RX FIFO has data before reading it.
+* This function does not check whether the RX FIFO has data before reading it.
 *
 * \param base
 * The pointer to the SCB instance.
@@ -627,7 +633,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetNumInRxFifo(CySCB_Type const *base)
 * The pointer to the SCB instance.
 *
 * \return
-* 1 - RX shift register valid, 0 - RX shift register not valid.
+* 1 - RX shift register valid; 0 - RX shift register not valid.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_GetRxSrValid(CySCB_Type const *base)
@@ -646,7 +652,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxSrValid(CySCB_Type const *base)
 * The pointer to the SCB instance.
 *
 * \note
-* If there is partial data in the shifter, it gets cleared and lost.
+* If there is partial data in the shifter, it is cleared and lost.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SCB_ClearRxFifo(CySCB_Type* base)
@@ -663,7 +669,7 @@ __STATIC_INLINE void Cy_SCB_ClearRxFifo(CySCB_Type* base)
 ****************************************************************************//**
 *
 * Writes data directly into the TX FIFO.
-* This function does not check if the TX FIFO is not full before writing
+* This function does not check whether the TX FIFO is not full before writing
 * into it.
 *
 * \param base
@@ -683,7 +689,7 @@ __STATIC_INLINE void Cy_SCB_WriteTxFifo(CySCB_Type* base, uint32_t data)
 * Function Name: Cy_SCB_SetTxFifoLevel
 ****************************************************************************//**
 *
-* Sets the TX FIFO level, when there are fewer data elements in the TX FIFO than
+* Sets the TX FIFO level. When there are fewer data elements in the TX FIFO than
 * this level, the TX FIFO level interrupt is triggered.
 *
 * \param base
@@ -731,7 +737,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetNumInTxFifo(CySCB_Type const *base)
 * The pointer to the SCB instance.
 *
 * \return
-* 1 - TX shift register valid, 0 - TX shift register not valid.
+* 1 - TX shift register valid; 0 - TX shift register not valid.
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SCB_GetTxSrValid(CySCB_Type const *base)
@@ -744,7 +750,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetTxSrValid(CySCB_Type const *base)
 * Function Name: Cy_SCB_IsTxComplete
 ****************************************************************************//**
 *
-* Checks if the TX FIFO and Shifter are empty and there is no more data to send.
+* Checks whether the TX FIFO and Shifter are empty and there is no more data to send.
 *
 * \param base
 * Pointer to SPI the SCB instance.
@@ -769,8 +775,8 @@ __STATIC_INLINE bool Cy_SCB_IsTxComplete(CySCB_Type const *base)
 * The pointer to the SCB instance.
 *
 * \note
-* The TX FIFO clear operation also clears the shift register, thus the shifter
-* could be cleared in the middle of a data element transfer; resulting in
+* The TX FIFO clear operation also clears the shift register. Thus the shifter
+* could be cleared in the middle of a data element transfer. Thia results in
 * "ones" being sent on the bus for the remainder of the transfer.
 *
 *******************************************************************************/
@@ -789,7 +795,7 @@ __STATIC_INLINE void Cy_SCB_ClearTxFifo(CySCB_Type *base)
 *
 * Sets whether the RX and TX FIFOs are in byte mode.
 * The FIFOs are either 16-bit wide or 8-bit wide (byte mode).
-* When the FIFO is in byte mode it is twice as deep, see device datasheet
+* When the FIFO is in byte mode it is twice as deep. See the device datasheet
 * for FIFO depths.
 *
 * \param base
@@ -1084,7 +1090,7 @@ __STATIC_INLINE uint32_t Cy_SCB_GetTxInterruptStatusMasked(CySCB_Type const *bas
 *
 * \note
 *  - CY_SCB_INTR_TX_FIFO_LEVEL interrupt source is not cleared when the
-*    TX FIFO has less entries than the TX level.
+*    TX FIFO has fewer entries than the TX level.
 *  - CY_SCB_INTR_TX_NOT_FULL interrupt source is not cleared when the
 *    TX FIFO has empty entries in the TX FIFO.
 *  - CY_SCB_INTR_TX_EMPTY interrupt source is not cleared when the
@@ -1626,7 +1632,7 @@ __STATIC_INLINE void Cy_SCB_ClearSpiInterrupt(CySCB_Type *base, uint32_t interru
     (void) base->INTR_SPI_EC;
 }
 
-
+/** \cond INTERNAL */
 /*******************************************************************************
 * Function Name: Cy_SCB_GetFifoSize
 ****************************************************************************//**
@@ -1676,7 +1682,7 @@ __STATIC_INLINE bool Cy_SCB_IsRxDataWidthByte(CySCB_Type const *base)
 * The pointer to the SCB instance.
 *
 * \return
-* If ture, the TX data width is a byte (8 bits). Otherwise, false.
+* If true, the TX data width is a byte (8 bits). Otherwise, false.
 *
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SCB_IsTxDataWidthByte(CySCB_Type const *base)
@@ -1728,6 +1734,8 @@ __STATIC_INLINE uint32_t Cy_SCB_GetRxFifoLevel(CySCB_Type const *base)
 {
     return _FLD2VAL(SCB_RX_FIFO_CTRL_TRIGGER_LEVEL, base->RX_FIFO_CTRL);
 }
+
+/** \endcond */
 /** \} group_scb_common_functions */
 
 #if defined(__cplusplus)

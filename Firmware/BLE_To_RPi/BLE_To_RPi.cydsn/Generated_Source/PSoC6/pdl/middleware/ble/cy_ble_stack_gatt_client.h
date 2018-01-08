@@ -22,7 +22,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_gatt.h"
@@ -390,7 +390,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTC_StopCmd
 *  GATT Client's end on receiving GATT MTU response from the GATT Server.
 * 
 *  \param param: parameter is of type CY_BLE_GATT_XCHG_MTU_REQ_PARAM_T.
-*   param->mtu: Size of GATT MTU. Max GATT MTU supported by BLE stack is 512 Bytes.
+*   param->mtu: Size of GATT MTU. Max GATT MTU supported by BLE Stack is 512 Bytes.
 * 
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -705,7 +705,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTC_DiscoverCharacteristicDescriptors
 *  2. Send Read Request by invoking the function 
 *      Cy_BLE_GATTC_ReadCharacteristicValue() with the read request handle set to
 *      the attribute handle of the included service. Handle associated events. 
-*  3. Re-initiate Cy_BLE_GATTC_FindIncludedServices function, setting the start
+*  3. Re-initiate Cy_BLE_GATTC_FindIncludedServices() function, setting the start
 *      handle to the attribute handle that is placed next to the one used in
 *      the above step.
 * 
@@ -1512,7 +1512,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTC_WriteWithoutResponse
 *  CY_BLE_ERROR_INVALID_PARAMETER       | If 'param' is NULL or if 'attrHandle' is zero.
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY        | 'connHandle.bdHandle' value does not represent any existing entry in the Stack.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED| Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES  | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES  | BLE Stack resources are unavailable.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GATTC_SignedWriteWithoutRsp

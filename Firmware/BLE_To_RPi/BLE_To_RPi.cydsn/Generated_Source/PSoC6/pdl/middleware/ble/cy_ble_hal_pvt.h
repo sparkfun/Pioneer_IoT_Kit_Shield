@@ -4,7 +4,7 @@
 *
 * \brief
 *  Contains the function prototypes and constants for the HAL section
-*  of the BLE component.
+*  of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -30,11 +30,98 @@
 #include "cy_device_headers.h"
 
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
+
+/***************************************
+* Enumerated Types and Structures
+***************************************/
+
+/**
+ * \addtogroup group_ble_common_api_definitions
+ * @{
+ */
+/** Interrupt callback feature */
+typedef enum
+{
+    /** Interrupt callback feature is disabled */
+    CY_BLE_INTR_CALLBACK_NONE,
+    
+    /** Executed on every trigger of BLESS interrupt. */
+    CY_BLE_INTR_CALLBACK_BLESS_STACK_ISR             = (0x01u << 1u),
+    
+    /** Executed when the BLESS exits DeepSleep mode and enters Active mode. 
+     *  BLESS DeepSleep exit can be triggered automatically by link layer hardware
+     *  or by different BLE_PDL data transfer APIs which needs BLESS to be active. 
+     */
+    CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_EXITED  = (0x01u << 2u),
+    
+    /** Executed when the BLESS connection engine in slave mode detects a BLE packet 
+     *  which matches its access address. 
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_CONN_EXT_INTR_EARLY   = (0x01u << 3u),
+    
+    /** Executed when the BLESS connection engine receives a non-empty packet from 
+     *  the peer device.
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_RX       = (0x01u << 4u),
+    
+    /** Executed when the BLESS connection engine receives an ACK packet from the peer
+     *  device for the previously transmitted packet.
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_TX_ACK   = (0x01u << 5u),
+    
+    /** Executed when the BLESS connection engine closes the connection event. 
+     *  This interrupt will be executed on every connection interval for a connection,
+     *  irrespective of data tx/rx state. 
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CLOSE_CE    = (0x01u << 6u),
+    
+    /** Executed when the BLESS enters DeepSleep mode. User call to Cy_SysPm_DeepSleep API 
+     *  will trigger BLESS DeepSleep entry sequence. 
+     */
+    CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_ENTERED = (0x01u << 7u),
+    
+    /** Executed when the BLESS scan engine receives an advertisement packet from the
+     *  peer device 
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_ADV_RX      = (0x01u << 8u),
+    
+    /** Executed when the BLESS scan engine receives a scan response packet from the peer
+     *  device in response to a scan request from the scanner. 
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_SCAN_RSP_RX = (0x01u << 9u),
+    
+    /** Executed when the BLESS advertisement engine receives a connection request from 
+     *  the peer central device
+     */
+    CY_BLE_INTR_CALLBACK_BLELL_ADV_INTR_CONN_REQ_RX  = (0x01u << 10u),
+
+} cy_en_ble_interrupt_callback_feature_t;
+
+
+/** @} group_ble_common_api_definitions */
+
+/** \cond IGNORE */
+
+typedef struct 
+{
+    uint8_t  clientID;
+    uint8_t  pktType;
+    uint16_t intrRelMask;
+    uint32_t data; 
+    uint16_t dataLen;
+} cy_stc_ble_ipc_msg_t;
+
+typedef struct 
+{
+    cy_stc_ble_ipc_ctrl_msg msgBuf[CY_BLE_INTR_NOTIFY_Q_SIZE];
+    uint32_t rdIndex;
+    uint32_t wrIndex;
+} cy_stc_ble_intr_notify_queue_t;
+/** \endcond */
 
 /***************************************
 *   HAL Constants
@@ -55,16 +142,21 @@ extern "C" {
 
 #define CY_BLE_SFLASH_BLE_RADIO_CALL_ADDRESS   ((uint32_t)SFLASH->BLE_DEVICE_ADDRESS + sizeof(cy_stc_ble_gap_bd_addr_t))
 
-
 /***************************************
 *   Function Prototypes
 ***************************************/
 
 /* HAL ISR prototypes */
 void Cy_BLE_BlessInterrupt(void);
+
+#if (CY_BLE_CYOS_SUPPORT)
+export void Cy_BLE_CyOsBlessInterrupt(void);
+#endif /* (CY_BLE_CYOS_SUPPORT) */
+
 #if (CY_BLE_STACK_MODE_HOST_UART)
 void Cy_BLE_HAL_HOST_UART_Interrupt(void);
 #endif /* (CY_BLE_STACK_MODE_HOST_UART) */
+
 #if (CY_BLE_CONFIG_STACK_MODE_CONTR_UART)
 void Cy_BLE_HAL_UART_Interrupt(void);
 #endif /* (CY_BLE_CONFIG_STACK_MODE_CONTR_UART) */
@@ -92,6 +184,7 @@ cy_en_clklf_in_sources_t Cy_BLE_HAL_LfClkGetSource(void);
 /* Stack Interface to flash */
 cy_en_ble_api_result_t Cy_BLE_HAL_NvramWrite(const uint8_t buffer[], const uint8_t varFlash[], uint32_t length);
 cy_en_ble_api_result_t Cy_BLE_HAL_NvramNonBlockingRowWrite(const uint8_t buffer[], const uint8_t varFlash[], uint32_t length);
+cy_en_ble_api_result_t Cy_BLE_HAL_StackNvramWrite(const uint8_t buffer[], const uint8_t varFlash[], uint32_t length);
 bool Cy_BLE_HAL_NvramWriteIsBusy(void);
 uint8_t Cy_BLE_HAL_CalcCRC8(uint8_t data[], uint32_t length);
 
@@ -131,24 +224,24 @@ uint8_t Cy_BLE_HAL_CalcCRC8(uint8_t data[], uint32_t length);
 #endif     /* (CY_BLE_SECURE_CONN_FEATURE_ENABLED) */
 
 #if (CY_BLE_STACK_MODE_HOST_UART)
-void Cy_BLE_HAL_HOST_UART_Start(void);
-void Cy_BLE_HAL_HOST_UART_Stop(void);
-void Cy_BLE_HAL_HOST_UART_Transmit(const uint8_t *dataBuf, uint8_t length);
-void Cy_BLE_HAL_HOST_UART_IsrEnable(void);
-void Cy_BLE_HAL_HOST_UART_IsrDisable(void);
+    void Cy_BLE_HAL_HOST_UART_Start(void);
+    void Cy_BLE_HAL_HOST_UART_Stop(void);
+    void Cy_BLE_HAL_HOST_UART_Transmit(const uint8_t *dataBuf, uint8_t length);
+    void Cy_BLE_HAL_HOST_UART_IsrEnable(void);
+    void Cy_BLE_HAL_HOST_UART_IsrDisable(void);
 #endif    /* (CY_BLE_STACK_MODE_HOST_UART) */
 
 #if (CY_BLE_CONFIG_STACK_MODE_CONTR_UART)
-void Cy_BLE_HAL_UART_Start(void);
-void Cy_BLE_HAL_UART_Stop(void);
-void Cy_BLE_HAL_UART_Transmit(uint8_t *dataBuf, uint8_t length);
-void Cy_BLE_HAL_UART_IsrEnable(void);
-void Cy_BLE_HAL_UART_IsrDisable(void);
+    void Cy_BLE_HAL_UART_Start(void);
+    void Cy_BLE_HAL_UART_Stop(void);
+    void Cy_BLE_HAL_UART_Transmit(uint8_t *dataBuf, uint8_t length);
+    void Cy_BLE_HAL_UART_IsrEnable(void);
+    void Cy_BLE_HAL_UART_IsrDisable(void);
 #endif /* (CY_BLE_CONFIG_STACK_MODE_CONTR_UART) */
 
 #if (CY_BLE_STACK_MODE_IPC)
-void Cy_BLE_Ipc_Cypipe_Isr_Enable(void);
-void Cy_BLE_Ipc_Cypipe_Isr_Disable(void);
+    void Cy_BLE_Ipc_Cypipe_Isr_Enable(void);
+    void Cy_BLE_Ipc_Cypipe_Isr_Disable(void);
 #if (CY_BLE_CONFIG_STACK_CONTR_CORE)
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_ControllerRegisterClientCallbacks(cy_ipc_pipe_callback_ptr_t ctrlMsgRecvCallBack,
                                                                      cy_ipc_pipe_callback_ptr_t ctrlMsgFlushRecvCallBack);
@@ -162,14 +255,21 @@ cy_en_ipc_pipe_status_t Cy_BLE_IPC_HostRegisterClientCallbacks(cy_ipc_pipe_callb
 cy_en_ipc_pipe_status_t Cy_BLE_IPC_SendMessageToController(uint32_t *msg,
                                                            cy_ipc_pipe_relcallback_ptr_t hostIpcRelCallBack,
                                                            cy_ipc_pipe_relcallback_ptr_t hostPollCallBack);
-
-
 typedef void (* cy_ble_ipc_app_notif_callback_t) (void);
-
 cy_en_ble_api_result_t Cy_BLE_IPC_RegisterAppHostCallback(cy_ble_ipc_app_notif_callback_t CallBack);
 
 #endif /* (CY_BLE_HOST_CORE) */
 #endif /* (CY_BLE_STACK_MODE_IPC) */
+
+#if (CY_BLE_CONFIG_STACK_CONTR_CORE)
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+    extern volatile uint32_t cy_ble_interruptCallbackFeatureMask;
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+#endif /* (CY_BLE_CONFIG_STACK_CONTR_CORE) */
+
+#if (CY_BLE_HOST_CORE)
+extern cy_ble_intr_callback_t Cy_BLE_InterruptCallback;    
+#endif /* (CY_BLE_HOST_CORE) */
 
 #ifdef __cplusplus
 }

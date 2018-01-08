@@ -21,7 +21,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_host_main.h"
@@ -189,7 +189,7 @@ typedef enum
     CY_BLE_GATT_ERR_INVALID_PDU,
 
     /** Insufficient Authentication error code is used when
-       an access to a handle is attempted on a un-authenticated link but the
+       an access to a handle is attempted on a unauthenticated link but the
        attribute requires that the link be authenticated before a client can access it. */
     CY_BLE_GATT_ERR_INSUFFICIENT_AUTHENTICATION,
 
@@ -551,7 +551,7 @@ typedef struct
 * Function Name: Cy_BLE_GATT_GetMtuSize
 ***************************************************************************//**
 * 
-*  This function provides the correct GATT MTU used by BLE stack. If the function
+*  This function provides the correct GATT MTU used by BLE Stack. If the function
 *  is called after the GATT MTU configuration procedure, it will provide the final
 *  negotiated GATT MTU else default MTU (23 Bytes).
 *     

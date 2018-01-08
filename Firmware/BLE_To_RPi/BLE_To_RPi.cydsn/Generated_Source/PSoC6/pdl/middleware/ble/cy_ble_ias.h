@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Immediate Alert Service of the BLE Component.
+*  the Immediate Alert Service.
 *
 ********************************************************************************
 * \copyright
@@ -72,7 +72,7 @@ typedef struct
     /** Immediate Alert Service GATT DB handles structure */
     const cy_stc_ble_iass_t *iass;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_ias_config_t;
 /** @} */

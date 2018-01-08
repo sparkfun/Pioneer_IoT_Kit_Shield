@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Structure.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file defines the data structure global variables and provides implementation
 *   for the high-level and low-level APIs of the Data Structure module.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -53,22 +53,30 @@
     #include "CapSense_SelfTest.h"
 #endif
 
+#if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+    #include "CapSense_AdvancedCentroid_LL.h"
+#endif
+
+#if (CapSense_ENABLE == CapSense_GES_GLOBAL_EN)
+    #include "CapSense_Gesture.h"
+#endif /* (CapSense_ENABLE == CapSense_GES_GLOBAL_EN) */
+
 /*******************************************************************************
 * Defines the RAM Data Structure variables and their init data in flash
 *******************************************************************************/
 /**
-* \if SECTION_GLOBAL_VARIABLES
+* \cond SECTION_GLOBAL_VARIABLES
 * \addtogroup group_global_variables
 * \{
 */
 
 /**
-* The variable that contains the CapSense configuration, settings and 
+* The variable that contains the CapSense configuration, settings and
 * scanning results. CapSense_dsRam represents RAM Data Structure.
 */
 CapSense_RAM_STRUCT CapSense_dsRam;
 /** \}
-* \endif */
+* \endcond */
 
 /*******************************************************************************
 * Declares Widget's De-bounce Counters
@@ -79,14 +87,14 @@ static uint8 CapSense_debounceLinearSlider0[1u];
 
 
 /***************************************************************************//**
-* Declare Noise Envelope data structures
+* Declares Noise Envelope data structures
 *******************************************************************************/
 static SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT CapSense_noiseEnvlpButton0[CapSense_BUTTON0_NUM_SENSORS];
 static SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT CapSense_noiseEnvlpButton1[CapSense_BUTTON1_NUM_SENSORS];
 static SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT CapSense_noiseEnvlpLinearSlider0[CapSense_LINEARSLIDER0_NUM_SENSORS];
 
 /***************************************************************************//**
-* Declare Filter History Objects
+* Declares Filter History Objects
 *******************************************************************************/
 static CapSense_REGULAR_FLTR_STRUCT CapSense_fltrHistoryButton0[CapSense_BUTTON0_NUM_SENSORS];
 static CapSense_REGULAR_FLTR_STRUCT CapSense_fltrHistoryButton1[CapSense_BUTTON1_NUM_SENSORS];
@@ -101,12 +109,13 @@ static CapSense_SLIDER_POS_HISTORY_STRUCT CapSense_posHistoryLinearSlider0[CapSe
 * Defines and initializes the Flash Data Structure
 *******************************************************************************/
 
+
+
 /**
-* \if SECTION_API_CONSTANTS
+* \cond SECTION_API_CONSTANTS
 * \addtogroup group_api_constants
 * \{
 */
-
 /**
 * Constant for the FLASH Data Structure
 */
@@ -128,6 +137,7 @@ const CapSense_FLASH_STRUCT CapSense_dsFlash =
             0u,
             CapSense_noiseEnvlpButton0,
             (void *)0u,
+            0u,
         },
         { /* Button1 */
             &CapSense_ioList[1u],
@@ -143,6 +153,7 @@ const CapSense_FLASH_STRUCT CapSense_dsFlash =
             0u,
             CapSense_noiseEnvlpButton1,
             (void *)0u,
+            0u,
         },
         { /* LinearSlider0 */
             &CapSense_ioList[2u],
@@ -158,6 +169,7 @@ const CapSense_FLASH_STRUCT CapSense_dsFlash =
             CapSense_LINEARSLIDER0_X_CENT_MULT,
             CapSense_noiseEnvlpLinearSlider0,
             (void *)&CapSense_posHistoryLinearSlider0,
+            CapSense_LINEARSLIDER0_IIR_FILTER_COEFF,
         },
     },
 };
@@ -210,7 +222,7 @@ const CapSense_FLASH_IO_STRUCT CapSense_shieldIoList[CapSense_CSD_TOTAL_SHIELD_C
 
 
 /** \}
-* \endif */
+* \endcond */
 
 /* Initialization data for RAM widget list */
 const CapSense_RAM_WD_LIST_STRUCT CapSense_ramWidgetInit =
@@ -317,13 +329,13 @@ const uint8 CapSense_ramIdacInit[CapSense_TOTAL_SENSORS] =
 /* Defines PARAM_ID structure */
 typedef struct
 {
-    uint16 offset;      /* parameter offset                     */
-    uint8  widgetId;    /* widget Id parameter belongs to       */
-    uint8  affectsCrc;  /* parameter affects widget CRC         */
-    uint8  crc;         /* parameter CRC                        */
-    uint8  flash;       /* parameter located in FLASH flag      */
-    uint8  rw;          /* parameter is read/write flag         */
-    uint8  type;        /* parameter type: uint8/uint16/uint32  */
+    uint16 offset;      /* parameter offset */
+    uint8  widgetId;    /* widget Id parameter belongs to */
+    uint8  affectsCrc;  /* parameter affects widget CRC */
+    uint8  crc;         /* parameter CRC */
+    uint8  flash;       /* parameter located in FLASH flag */
+    uint8  rw;          /* parameter is read/write flag */
+    uint8  type;        /* parameter type: uint8/uint16/uint32 */
 } PARAM_ID_STRUCT;
 
 
@@ -331,8 +343,8 @@ typedef struct
 * Static Function Prototypes
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -341,7 +353,7 @@ typedef struct
 static cy_status DsParseParamId(uint32 paramId, PARAM_ID_STRUCT *pData);
 
 /** \}
-* \endif */
+* \endcond */
 
 
 /*******************************************************************************
@@ -364,13 +376,13 @@ void CapSense_DsInitialize(void)
          (CapSense_ENABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES)))
         uint32 snsId;
         uint32 wdgtId;
-        CapSense_RAM_SNS_STRUCT * ptrSns;
+        CapSense_RAM_SNS_STRUCT * ptrSnsTmp;
         CapSense_FLASH_WD_STRUCT const * ptrFlashWdgt;
     #endif
 
     #if ((CapSense_ENABLE == CapSense_CSX_EN) && \
          (CapSense_ENABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES))
-        uint16 subConvNum;
+        uint16 subConvNumber;
     #endif
 
     #if (0u != CapSense_CSX_EN) || (0 != CapSense_CSD_IDAC_COMP_EN)
@@ -380,9 +392,10 @@ void CapSense_DsInitialize(void)
     /* Reset RAM data structure content */
     (void)memset(&CapSense_dsRam, 0, sizeof(CapSense_dsRam));
 
-    /* Initialize configId and deviceId registers */
+    /* Initialize configId, deviceId and hwClock registers */
     CapSense_dsRam.configId = CapSense_CONFIG_ID;
     CapSense_dsRam.deviceId = CapSense_DEVICE_ID;
+    CapSense_dsRam.hwClock = CapSense_HW_CLOCK;
 
     /* Initialize global RAM data */
     CapSense_dsRam.csd0Config = CapSense_CSD0_CONFIG;
@@ -410,28 +423,41 @@ void CapSense_DsInitialize(void)
     /* Initialize RAM widget data */
     CapSense_dsRam.wdgtList = CapSense_ramWidgetInit;
 
+    /* Initialize Gesture configuration structure */
+    #if ((0u != CapSense_GES_GLOBAL_EN) || (0u != CapSense_BALLISTIC_MULTIPLIER_EN))
+        CapSense_dsRam.timestampInterval = CapSense_TIMESTAMP_INTERVAL;
+    #endif /* ((0u != CapSense_GES_GLOBAL_EN) || (0u != CapSense_BALLISTIC_MULTIPLIER_EN)) */
+
+    #if (0u != CapSense_GES_GLOBAL_EN)
+        CapSense_dsRam.gestures = CapSense_ramGesturesInit;
+    #endif /* (0u != CapSense_GES_GLOBAL_EN) */
+
+    #if (0u != CapSense_BALLISTIC_MULTIPLIER_EN)
+        CapSense_dsRam.ballisticConfig = CapSense_ramBallisticInit;
+    #endif /* (0u != CapSense_BALLISTIC_MULTIPLIER_EN) */
+
     #if (0u != CapSense_CSX_EN) || (0 != CapSense_CSD_IDAC_COMP_EN)
         /* Initialize IDAC data */
         ptrFlashWdgt = CapSense_dsFlash.wdgtArray;
 
         for (wdgtId = CapSense_TOTAL_WIDGETS; wdgtId-- > 0u; )
         {
-            ptrSns = ptrFlashWdgt->ptr2SnsRam;
+            ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
 
             for (snsId = CapSense_GET_SNS_CNT_BY_PTR(ptrFlashWdgt); snsId-- > 0u;)
             {
-                ptrSns->idacComp[0u] = *ptrIdacInit;
+                ptrSnsTmp->idacComp[0u] = *ptrIdacInit;
                 ptrIdacInit++;
 
                 #if (0u != CapSense_MULTI_FREQ_SCAN_EN)
-                    ptrSns->idacComp[1u] = *ptrIdacInit;
+                    ptrSnsTmp->idacComp[1u] = *ptrIdacInit;
                     ptrIdacInit++;
 
-                    ptrSns->idacComp[2u] = *ptrIdacInit;
+                    ptrSnsTmp->idacComp[2u] = *ptrIdacInit;
                     ptrIdacInit++;
                 #endif /* #if (0u != CapSense_MULTI_FREQ_SCAN_EN) */
 
-                ptrSns++;
+                ptrSnsTmp++;
             }
 
             ptrFlashWdgt++; /* Move to next widget */
@@ -448,12 +474,12 @@ void CapSense_DsInitialize(void)
             if (CapSense_SENSE_METHOD_CSX_E == CapSense_GET_SENSE_METHOD(ptrFlashWdgt))
             {
                 /* Take the sub-convesion number of a CSX widget and initialize each node of this widget */
-                subConvNum = ((CapSense_RAM_WD_BASE_STRUCT *)(ptrFlashWdgt->ptr2WdgtRam))->resolution;
-                ptrSns = ptrFlashWdgt->ptr2SnsRam;
+                subConvNumber = ((CapSense_RAM_WD_BASE_STRUCT *)(ptrFlashWdgt->ptr2WdgtRam))->resolution;
+                ptrSnsTmp = ptrFlashWdgt->ptr2SnsRam;
                 for (snsId = CapSense_GET_SNS_CNT_BY_PTR(ptrFlashWdgt); snsId-- > 0u;)
                 {
-                    ptrSns->subConvNum = subConvNum;
-                    ptrSns++;
+                    ptrSnsTmp->subConvNum = subConvNumber;
+                    ptrSnsTmp++;
                 }
             }
             /* Move to the next widget */
@@ -481,6 +507,7 @@ void CapSense_DsInitialize(void)
     {
         CapSense_dsRam.adcResolution = CapSense_ADC_RESOLUTION;
         CapSense_dsRam.adcIdac = (uint8)(CapSense_ADC_IDAC_DEFAULT);
+        CapSense_dsRam.adcActiveCh = CapSense_AdcNO_CHANNEL;
     }
 #endif /* (0u != CapSense_ADC_EN) */
 
@@ -679,7 +706,7 @@ static cy_status DsParseParamId(uint32 paramId, PARAM_ID_STRUCT *pData)
 *  Refer to the \ref group_structures section for details of the data structure
 *  organization and examples of its register access.
 *
-* \param  paramId
+* \param paramId
 *  Specifies the ID of parameter to get its value.
 *  A macro for the parameter ID can be found in the CapSense RegisterMap header
 *  file defined as CapSense_<ParameterName>_PARAM_ID.
@@ -740,7 +767,7 @@ cy_status CapSense_GetParam(uint32 paramId, uint32 *value)
         else
         {
             /* Parameter comes here already validated. */
-            CY_ASSERT(0u);
+            CY_ASSERT(0 != 0);
         }
     }
 
@@ -781,6 +808,11 @@ cy_status CapSense_GetParam(uint32 paramId, uint32 *value)
 *
 *  Refer to the \ref group_structures section for details of the data structure
 *  organization and examples of its register access.
+*
+*  This function writes specified value into the desired register without
+*  other registers update. It is application layer responsibility to keep all
+*  the data structure registers aligned. Repeated call of
+*  CapSense_Start() function helps aligning dependent register values.
 *
 * \param paramId
 *  Specifies the ID of parameter to set its value.
@@ -845,7 +877,7 @@ cy_status CapSense_SetParam(uint32 paramId, uint32 value)
         else
         {
             /* Parameter comes here already validated. */
-            CY_ASSERT(0u);
+            CY_ASSERT(0 != 0);
         }
 
         #if (CapSense_ENABLE == (CapSense_TST_WDGT_CRC_EN || CapSense_TST_GLOBAL_CRC_EN))
@@ -1099,7 +1131,7 @@ uint32 CapSense_IsMatrixButtonsActive(uint32 widgetId)
         #endif /* #if (0u != CapSense_CSX_MATRIX_WIDGET_EN) */
 
         default:
-            CY_ASSERT(0u);
+            CY_ASSERT(0 != 0);
             break;
         }
     }
@@ -1278,9 +1310,30 @@ uint32 CapSense_GetXYCoordinates(uint32 widgetId)
         #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN)
             case CapSense_SENSE_METHOD_CSD_E:
                 wdCsdTouchpad = ptrFlashWdgt->ptr2WdgtRam;
+                #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+                    #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+                        if (0 != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_5X5_MASK))
+                        {
+                    #endif
+                        result = ((uint32)wdCsdTouchpad->position.pos[0u].x) |
+                                 ((uint32)wdCsdTouchpad->position.pos[0u].y << 16u);
+                    #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+                        }
+                    #endif
+                #endif
 
-                result = ((uint32)wdCsdTouchpad->posX) |
-                         ((uint32)wdCsdTouchpad->posY << 16u);
+                #if (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)
+                    #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+                        if (0 != (ptrFlashWdgt->staticConfig & CapSense_CENTROID_3X3_MASK))
+                        {
+                    #endif
+                        result = ((uint32)wdCsdTouchpad->posX) |
+                                 ((uint32)wdCsdTouchpad->posY << 16u);
+                    #if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+                        }
+                    #endif
+                #endif
+
                 break;
         #endif /* #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
@@ -1294,7 +1347,7 @@ uint32 CapSense_GetXYCoordinates(uint32 widgetId)
         #endif /* #if (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN) */
 
         default:
-            CY_ASSERT(0u);
+            CY_ASSERT(0 != 0);
             break;
         }
     }

@@ -161,7 +161,6 @@ typedef struct
 ***************************************/
 cy_en_ble_api_result_t Cy_BLE_CUSTOM_Init(cy_stc_ble_custom_config_t *config);
 
-
 /***************************************
 * External data references
 ***************************************/

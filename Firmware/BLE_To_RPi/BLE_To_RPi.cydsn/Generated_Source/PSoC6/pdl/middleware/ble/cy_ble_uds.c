@@ -3,8 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for
-*  the User Data Service of the BLE Component.
+*  This file contains the source code for the User Data Service.
 *
 ********************************************************************************
 * \copyright
@@ -82,7 +81,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_UDS_EventHandler(uint32_t eventCode, voi
 *
 *  Initializes the profile internals.
 *
-*  \param config: Configuration structure for Uds.
+*  \param config: Configuration structure for User Data Service.
 *
 *  \return
 *  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
@@ -153,7 +152,7 @@ cy_en_ble_api_result_t Cy_BLE_UDS_Init(cy_stc_ble_uds_config_t *config)
 *  an unregistered callback function.
 *
 *  \param callbackFunc: An application layer event callback function to receive
-*                        events from the BLE Component. The definition of
+*                        events from the BLE Middleware. The definition of
 *                        cy_ble_callback_t for UDS is: \n
 *    typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam),
 *    where:
@@ -208,8 +207,8 @@ cy_en_ble_api_result_t Cy_BLE_UDS_RegisterAttrCallback(cy_ble_callback_t callbac
 *                     stored to the GATT database.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - An optional characteristic is absent
 *
@@ -267,7 +266,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_SetCharacteristicValue(cy_en_ble_uds_char_ind
 *                     value data should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - A characteristic is absent.
@@ -328,7 +327,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_GetCharacteristicValue(cy_en_ble_uds_char_ind
 *                     data should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - Characteristic Descriptor value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - A characteristic is absent.
@@ -398,8 +397,8 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 *                     that should be sent to the client device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *   * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
 *                                     characteristic
@@ -473,8 +472,8 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_SendNotification(cy_stc_ble_conn_handle_t con
 *                     to the client device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *   * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
 *                                      characteristic.
@@ -486,7 +485,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_SendNotification(cy_stc_ble_conn_handle_t con
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSS_INDICATION_CONFIRMED - If the indication is
@@ -552,7 +551,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSS_SendIndication(cy_stc_ble_conn_handle_t connH
 * Function Name: Cy_BLE_UDSS_ConfirmationEventHandler
 ***************************************************************************//**
 *
-*  Handles the Value Confirmation request event from the BLE stack.
+*  Handles the Value Confirmation request event from the BLE Stack.
 *
 *  \param eventParam: The pointer to a structure of type cy_stc_ble_conn_handle_t.
 *
@@ -634,7 +633,7 @@ static void Cy_BLE_UDSS_ReadRequestEventHandler(cy_stc_ble_gatts_char_val_read_r
 *  \param eventParam: The pointer to the data structure specified by the event.
 *
 * \return
-*  cy_en_ble_gatt_err_code_t - A finction result state if it succeeded
+*  cy_en_ble_gatt_err_code_t - A function result state if it succeeded
 *  (CY_BLE_GATT_ERR_NONE) or failed with error codes:
 *   * CY_BLE_GATTS_ERR_PROCEDURE_ALREADY_IN_PROGRESS
 *   * CY_BLE_GATTS_ERR_CCCD_IMPROPERLY_CONFIGURED
@@ -699,16 +698,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_UDSS_WriteEventHandler(cy_stc_ble_gatts_
 
                 Cy_BLE_UDS_ApplCallback(eventCode, &locCharValue);
             }
-
-        #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-            (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-            /* Set flag to store bonding data to flash */
-            if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-            {
-                cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-            }
-        #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
-
             cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
         }
         else
@@ -930,8 +919,8 @@ static void Cy_BLE_UDSS_ExecuteWriteRequestEventHandler(cy_stc_ble_gatts_exec_wr
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_UDSS_WRITE_CHAR events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_UDSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  \param connHandle: The connection handle.
@@ -941,7 +930,7 @@ static void Cy_BLE_UDSS_ExecuteWriteRequestEventHandler(cy_stc_ble_gatts_exec_wr
 *                     sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
@@ -953,7 +942,7 @@ static void Cy_BLE_UDSS_ExecuteWriteRequestEventHandler(cy_stc_ble_gatts_exec_wr
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSC_WRITE_CHAR_RESPONSE - If the requested attribute is
@@ -1044,8 +1033,8 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *  This function is used to read the characteristic Value from a server,
 *  as identified by its charIndex. As a result a Read Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_UDSS_READ_CHAR events is generated.
-*  On successful request execution on the Server side the Read Response is
+*  Server side, the CY_BLE_EVT_UDSS_READ_CHAR event is generated.
+*  On successful request execution on the Server side, the Read Response is
 *  sent to the Client.
 *
 *  The Read Response only contains the characteristic Value that is less than or
@@ -1058,7 +1047,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *  \param charIndex:  The index of the service characteristic.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -1070,11 +1059,11 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSC_READ_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_uds_char_value_t.
@@ -1147,7 +1136,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *                     descriptor value should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -1159,11 +1148,11 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSC_READ_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_uds_char_value_t.
@@ -1238,7 +1227,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_GetLongCharacteristicValue(cy_stc_ble_conn_ha
 *  as identified by its charIndex.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_UDSS_INDICATION_ENABLED
 *  * CY_BLE_EVT_UDSS_INDICATION_DISABLED
@@ -1253,7 +1242,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_GetLongCharacteristicValue(cy_stc_ble_conn_ha
 *                      should be sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -1265,7 +1254,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_GetLongCharacteristicValue(cy_stc_ble_conn_ha
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSC_WRITE_DESCR_RESPONSE - If the requested attribute is
@@ -1342,7 +1331,7 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *  \param descrIndex: The index of the service characteristic descriptor.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -1354,11 +1343,11 @@ cy_en_ble_api_result_t Cy_BLE_UDSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In the case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the UDS service-specific callback is registered
 *      (with Cy_BLE_UDS_RegisterAttrCallback):
 *  * CY_BLE_EVT_UDSC_READ_DESCR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with an event parameter structure
 *                                of type cy_stc_ble_uds_descr_value_t.
@@ -1969,13 +1958,13 @@ static void Cy_BLE_UDSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 * Function Name: Cy_BLE_UDS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the User Data Service.
+*  Handles the events from the BLE Stack for the User Data Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_UDS_EventHandler(uint32_t eventCode,

@@ -27,7 +27,8 @@ static IPC_STRUCT_Type* cy_semaIpcStruct;
 /*
 * Internal IPC semaphore control data structure.
 */
-typedef struct {
+typedef struct 
+{
     uint32_t maxSema;      /* Maximum semaphores in system */
     uint32_t *arrayPtr;    /* Pointer to semaphores array  */
 } cy_stc_ipc_sema_t;
@@ -61,6 +62,9 @@ typedef struct {
 *    \retval CY_IPC_SEMA_BAD_PARAM:     Memory pointer is NULL and count is not zero,
 *                             or count not multiple of 32
 *    \retval CY_IPC_SEMA_ERROR_LOCKED:  Could not acquire semaphores IPC channel
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Sema_Init
 *
 *******************************************************************************/
 cy_en_ipcsema_status_t Cy_IPC_Sema_Init(uint32_t ipcChannel,
@@ -160,6 +164,8 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Init(uint32_t ipcChannel,
 *    \retval CY_IPC_SEMA_NOT_ACQUIRED: Semaphore was already set
 *    \retval CY_IPC_SEMA_OUT_OF_RANGE: The semaphore number is not valid
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Sema_Set
 *
 *******************************************************************************/
 cy_en_ipcsema_status_t Cy_IPC_Sema_Set(uint32_t semaNumber, bool preemptable)
@@ -238,6 +244,8 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Set(uint32_t semaNumber, bool preemptable)
 *    \retval CY_IPC_SEMA_LOCKED:          The semaphore channel was semaphored or busy
 *    \retval CY_IPC_SEMA_OUT_OF_RANGE:    The semaphore number is not valid
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Sema_Clear
 *
 *******************************************************************************/
 cy_en_ipcsema_status_t Cy_IPC_Sema_Clear(uint32_t semaNumber, bool preemptable)
@@ -306,13 +314,10 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Clear(uint32_t semaNumber, bool preemptable)
 *     \retval CY_IPC_SEMA_STATUS_UNLOCKED:  The semaphore is in the cleared state.
 *     \retval CY_IPC_SEMA_OUT_OF_RANGE:     The semaphore number is not valid
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Sema_Status
 *
 *******************************************************************************/
-#if defined (__ICCARM__)
-    __ramfunc 
-#else
-    CY_SECTION(".cy_ramfunc")
-#endif
 cy_en_ipcsema_status_t Cy_IPC_Sema_Status(uint32_t semaNumber)
 {
     cy_en_ipcsema_status_t   retStatus;
@@ -354,6 +359,9 @@ cy_en_ipcsema_status_t Cy_IPC_Sema_Status(uint32_t semaNumber)
 *
 * \return
 *     Returns the semaphores quantity.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Sema_GetMaxSems
 *
 *******************************************************************************/
 uint32_t Cy_IPC_Sema_GetMaxSems(void)

@@ -3,7 +3,8 @@
 * \version 2.0
 * 
 * \brief
-*  This file contains the source code for the Common APIs of the BLE Component.
+*  This file contains the source code of initialization of the config structure
+*  for BLE.
 * 
 ********************************************************************************
 * \copyright
@@ -114,7 +115,7 @@ cy_stc_ble_gapp_disc_mode_info_t cy_ble_discoveryModeInfo[0x01u] = {
 #if ((CY_BLE_MODE_PROFILE) && (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
 
 #if(CY_BLE_MODE_PROFILE)
-    CY_SECTION(".cy_wflash") CY_ALIGN(CY_FLASH_SIZEOF_ROW) static const cy_stc_ble_flash_storage_t cy_ble_flashStorage =
+    CY_SECTION(".cy_em_eeprom") CY_ALIGN(CY_FLASH_SIZEOF_ROW) static const cy_stc_ble_flash_storage_t cy_ble_flashStorage =
     {
         { 0x00u }, 
         {{

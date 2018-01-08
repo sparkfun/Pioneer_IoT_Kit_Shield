@@ -134,7 +134,7 @@ typedef struct
     /** HTTP Proxy Service GATT DB handles structure */
     const cy_stc_ble_hpss_t *hpss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_hps_config_t;
 

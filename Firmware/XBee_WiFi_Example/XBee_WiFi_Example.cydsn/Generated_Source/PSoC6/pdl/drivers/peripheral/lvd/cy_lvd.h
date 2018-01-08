@@ -29,7 +29,7 @@
 * Then configure interrupts by the \ref Cy_LVD_SetInterruptConfig function, do
 * not forget to initialise an interrupt handler (the interrupt source number 
 * is srss_interrupt_IRQn).
-* Then enable LVD by the \ref Cy_LVD_Enable function, then wait for at least 8us
+* Then enable LVD by the \ref Cy_LVD_Enable function, then wait for at least 20us
 * to get the circuit stabilized and clear the possible false interrupts by the
 * \ref Cy_LVD_ClearInterrupt, and finally the LVD interrupt can be enabled by
 * the \ref Cy_LVD_SetInterruptMask function.
@@ -92,7 +92,7 @@
 *
 * \defgroup group_lvd_macros Macros
 * \defgroup group_lvd_functions Functions
-* \defgroup group_lvd_enums Enumerated types
+* \defgroup group_lvd_enums Enumerated Types
 */
 
 
@@ -109,13 +109,13 @@ extern "C" {
 * \{
 */
 
-/** Driver major version */
+/** The driver major version */
 #define CY_LVD_DRV_VERSION_MAJOR       1
 
-/** Driver minor version */
+/** The driver minor version */
 #define CY_LVD_DRV_VERSION_MINOR       0
 
-/** LVD driver identifier */
+/** The LVD driver identifier */
 #define CY_LVD_ID                      (CY_PDL_DRV_ID(0x39U))
 
 /** Interrupt mask for \ref Cy_LVD_GetInterruptStatus(),

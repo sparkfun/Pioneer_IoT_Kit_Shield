@@ -2,7 +2,7 @@
 --	Conversion of XBee_WiFi_Example.v to vh2:
 --
 --	Cypress Semiconductor - WARP Version 6.3 IR 41
---	Mon Dec 04 10:38:01 2017
+--	Mon Jan 08 10:01:31 2018
 --
 
 USE cypress.cypress.all;
@@ -321,7 +321,10 @@ D9:cy_mxs40_gpio_v1_0
 		int_type=>"10")
 	PORT MAP(int_signal=>\UART:intr_wire\);
 \UART:SCB\:cy_mxs40_scb_v1_10
-	GENERIC MAP(cy_registers=>"")
+	GENERIC MAP(cy_registers=>"",
+		requires_io_preconfigure=>'0',
+		mode=>2,
+		master=>'0')
 	PORT MAP(clock=>\UART:Net_847\,
 		uart_rx=>\UART:Net_1172\,
 		uart_tx=>\UART:tx_wire\,

@@ -2,7 +2,7 @@
 --	Conversion of BLE_To_RPi.v to vh2:
 --
 --	Cypress Semiconductor - WARP Version 6.3 IR 41
---	Mon Dec 11 15:01:19 2017
+--	Mon Jan 08 09:58:13 2018
 --
 
 USE cypress.cypress.all;
@@ -340,14 +340,15 @@ Clock_3:cy_clock_v1_0
 	PORT MAP(clock_out=>Net_266,
 		dig_domain_out=>open);
 \BLE:cy_mxs40_ble\:cy_mxs40_ble_v1_0
-	GENERIC MAP(cy_registers=>"")
+	GENERIC MAP(cy_registers=>"",
+		low_power=>'1')
 	PORT MAP(ext_pa_lna_chip_en_out=>Net_45,
 		ext_lna_rx_ctl_out=>Net_44,
 		ext_pa_tx_ctl_out=>Net_43,
 		interrupt=>\BLE:Net_1\);
 \BLE:bless_isr\:cy_mxs40_isr_v1_0
 	GENERIC MAP(cy_registers=>"",
-		deepsleep_required=>'0',
+		deepsleep_required=>'1',
 		int_type=>"10")
 	PORT MAP(int_signal=>\BLE:Net_1\);
 \CapSense:Cmod\:cy_mxs40_gpio_v1_0

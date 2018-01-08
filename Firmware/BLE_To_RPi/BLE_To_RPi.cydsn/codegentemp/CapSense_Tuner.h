@@ -1,11 +1,11 @@
 /***************************************************************************//**
 * \file CapSense_Tuner.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file provides Tuner FW module function prototypes.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_TUNER_H)
-#define CY_CAPSENSE_CapSense_TUNER_H
+#if !defined(CY_SENSE_CapSense_TUNER_H)
+#define CY_SENSE_CapSense_TUNER_H
 
 #include "syslib/cy_syslib.h"
 
@@ -49,7 +49,8 @@ typedef enum
     CapSense_TU_CMD_RESUME_E        = 0x0002u,
     CapSense_TU_CMD_RESTART_E       = 0x0003u,
     CapSense_TU_CMD_RUN_SNR_TEST_E  = 0x0004u,
-    CapSense_TU_CMD_PING_E          = 0x0005u
+    CapSense_TU_CMD_PING_E          = 0x0005u,
+    CapSense_TU_CMD_ONE_SCAN_E      = 0x0006u
 } CapSense_TU_CMD_ENUM;
 
 /* Defines the command complete bit */
@@ -64,28 +65,28 @@ typedef enum
 *******************************************************************************/
 
 /**
-* \if SECTION_CAPSENSE_HIGH_LEVEL
-* \addtogroup group_capsense_high_level
+* \cond SECTION_CYSENSE_HIGH_LEVEL
+* \addtogroup group_cysense_high_level
 * \{
 */
 
 uint32 CapSense_RunTuner(void);
 
 /** \} 
-* \endif */
+* \endcond */
 
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
 void CapSense_TuInitialize(void);
 
 /** \}
-* \endif */
+* \endcond */
 
-#endif /* End CY_CAPSENSE_CapSense_TUNER_H */
+#endif /* End CY_SENSE_CapSense_TUNER_H */
 
 
 /* [] END OF FILE */

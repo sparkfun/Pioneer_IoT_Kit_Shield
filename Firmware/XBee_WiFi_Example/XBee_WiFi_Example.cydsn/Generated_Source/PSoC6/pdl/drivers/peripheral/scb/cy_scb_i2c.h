@@ -32,63 +32,159 @@
 * * Supports slave, master, and master-slave operation
 * * Supports standard data rates of 100/400/1000 kbps
 * * Hardware Address Match, multiple addresses
-* * Wake From DeepSleep on Address Match
+* * Wake From Deep Sleep on Address Match
 *
 * \section group_scb_i2c_configuration Configuration Considerations
+* The I2C driver configuration can be divided to number of sequential
+* steps listed below:
+* * \ref group_scb_i2c_config
+* * \ref group_scb_i2c_pins
+* * \ref group_scb_i2c_clock
+* * \ref group_scb_i2c_data_rate
+* * \ref group_scb_i2c_intr
+* * \ref group_scb_i2c_enable
 *
-* To set up the I2C driver, provide the configuration parameters in the
+* \note
+* I2C driver is built on top of the SCB hardware block. The SCB3 instance is
+* used as an example for all code snippets. Modify the code to match your
+* design.
+*
+* \subsection group_scb_i2c_config Configure I2C
+* To set up the I2C slave driver, provide the configuration parameters in the
 * \ref cy_stc_scb_i2c_config_t structure. Provide i2cMode to the select
 * operation mode slave, master or master-slave. For master modes, provide
-* useRxFifo and useTxFifo. For slave mode, also provide the slaveAddress and
-* slaveAddressMask. The other parameters are optional for operation.
-* To initialize the driver, call the \ref Cy_SCB_I2C_Init function providing
-* the pointer to filled configuration structure \ref cy_stc_scb_i2c_config_t
-* and the pointer to allocated context structure \ref cy_stc_scb_i2c_context_t.
-* To get I2C operate with the desired data rate, the SCB clock and SCL duration
-* (only applicable for master mode) must be configured. Use the SysClk driver
-* API to configure SCB clock frequency and \ref Cy_SCB_I2C_SetDataRate to set
-* the SCL low phase and high phase duration. Refer to the technical reference
-* manual (TRM) to get more information on how to configure the I2C to operate
-* with the desired data rate. Call \ref Cy_SCB_I2C_Enable to start the I2C
-* operation after configuration is completed.
+* useRxFifo and useTxFifo parameters. For slave mode, also provide the
+* slaveAddress and slaveAddressMask. The other parameters are optional for
+* operation. To initialize the driver, call \ref Cy_SCB_I2C_Init
+* function providing a pointer to the filled \ref cy_stc_scb_i2c_config_t
+* structure and allocated \ref cy_stc_scb_i2c_context_t.
 *
-* Master mode operation: \n
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG
+*
+* \subsection group_scb_i2c_pins Assign and Configure Pins
+* Only dedicated SCB pins can be used for I2C operation. The HSIOM
+* register must be configured to connect block to the pins. Also the I2C pins
+* must be configured in Open-Drain, Drives Low mode (this pins configuration
+* implies usage of external pull-up resistors):
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG_PINS
+*
+* \note
+* The alternative pins configuration is Resistive Pull-ups which implies usage
+* internal pull-up resistors. This configuration is not recommended because
+* resistor value is fixed and cannot be used for all supported data rates.
+* Refer to the device datasheet parameter RPULLUP for resistor value specifications.
+*
+* \subsection group_scb_i2c_clock Assign Clock Divider
+* The clock source must be connected to the SCB block to oversample input and
+* output signals. You must use one of the 8-bit or 16-bit dividers <em><b>(the
+* source clock of this divider must be Clk_Peri)</b></em>. Use the
+* \ref group_sysclk driver API to do that.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG_ASSIGN_CLOCK
+*
+* Set up I2C slave read and write buffer before enabling its
+* operation using \ref Cy_SCB_I2C_SlaveConfigReadBuf and \ref
+* Cy_SCB_I2C_SlaveConfigWriteBuf appropriately. Note that the master reads
+* data from the slave read buffer and writes data into the slave write buffer.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG_BUFFER
+*
+* \subsection group_scb_i2c_data_rate Configure Data Rate
+* To get I2C slave operation with the desired data rate, the source clock must be
+* fast enough to provide sufficient oversampling. Therefore, the clock divider
+* must be configured to provide desired clock frequency. Use the
+* \ref group_sysclk driver API to do that.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG_DATA_RATE_SLAVE
+*
+* To get I2C master operation with the desired data rate, the source clock
+* frequency and SCL low and high phase duration must be configured. Use the
+* \ref group_sysclk driver API to configure source clock frequency. Then call
+* \ref Cy_SCB_I2C_SetDataRate to set the SCL low and high phase duration.
+* This function reach for SCL low and high phase settings based on source clock
+* frequency.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_CFG_DATA_RATE_MASTER
+*
+* Alternatively, the low and high phase can be set directly using
+* \ref Cy_SCB_I2C_MasterSetLowPhaseDutyCycle and
+* \ref Cy_SCB_I2C_MasterSetHighPhaseDutyCycle functions. \n
+* Refer to the technical reference manual (TRM) section I2C sub-section
+* Oversampling and Bit Rate to get information how to configure I2C to run with the
+* desired data rate.
+*
+* \note
+* For I2C slave, the analog filter is used for all supported data rates. \n
+* For I2C master, the analog filter is used for Standard and Fast modes and the digital
+* filter for Fast Plus mode.
+*
+* \subsection group_scb_i2c_intr Configure Interrupt
+* The interrupt is mandatory for I2C operation. The exception is the I2C master,
+* which uses only \ref group_scb_i2c_master_low_level_functions functions.
+* The \ref Cy_SCB_I2C_Interrupt function must be called in the interrupt
+* handler for the selected SCB instance. Also this interrupt must be enabled
+* in the NVIC or it will not work.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_INTR_A
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_INTR_B
+*
+* \subsection group_scb_i2c_enable Enable I2C
+* Finally, enable the I2C operation calling \ref Cy_SCB_I2C_Enable. Then I2C
+* slave starts respond to the assigned address and I2C master ready to execute
+* transfers.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_ENABLE
+*
+* \section group_scb_i2c_use_cases Common Use Cases
+*
+* \subsection group_scb_i2c_master_mode Master Operation
 * The master API is divided into two categories:
 * \ref group_scb_i2c_master_high_level_functions and
-* \ref group_scb_i2c_master_low_level_functions. Therefore there are two
-* methods for initiating I2C master transactions using either low-level or
-* high-level API. These two methods are described below. Only one method should
-* be used at a time. They should not be mixed.
+* \ref group_scb_i2c_master_low_level_functions. Therefore, there are two
+* methods for initiating I2C master transactions using either <b>Low-Level or
+* High-Level</b> API. These two methods are described below. Only one method
+* should be used at a time. They should not be mixed.
 *
-* * Call \ref Cy_SCB_I2C_MasterRead or \ref Cy_SCB_I2C_MasterWrite to
-*   communicate with the slave. These functions do not block and only
-*   start a transaction. After a transfer is started, the
-*   \ref Cy_SCB_I2C_Interrupt handles the further data transfer until its
-*   completion. Therefore, \ref Cy_SCB_I2C_Interrupt must be called inside the
-*   user interrupt handler to make the API above work. To monitor the transfer,
-*   use \ref Cy_SCB_I2C_MasterGetStatus or \ref Cy_SCB_I2C_RegisterEventCallback
-*   to register callback function to be notified about
-*   \ref group_scb_i2c_macros_callback_events.
+* \subsubsection  group_scb_i2c_master_hl Use High-Level Functions
+*  Call \ref Cy_SCB_I2C_MasterRead or \ref Cy_SCB_I2C_MasterWrite to
+* communicate with the slave. These functions do not block and only start a
+* transaction. After a transaction starts, the \ref Cy_SCB_I2C_Interrupt
+* handles the further data transaction until its completion (successfully or with an error
+* occurring). Therefore, \ref Cy_SCB_I2C_Interrupt must be called inside the
+* interrupt handler to make the functions above work. To monitor the transaction,
+* use \ref Cy_SCB_I2C_MasterGetStatus or register callback function using
+* \ref Cy_SCB_I2C_RegisterEventCallback to be notified about
+* \ref group_scb_i2c_macros_callback_events.
 *
-* * Call \ref Cy_SCB_I2C_MasterSendStart to generate a start, send an address
-*   with the Read/Write direction bit, and receive acknowledgment. After the
-*   address is ACKed by the slave, the transaction can be continued by calling
-*   \ref Cy_SCB_I2C_MasterReadByte or \ref Cy_SCB_I2C_MasterWriteByte depending
-*   on its direction. These functions handle one byte per call, therefore
-*   they should be called for each byte in the transaction. Note that for the
-*   Read transaction the last byte must be NAKed. To complete the current
-*   transaction, call \ref Cy_SCB_I2C_MasterSendStop or call
-*   \ref Cy_SCB_I2C_MasterSendReStart to complete the current transaction and
-*   start a new one. Typically, do a restart to change the transaction
-*   direction without releasing the bus from the master control.
-*   Note that these functions are blocking and do not require calling
-*   \ref Cy_SCB_I2C_Interrupt inside the user interrupt handler. Using these
-*   functions requires extensive knowledge of the I2C protocol to execute
-*   transactions correctly.
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_MASTER_WRITE_READ_INT
 *
-* Slave mode operation: \n
+* \subsubsection group_scb_i2c_master_ll Use Low-Level Functions
+* Call \ref Cy_SCB_I2C_MasterSendStart to generate a start, send an address
+* with the Read/Write direction bit, and receive acknowledgment. After the
+* address is ACKed by the slave, the transaction can be continued by calling
+* \ref Cy_SCB_I2C_MasterReadByte or \ref Cy_SCB_I2C_MasterWriteByte depending
+* on its direction. These functions handle one byte per call. Therefore,
+* they should be called for each byte in the transaction. Note that for the
+* Read transaction, the last byte must be NAKed. To complete the current
+* transaction, call \ref Cy_SCB_I2C_MasterSendStop or call
+* \ref Cy_SCB_I2C_MasterSendReStart to complete the current transaction and
+* start a new one. Typically, do a restart to change the transaction
+* direction without releasing the bus from the master control.
+* The Low-Level functions are blocking and do not require calling
+* \ref Cy_SCB_I2C_Interrupt inside the interrupt handler. Using these
+* functions requires extensive knowledge of the I2C protocol to execute
+* transactions correctly.
+*
+* <b>Master Write Operation</b>
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_MASTER_WRITE_MANUAL
+*
+* <b>Master Read Operation</b>
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_MASTER_READ_MANUAL
+*
+* \subsection group_scb_i2c_slave Slave Operation
 * The slave operation is based on the \ref Cy_SCB_I2C_Interrupt that must be
-* called inside the user interrupt handler. The Read and Write buffer must
+* called inside the interrupt handler. The Read and Write buffer must
 * be provided for the slave to enable communication with the master. Use
 * \ref Cy_SCB_I2C_SlaveConfigReadBuf and \ref Cy_SCB_I2C_SlaveConfigWriteBuf
 * for this purpose. Note that after transaction completion the buffer must be
@@ -97,26 +193,39 @@
 * For example: The Read buffer is configured to be 10 bytes and the master Read
 * is 8 bytes. If the Read buffer is not configured again, the next master Read
 * will start from the 9th byte.
-* To monitor the transfer status, use \ref Cy_SCB_I2C_SlaveGetStatus or
+* To monitor the transaction status, use \ref Cy_SCB_I2C_SlaveGetStatus or
 * use \ref Cy_SCB_I2C_RegisterEventCallback to register a callback function
 * to be notified about \ref group_scb_i2c_macros_callback_events.
 *
+* <b>Get Slave Events Notification</b>
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_SLAVE_REG_CALLBACK
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_SLAVE_NOTIFICATION
+*
+* <b>Polling Slave Completion Events</b>
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\i2c_snippets.c I2C_SLAVE_POLLING
+*
 * \note
 * All slave API (except \ref Cy_SCB_I2C_SlaveAbortRead and
-* \ref Cy_SCB_I2C_SlaveAbortWrite) are not interrupt-protected and to
+* \ref Cy_SCB_I2C_SlaveAbortWrite) <b>are not interrupt-protected</b> and to
 * prevent a race condition, they should be protected from the I2C interruption
 * in the place where they are called.
 *
-* The I2C driver provides the callback functions to facilitate the low-power
-* mode transition. The callback \ref Cy_SCB_I2C_DeepSleepCallback can be called
+* \section group_scb_i2c_lp Low Power Support
+* The I2C driver provides the callback functions to handle power mode transition. 
+* The callback \ref Cy_SCB_I2C_DeepSleepCallback must be called
 * during execution of \ref Cy_SysPm_DeepSleep; \ref Cy_SCB_I2C_HibernateCallback
-* can be called during execution of \ref Cy_SysPm_Hibernate. To trigger the
+* must be called during execution of \ref Cy_SysPm_Hibernate. To trigger the
 * callback execution, the callback must be registered before calling the
-* mode transition function. Refer to SysPm driver for more information about
-* low-power mode transitions.
+* power mode transition function. Refer to \ref group_syspm driver for more
+* information about power mode transitions and callback registration.
+*
+* \note
+* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
+* For proper operation, when the I2C slave is configured to be a wakeup
+* source from Deep Sleep mode, the \ref Cy_SCB_I2C_DeepSleepCallback must be
+* copied and modified. Refer to the function description to get the details.
 *
 * \section group_scb_i2c_more_information More Information
-*
 * For more information on the SCB peripheral, refer to the technical reference
 * manual (TRM).
 *
@@ -136,7 +245,7 @@
 *     <td>The functions \ref Cy_SCB_I2C_DeepSleepCallback and
 *         \ref Cy_SCB_I2C_HibernateCallback are callback of
 *         \ref cy_en_syspm_status_t type. The cast operation safety in these
-*         functions becomes the user responsibility because pointers are
+*         functions becomes the user's responsibility because pointers are
 *         initialized when callback is registered in SysPm driver.</td>
 *   </tr>
 *   <tr>
@@ -173,7 +282,7 @@
 *         function.</td>
 *     <td>The functions can return from several points. This is done to improve
 *         code clarity when returning error status code if input parameters
-*         validation is failed.</td>
+*         validation fails.</td>
 *   </tr>
 * </table>
 *
@@ -181,7 +290,29 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td rowspan="3"> 2.0</td>
+*     <td rowspan="5"> 2.0</td>
+*     <td>Fixed the Cy_SCB_I2C_MasterSendReStart function to properly generate 
+*         the ReStart condition when the previous transaction was a write.</td>
+*     <td>The master interpreted the address byte written into the TX FIFO as a 
+*         data byte and continued a write transaction. The ReStart condition was
+*         generated after the master completed transferring the data byte. 
+*         The SCL line was stretched by the master waiting for the address byte
+*         to be written into the TX FIFO after the ReStart condition generation.
+*         The following timeout detection released the bus from the master 
+*         control.</td>
+*   </tr>
+*   <tr>
+*     <td>Fixed the slave operation after the address byte was NACKed by the 
+*         firmware.</td>
+*     <td>The observed slave operation failure depends on whether Level 2 assert
+*         is enabled or not. Enabled: the device stuck in the fault handler due 
+*         to the assert assignment in Cy_SCB_I2C_Interrupt. Disabled: the slave 
+*         sets the transaction completion status and notifies on the transaction
+*         completion event after the address was NACKed. The failure is observed
+*         only when the slave is configured to accept an address in the RX FIFO.
+*         </td>
+*   </tr>
+*   <tr>
 *     <td>Added parameters validation for public API.</td>
 *     <td></td>
 *   </tr>
@@ -245,8 +376,8 @@ typedef enum
     /**
     * The master is not ready to start a new transaction.
     * Either the master is still processing a previous transaction or in the
-    * master-slave mode the slave operation is in progress. Call this function
-    * again once that operation is completed or aborted.
+    * master-slave mode, the slave operation is in progress. Call this function
+    * again after that operation is completed or aborted.
     */
     CY_SCB_I2C_MASTER_NOT_READY = (CY_SCB_ID | CY_PDL_STATUS_ERROR | CY_SCB_I2C_ID | 2U),
 
@@ -334,7 +465,7 @@ typedef void (* cy_cb_scb_i2c_handle_events_t)(uint32_t event);
 * \ref group_scb_i2c_macros_addr_callback_events.
 * This callback must return a decision to ACK (continue transaction) or
 * NAK (end transaction) the received address.
-* Note if the slave configured to accept an address in RX FIFO, it must read
+* Note if the slave is configured to accept an address in RX FIFO, it must read
 * from it using the \ref Cy_SCB_ReadRxFifo function.
 */
 typedef cy_en_scb_i2c_command_t (* cy_cb_scb_i2c_handle_addr_t)(uint32_t event);
@@ -354,20 +485,20 @@ typedef struct cy_stc_scb_i2c_config
     *   FIFO when it has some number of bytes (typically, when it is half full).
     * * If this option is disabled, the interrupt is enabled to take data out of
     *   the RX FIFO when a byte is available. Also, hardware does not
-    *   automatically ACK the data, firmware must tell the hardware to ACK
+    *   automatically ACK the data. Firmware must tell the hardware to ACK
     *   the byte (so each byte requires interrupt processing).
     * \n <b>Typically, this option should be enabled</b> to configure hardware to
     * automatically ACK incoming data. Otherwise hardware might not get the command
     * to ACK or NACK a byte fast enough, and clock stretching is applied
-    * (the transaction is delayed) until command is set. When this option is
-    * enabled the number of interrupts required to process the transaction
+    * (the transaction is delayed) until the command is set. When this option is
+    * enabled, the number of interrupts required to process the transaction
     * is significantly reduced because several bytes are handled at once.
     * \n <b>However, there is a side effect:</b>
     * * For master mode, the drawback is that the master may receive more
     *   data than desired due to the interrupt latency. An interrupt fires
     *   when the second-to-last byte has been received. This interrupt tells
     *   the hardware to stop receiving data. If the latency of this interrupt
-    *   is longer than one transfer of the byte on the I2C bus, then the
+    *   is longer than one transaction of the byte on the I2C bus, then the
     *   hardware automatically ACKs the following bytes until the interrupt
     *   is serviced or the RX FIFO becomes full.
     * * For slave mode, the drawback is that the slave only NACKs
@@ -389,14 +520,14 @@ typedef struct cy_stc_scb_i2c_config
     *   (so each byte requires interrupt processing).
     * \n <b>Typically, this option should be enabled</b> to keep the TX FIFO loaded with
     * data and reduce the probability of clock stretching. When there is no data
-    * to transfer, clock stretching is applied (the transaction is delayed) until
-    * data is loaded. When this option is enabled the number of interrupts required
+    * to transaction, clock stretching is applied (the transaction is delayed) until
+    * the data is loaded. When this option is enabled, the number of interrupts required
     * to process the transaction is significantly reduced because several
     * bytes are handled at once.
     * \n <b>The drawback of enabling useTxFifo</b> is that the abort operation clears
     * the TX FIFO. The TX FIFO clear operation also clears the shift
     * register. As a result the shifter may be cleared in the middle of a byte
-    * transfer, corrupting it. The remaining bits to transfer within the
+    * transaction, corrupting it. The remaining bits to transaction within the
     * corrupted byte are complemented with 1s. If this is an issue,
     * then do not enable this option.
     */
@@ -426,7 +557,7 @@ typedef struct cy_stc_scb_i2c_config
     bool ackGeneralAddr;
 
     /**
-    * When set, the slave will wake the device from deep sleep on an address
+    * When set, the slave will wake the device from Deep Sleep on an address
     * match (the device datasheet must be consulted to determine which SCBs
     * support this mode)
     */
@@ -449,8 +580,8 @@ typedef struct cy_stc_scb_i2c_context
     volatile uint32_t state;    /**< The driver state */
 
     volatile uint32_t masterStatus; /**< The master status */
-    bool     masterPause;           /**< Stores how the master ends the transfer */
-    bool     masterRdDir;           /**< The direction of the master transfer */
+    bool     masterPause;           /**< Stores how the master ends the transaction */
+    bool     masterRdDir;           /**< The direction of the master transaction */
 
     uint8_t  *masterBuffer;     /**< The pointer to the master buffer (either for a transmit or a receive operation) */
     uint32_t  masterBufferSize;         /**< The current master buffer size */
@@ -656,11 +787,11 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 */
 #define CY_SCB_I2C_SLAVE_WR_OVRFL      (0x00000040UL)
 
-/** The slave lost arbitration, the transaction was aborted */
+/** The slave lost arbitration, and the transaction was aborted */
 #define CY_SCB_I2C_SLAVE_ARB_LOST      (0x00000080UL)
 
 /**
-* The slave captured an error on the bus during a master transaction (sources
+* The slave captured an error on the bus during a master transaction (source
 * of error is misplaced Start or Stop).
 */
 #define CY_SCB_I2C_SLAVE_BUS_ERR       (0x00000100UL)
@@ -770,7 +901,7 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 #define CY_SCB_I2C_MASTER_RD_CMPLT_EVENT       (0x00040000UL)
 
 /**
-* Indicates the I2C hardware detected an error. It occurs together with
+* Indicates the I2C hardware has detected an error. It occurs together with
 * \ref CY_SCB_I2C_MASTER_RD_CMPLT_EVENT or \ref CY_SCB_I2C_MASTER_WR_CMPLT_EVENT
 * depends on the direction of the transfer.
 * Check \ref Cy_SCB_I2C_MasterGetStatus to determine the source of the error.
@@ -995,7 +1126,7 @@ __STATIC_INLINE void Cy_SCB_I2C_Enable(CySCB_Type *base)
 * Function Name: Cy_SCB_I2C_IsBusBusy
 ****************************************************************************//**
 *
-* Checks if the I2C bus is busy.
+* Checks whether the I2C bus is busy.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -1182,7 +1313,7 @@ __STATIC_INLINE void Cy_SCB_I2C_MasterSetHighPhaseDutyCycle(CySCB_Type *base, ui
 * \param context
 * The pointer to context structure \ref cy_stc_scb_i2c_context_t allocated by
 * the user. The structure is used while the I2C operation for internal
-* configuration and data keeping. The user should not modify anything in
+* configuration and data retention. The user should not modify anything in
 * this structure.
 *
 * \note
@@ -1217,7 +1348,7 @@ __STATIC_INLINE void Cy_SCB_I2C_RegisterEventCallback(CySCB_Type const *base,
 * \param context
 * The pointer to context structure \ref cy_stc_scb_i2c_context_t allocated by
 * the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user should not modify anything in
+* configuration and data retention. The user should not modify anything in
 * this structure.
 *
 * \note

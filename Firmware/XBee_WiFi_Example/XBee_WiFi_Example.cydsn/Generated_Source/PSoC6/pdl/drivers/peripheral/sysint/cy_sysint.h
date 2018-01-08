@@ -23,8 +23,9 @@
 * be used to configure and connect device peripheral interrupts to one or more
 * cores.
 *
-* \n
-* <b> Initialization </b>
+* \section group_sysint_driver_usage Driver Usage
+*
+* \subsection group_sysint_initialization Initialization
 *
 * Interrupt numbers are defined in a device-specific header file, such as 
 * cy8c68237bz_ble.h.
@@ -48,18 +49,17 @@
 * to a deep-sleep capable IRQn channel. Otherwise it won't work. The device 
 * header file identifies which IRQn channels are deep-sleep capable.
 * 
-* \n
-* <b> Enable </b>
+* \subsection group_sysint_enable Enable
 * 
 * After initializing an interrupt, use the CMSIS Core
 * <a href="https://www.keil.com/pack/doc/CMSIS/Core/html/group__NVIC__gr.html#ga530ad9fda2ed1c8b70e439ecfe80591f">NVIC_EnableIRQ()</a> function
 * to enable it. Given an initialization structure named config,  
 * the function should be called as follows:
-*
+* \code
 * NVIC_EnableIRQ(config.intrSrc)
+* \endcode
 *
-* \n
-* <b>Writing an interrupt service routine</b>
+* \subsection group_sysint_service Writing an interrupt service routine
 *
 * Servicing interrupts in the Peripheral Drivers should follow a prescribed
 * recipe to ensure all interrupts are serviced and duplicate interrupts are not
@@ -94,6 +94,12 @@
 * must be connected to one of these muxes to be able to trigger in deep-sleep. 
 * Refer to the IRQn_Type definition in the device header.
 *
+* The default interrupt handler functions are defined as weak functions in the
+* startup file. Defining these in the user application will allow the linker to
+* place them in the Flash vector table. This avoids the need for a RAM vector table.
+* However in this scenario, interrupt handler re-location at run-time is not possible,
+* unless the vector table is relocated to RAM.
+*
 * \section group_sysint_more_information More Information
 *
 * Refer to the technical reference manual (TRM) and the device datasheet.
@@ -126,13 +132,13 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
+*     <td>1.10</td>
+*     <td>Cy_SysInt_GetState() function is redefined to call NVIC_GetEnableIRQ().</td>
 *     <td></td>
 *   </tr>
 *   <tr>
-*     <td>1.10</td>
-*     <td>Cy_SysInt_GetState() function is redefined to call NVIC_GetEnableIRQ().</td>
+*     <td>1.0</td>
+*     <td>Initial version</td>
 *     <td></td>
 *   </tr>
 * </table>
@@ -140,7 +146,7 @@
 * \defgroup group_sysint_macros Macros
 * \defgroup group_sysint_globals Global variables
 * \defgroup group_sysint_functions Functions
-* \defgroup group_sysint_data_structures Data structures
+* \defgroup group_sysint_data_structures Data Structures
 * \defgroup group_sysint_enums Enumerated Types
 */
 
@@ -259,7 +265,9 @@ typedef struct {
 #define CY_SYSINT_CM0P_MUX6        (6u)     /**< CM0+ NVIC multiplexer register 6 */
 #define CY_SYSINT_CM0P_MUX7        (7u)     /**< CM0+ NVIC multiplexer register 7 */
 
-#define CY_SYSINT_CM0P_MUX_ERROR   (0xfffffffful)   /**< Invalid CM0+ NVIC multiplexer error code */
+/* Parameter validation macros */
+#define CY_SYSINT_IS_PRIORITY_VALID(intrPriority)     ((uint32_t)(1UL << __NVIC_PRIO_BITS) > (intrPriority))
+#define CY_SYSINT_IS_VECTOR_VALID(userIsr)            (NULL != (userIsr))  
 
 /** \endcond */
 
@@ -277,22 +285,12 @@ cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr);
 cy_israddress Cy_SysInt_GetVector(IRQn_Type intrSrc);
 __STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(IRQn_Type intrSrc);
 __STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void);
-#if (CY_CPU_CORTEX_M0P)
+#if (CY_CPU_CORTEX_M0P) || defined (CY_DOXYGEN)
     void Cy_SysInt_SetIntSource(IRQn_Type intrSrc, cy_en_intr_t cm0pSrc);
     cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc);
 #else
     __STATIC_INLINE void Cy_SysInt_SoftwareTrig(IRQn_Type intrSrc);
 #endif
-
-
-/*******************************************************************************
-* Function Name: Cy_SysInt_GetState
-****************************************************************************//**
-*
-* Invokes the NVIC_GetEnableIRQ NVIC function.
-*
-*******************************************************************************/
-#define Cy_SysInt_GetState NVIC_GetEnableIRQ
 
 
 /*******************************************************************************
@@ -304,11 +302,16 @@ __STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void);
 * The interrupt source must be a positive number. Setting the value to 
 * "unconnected_IRQn" (240) disconnects the interrupt source from the NMI. 
 *
-* Note that for CM0+, this function sets the interrupt mux output feeding into 
-* the NVIC as the source for the NMI.
-*
 * \param intrSrc
 * Interrupt source
+*
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetIntSourceNMI
+*
+* \note The CM0+ NMI is used for performing system calls that execute out of ROM.
+* Hence modification of the NMI source is strongly discouraged. However if it 
+* must be updated, the NMI source must be provided from the cy_en_intr_t enum
+* as it is a direct connection to the interrupt source.
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(IRQn_Type intrSrc)
@@ -331,6 +334,9 @@ __STATIC_INLINE void Cy_SysInt_SetIntSourceNMI(IRQn_Type intrSrc)
 * Interrupt Source. A value of "unconnected_IRQn" (240) means that there is no 
 * interrupt source for the NMI, and it can be only be triggered through software.
 *
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetIntSourceNMI
+*
 *******************************************************************************/
 __STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void)
 {
@@ -350,11 +356,14 @@ __STATIC_INLINE IRQn_Type Cy_SysInt_GetIntSourceNMI(void)
 *
 * \brief Triggers an interrupt using software (Not applicable for CM0+).
 *
-* <b>Note</b> Only privileged software can enable unprivileged access to the
-* Software Trigger Interrupt Register (STIR).
-*
 * \param intrSrc
 * Interrupt source
+*
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SoftwareTrig
+*
+* \note Only privileged software can enable unprivileged access to the
+* Software Trigger Interrupt Register (STIR).
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysInt_SoftwareTrig(IRQn_Type intrSrc)
@@ -363,6 +372,15 @@ __STATIC_INLINE void Cy_SysInt_SoftwareTrig(IRQn_Type intrSrc)
 }
 
 #endif
+
+/*******************************************************************************
+* Function Name: Cy_SysInt_GetState
+****************************************************************************//**
+*
+* This function is deprecated. It invokes the NVIC_GetEnableIRQ function.
+*
+*******************************************************************************/
+#define Cy_SysInt_GetState NVIC_GetEnableIRQ
 
 /** \} group_sysint_functions */
 

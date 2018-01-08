@@ -1,11 +1,11 @@
 /***************************************************************************//**
-* \file CapSense_SensingCSD_LL.h
-* \version 1.0
+* \file CapSense_SmartSense_LL.h
+* \version 2.0
 *
 * \brief
 *   This file provides the sources of APIs specific to the SmartSense implementation.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 * 
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_SMARTSENSE_LL_H)
-#define CY_CAPSENSE_SMARTSENSE_LL_H
+#if !defined(CY_SENSE_SMARTSENSE_LL_H)
+#define CY_SENSE_SMARTSENSE_LL_H
 
 #include "syslib/cy_syslib.h"
 
@@ -77,19 +77,9 @@ typedef struct
     uint16 snsClkInputClock;
     
     /**
-     *  PRS mode factor
-     */
-    uint8 prsFactor;
-    
-    /**
      *  Calibration target
      */
-    uint8 calTarget;
-    
-    /**
-     *  Pointer to Modulation IDAC code
-     */
-    const uint8 *ptrModIDAC;
+    uint16 calTarget;
     
     /**
      *  Pointer to SnsClk divider
@@ -100,22 +90,57 @@ typedef struct
      *  Pointer to sigPFC value (Signal Per Finger Capacitance)
      */
     uint16 *sigPFC;
+
+    /**
+     *  IDAC code
+     */
+    uint8 iDac;
+    
 }AUTO_TUNE_CONFIG_TYPE;
 
-/*******************************************************************************
-* Declares Noise envelope data structure for CSD widgets
+/**
+* \cond SECTION_STRUCTURES
+* \addtogroup group_structures
+* \{
+*/
+
+/***************************************************************************//**
+* \brief Declares Noise envelope data structure for CSD widgets when SmartSense is enabled
 *******************************************************************************/
 typedef struct
 {
+    /**
+     * Parameter 0 configuration 
+     */
     uint16 param0;
+    /**
+     * Parameter 1 configuration 
+     */
     uint16 param1;
+    /**
+     * Parameter 2 configuration 
+     */
     uint16 param2;
+    /**
+     * Parameter 3 configuration 
+     */
     uint16 param3;
+    /**
+     * Parameter 4 configuration 
+     */
     uint16 param4;
+    /**
+     * Parameter 5 configuration 
+     */
     uint8  param5;
+    /**
+     * Parameter 6 configuration 
+     */
     uint8  param6;
 } SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT;
 
+/** \}
+* \endcond */
 
 /*******************************************************************************
 * Declares Update Thresholds structure
@@ -143,14 +168,15 @@ typedef struct
     uint8  hysteresis;
 } SMARTSENSE_UPDATE_THRESHOLDS_STRUCT;
 
+
 /*****************************************************
-* Function Prototypes - internal Low Level functions
+* Function Prototypes
 *****************************************************/
 
 uint32 SmartSense_TunePrescalers(AUTO_TUNE_CONFIG_TYPE *config);
 uint8 SmartSense_TuneSensitivity(AUTO_TUNE_CONFIG_TYPE *config);
 
-void SmartSense_UpdateThresholds(SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT *ptrNoiseEnvelope,
+void SmartSense_UpdateThresholds(const SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT *ptrNoiseEnvelope,
                                 SMARTSENSE_UPDATE_THRESHOLDS_STRUCT *ptrThresholds,
                                 uint16 sigPFC,
                                 uint32 startFlag);
@@ -163,7 +189,7 @@ void SmartSense_RunNoiseEnvelope(uint16 rawCount,
                                  uint16 sigPFC,
                                  SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT *ptrNoiseEnvelope);
 
-#endif /* End CY_CAPSENSE_SMARTSENSE_LL_H */
+#endif /* End CY_SENSE_SMARTSENSE_LL_H */
 
 
 /* [] END OF FILE */

@@ -111,16 +111,16 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-*   <tr>
 *     <td>1.10</td>
 *     <td>The input/output bit in the trigLine parameter of the 
 *         Cy_TrigMux_SwTrigger() function is changed to 30.<br>
 *         The invert parameter type is changed to bool.<br>
 *         Added input parameter validation to the API functions.</td>
+*     <td></td>
+*   </tr>
+*   <tr>
+*     <td>1.0</td>
+*     <td>Initial version</td>
 *     <td></td>
 *   </tr>
 * </table>

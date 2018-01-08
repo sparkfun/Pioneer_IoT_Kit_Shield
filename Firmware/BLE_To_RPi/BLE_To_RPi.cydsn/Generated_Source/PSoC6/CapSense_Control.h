@@ -1,11 +1,11 @@
 /***************************************************************************//**
 * \file CapSense_Control.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file provides the function prototypes of the Control Block.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_CONTROL_H)
-#define CY_CAPSENSE_CapSense_CONTROL_H
+#if !defined(CY_SENSE_CapSense_CONTROL_H)
+#define CY_SENSE_CapSense_CONTROL_H
 
 #include "syspm/cy_syspm.h"
 #include "CapSense_Configuration.h"
@@ -50,8 +50,8 @@
 * HIGH LEVEL API
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_HIGH_LEVEL
-* \addtogroup group_capsense_high_level
+* \cond SECTION_CYSENSE_HIGH_LEVEL
+* \addtogroup group_cysense_high_level
 * \{
 */
 
@@ -70,11 +70,11 @@ cy_en_syspm_status_t CapSense_EnterLowPowerCallback(cy_stc_syspm_callback_params
 cy_en_syspm_status_t CapSense_ExitLowPowerCallback(cy_stc_syspm_callback_params_t *callbackParams);
 
 /** \}
-* \endif */
+* \endcond */
 
 /**
-* \if SECTION_CAPSENSE_LOW_LEVEL
-* \addtogroup group_capsense_low_level
+* \cond SECTION_CYSENSE_LOW_LEVEL
+* \addtogroup group_cysense_low_level
 * \{
 */
 
@@ -82,22 +82,22 @@ cy_status CapSense_ProcessWidgetExt(uint32 widgetId, uint32 mode);
 cy_status CapSense_ProcessSensorExt(uint32 widgetId, uint32 sensorId, uint32 mode);
 
 /** \}
-* \endif */
+* \endcond */
 
 /*******************************************************************************
 * Function Prototypes - internal functions
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 cy_status CapSense_Initialize(void);
 
 /** \}
-* \endif */
+* \endcond */
 
-#endif /* End CY_CAPSENSE_CapSense_CONTROL_H */
+#endif /* End CY_SENSE_CapSense_CONTROL_H */
 
 
 /* [] END OF FILE */

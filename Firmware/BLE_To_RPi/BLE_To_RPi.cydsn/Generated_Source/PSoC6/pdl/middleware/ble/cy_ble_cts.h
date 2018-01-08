@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Current Time Service of the BLE Component.
+*  the Current Time Service.
 *
 ********************************************************************************
 * \copyright
@@ -128,7 +128,7 @@ typedef struct
     /** Current Time Service GATT DB handles structure */
     const cy_stc_ble_ctss_t *ctss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_cts_config_t;
 

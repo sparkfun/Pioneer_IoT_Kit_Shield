@@ -3,7 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  Contains the function prototypes and constants for the BLE Component.
+*  This file contains the auto generated defines for BLE.
 *
 ********************************************************************************
 * \copyright

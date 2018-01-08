@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in the
-*  Glucose Profile of the BLE Component.
+*  Glucose Profile.
 *
 ********************************************************************************
 * \copyright
@@ -122,7 +122,7 @@ typedef struct
     /** Glucose Profile  GATT DB handles structure */
     const cy_stc_ble_glss_t *glss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_gls_config_t;
 /** @} */

@@ -5,8 +5,8 @@
 * CY8C6347BZI-BLD53 device header
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright
@@ -433,6 +433,7 @@ typedef enum {
 #define __VTOR_PRESENT                  1       /*!< Set to 1 if CPU supports Vector Table Offset Register */
 #define __MPU_PRESENT                   1       /*!< MPU present or not */
 #define __FPU_PRESENT                   1       /*!< FPU present or not */
+#define __CM0P_PRESENT                  1       /*!< CM0P present or not */
 
 /** \} Configuration_of_CMSIS */
 
@@ -451,8 +452,8 @@ typedef enum {
 #define CY_SRAM0_SIZE                   0x00048000UL
 #define CY_FLASH_BASE                   0x10000000UL
 #define CY_FLASH_SIZE                   0x00100000UL
-#define CY_WFLASH_BASE                  0x14000000UL
-#define CY_WFLASH_SIZE                  0x00008000UL
+#define CY_EM_EEPROM_BASE               0x14000000UL
+#define CY_EM_EEPROM_SIZE               0x00008000UL
 #define CY_XIP_BASE                     0x18000000UL
 #define CY_XIP_SIZE                     0x08000000UL
 #define CY_SFLASH_BASE                  0x16000000UL
@@ -460,27 +461,18 @@ typedef enum {
 #define CY_EFUSE_BASE                   0x402C0800UL
 #define CY_EFUSE_SIZE                   0x000000C8UL
 
+#define CY_DEVICE_PSOC6ABLE2
 #define CY_SILICON_ID                   0xE2072100UL
-
 #define CY_HF_CLK_MAX_FREQ              150000000UL
 
-/* Number of EZ memory Bytes ([32, 256, 512]). This memory is used in EZ mode,
-   CMD_RESP mode and FIFO mode. Note that in EZ mode, if EZ_DATA_NR is 512, only
-   256 B are used. This is because the EZ mode uses 8-bit addresses. */
+#define CPUSS_FLASHC_PA_SIZE_LOG2       0x7UL
 #define SCB_GET_EZ_DATA_NR(base)        256u
-/* I2C slave support? ('0': no, '1': yes) */
 #define SCB_IS_I2C_SLAVE_CAPABLE(base)  true
-/* I2C master support? ('0': no, '1': yes) */
 #define SCB_IS_I2C_MASTER_CAPABLE(base) ((base) != SCB8)
-/* DeepSleep support ('0':no, '1': yes) */
 #define SCB_IS_I2C_DS_CAPABLE(base)     ((base) == SCB8)
-/* SPI slave support? ('0': no, '1': yes) */
 #define SCB_IS_SPI_SLAVE_CAPABLE(base)  true
-/* SPI master support? ('0': no, '1': yes) */
 #define SCB_IS_SPI_MASTER_CAPABLE(base) ((base) != SCB8)
-/* DeepSleep support ('0':no, '1': yes) */
 #define SCB_IS_SPI_DS_CAPABLE(base)     ((base) == SCB8)
-/* UART support? ('0': no, '1': yes) */
 #define SCB_IS_UART_CAPABLE(base)       ((base) != SCB8)
 
 /* IP List */
@@ -570,6 +562,7 @@ typedef enum {
 #include "cyip_backup.h"
 #include "cyip_dw.h"
 #include "cyip_efuse.h"
+#include "cyip_efuse_data.h"
 #include "cyip_profile.h"
 #include "cyip_hsiom.h"
 #include "cyip_gpio.h"

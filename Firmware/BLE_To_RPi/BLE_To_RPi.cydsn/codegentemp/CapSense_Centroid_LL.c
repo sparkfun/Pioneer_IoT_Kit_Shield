@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Centroid_LL.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
-* This file provides the source code for the centroid calculation methods
-* of the Component.
+*   This file provides the source code for the centroid calculation methods
+*   of the Component.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -38,6 +38,7 @@
 *******************************************************************************/
 
 #include <string.h>
+#include "stddef.h"
 #include "syslib/cy_syslib.h"
 #include "CapSense_Centroid_LL.h"
 #include "CapSense_Configuration.h"
@@ -65,11 +66,6 @@
     #define CapSense_CSX_TOUCHPAD_TOUCH_DOWN                (0x80u)
     #define CapSense_CSX_TOUCHPAD_LIFT_OFF                  (0x40u)
     #define CapSense_CSX_TOUCHPAD_DEBOUNCE_MASK             (0x3Fu)
-    #define CapSense_CSX_TOUCHPAD_POSITION_FILTER_EN        \
-                (CapSense_POS_IIR_FILTER_EN                     || \
-                 CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN     || \
-                 CapSense_POS_AVERAGE_FILTER_EN                 || \
-                 CapSense_POS_JITTER_FILTER_EN)
     #define CapSense_CSX_TOUCHPAD_POSITION_NONE             (0xFFFFu)
     #define CapSense_CSX_TOUCHPAD_Z_SHIFT                   (0x04u)
     #define CapSense_CSX_TOUCHPAD_PADDING                   (3Lu)
@@ -83,8 +79,8 @@
 /*******************************************************************************
 * Static variables definition
 *******************************************************************************/
-#if ((CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN) || \
-     (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN)) 
+#if ((CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN) || \
+     (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN))
     static uint8 localMax[CapSense_NUM_CENTROIDS];
     static CapSense_THRESHOLD_TYPE localDiffArray[CapSense_NUM_CENTROIDS][3u];
     static uint8 localMaxIndex;
@@ -102,7 +98,7 @@
 /*******************************************************************************
 * API Prototypes
 *******************************************************************************/
-#if (((CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN) || \
+#if (((CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN) || \
       (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN)) && \
       (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN))
 static void CapSense_SaveLocalMax(CapSense_RAM_SNS_STRUCT ptrSns[],
@@ -110,17 +106,17 @@ static void CapSense_SaveLocalMax(CapSense_RAM_SNS_STRUCT ptrSns[],
 #endif
 
 #if (0u !=CapSense_CSX_TOUCHPAD_WIDGET_EN)
-    __STATIC_INLINE void CapSense_TransferTouch(uint32 newIndex, uint32 oldIndex, CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches);
+    static void CapSense_TransferTouch(uint32 newIndex, uint32 oldIndex, CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches);
     static void CapSense_NewTouch(uint32 newIndex, uint8 onDebounce, uint16 fingerOnThreshold);
     __STATIC_INLINE uint8 CapSense_GetLowestId(uint16 idMask);
-    __STATIC_INLINE uint32 CapSense_CalcDistance(uint32 newIndex, uint32 oldIndex, CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches);
+    static uint32 CapSense_CalcDistance(uint32 newIndex, uint32 oldIndex, CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches);
     static void CapSense_Hungarian(uint8 rowCount, uint8 colCount, int8 *fingerPosIndex,
                                            CapSense_CSX_TOUCHPAD_DISTANCE_MAP *distanceMap);
     static void CapSense_FillDistanceMap(CapSense_CSX_TOUCHPAD_DISTANCE_MAP *distanceMap,
                                                  CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches);
     __STATIC_INLINE void CapSense_TouchDownDebounce(void);
     __STATIC_INLINE void CapSense_SortByAge(void);
-    __STATIC_INLINE void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT *destination,
+    static void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT *destination,
                                                            CapSense_CSX_TOUCHPAD_PEAK_STRUCT *source);
     #if (0u != CapSense_OFF_DEBOUNCE_EN)
     __STATIC_INLINE void CapSense_LiftOffDebounce(uint8 offDebounce,
@@ -128,8 +124,8 @@ static void CapSense_SaveLocalMax(CapSense_RAM_SNS_STRUCT ptrSns[],
     #endif /* (0u != CapSense_OFF_DEBOUNCE_EN) */
 #endif /* (0u !=CapSense_CSX_TOUCHPAD_WIDGET_EN) */
 
-#if ((CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN) || \
-     (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN)) 
+#if ((CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN) || \
+     (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN))
 #if (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN)
 /*******************************************************************************
 * Function Name: CapSense_DpFindLocalMaxSd4pts
@@ -186,7 +182,7 @@ uint32 CapSense_DpFindLocalMaxSd4pts(CapSense_FLASH_WD_STRUCT const *ptrFlashWdg
             slope2 = (int32)localPtrSns[snsCount - 1u].diff - (int32)localPtrSns[snsCount - 2u].diff;
             slopeLast = slope1;
         }
-    #else 
+    #else
         /* Typecast the parameter to avoid a compiler warning */
         (void) ptrFlashWdgt;
     #endif
@@ -210,7 +206,7 @@ uint32 CapSense_DpFindLocalMaxSd4pts(CapSense_FLASH_WD_STRUCT const *ptrFlashWdg
             {
                 CapSense_SaveLocalMax(ptrSns, snsCount, fingerThreshold, i);
             }
-            else 
+            else
             {
                 if(0 == slope1)
                 {
@@ -218,7 +214,7 @@ uint32 CapSense_DpFindLocalMaxSd4pts(CapSense_FLASH_WD_STRUCT const *ptrFlashWdg
                     {
                         CapSense_SaveLocalMax(ptrSns, snsCount, fingerThreshold, (i - 1uL));
                     }
-                    else 
+                    else
                     {
                         if (0 < slope2)
                         {
@@ -339,7 +335,7 @@ uint32 CapSense_DpFindLocalMaxSd(CapSense_RAM_SNS_STRUCT ptrSns[], uint32 snsCou
         CapSense_RAM_SNS_STRUCT *localPtrSns = ptrSns;
         CapSense_THRESHOLD_TYPE temp = 0u;
     #endif
-    
+
     localMaxIndex = 0u;
 
     #if (CapSense_NUM_CENTROIDS == 0x01u)
@@ -420,7 +416,7 @@ uint32 CapSense_DpFindLocalMaxSd(CapSense_RAM_SNS_STRUCT ptrSns[], uint32 snsCou
     return (uint32)(localMaxIndex);
 }
 #endif /* (CapSense_ENABLE == CapSense_4PTS_LOCAL_MAX_EN) */
-#endif /* ((CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN) || \
+#endif /* ((CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN) || \
           (CapSense_ENABLE  == CapSense_SLIDER_WIDGET_EN)) */
 
 #if CapSense_TOTAL_DIPLEXED_SLIDERS
@@ -538,7 +534,7 @@ uint32 CapSense_DpFindLocalMaxDiplex(
 
 
 #if ((0u != CapSense_TOTAL_LINEAR_SLIDERS) || \
-     (CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN))
+     (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN))
 /*******************************************************************************
 * Function Name: CapSense_DpCalcLinearCentroid
 ****************************************************************************//**
@@ -551,16 +547,24 @@ uint32 CapSense_DpFindLocalMaxDiplex(
 *   The localDiffArray[][] is used to store values of the maximum/maxima and neighbour differences.
 *   The localMaxIndex is used to store the number of maxima have been actually found.
 *
-* \param  *position The pointer to the position array for temporal position storage.
-* \param multiplier The multiplier used for position calculation.
-*                       Contains the widget resolution and total sensor information. It is generated by customizer.
-* \param snsCount The number of sensors in the linear slider. The doubled snsCount has to be passed
-*                       if this API is called for diplexed slider.
+* \param position
+*  The pointer to the position array for temporary position storage.
+*
+* \param multiplier
+*  The multiplier used for position calculation. Contains the widget resolution and total sensor
+*  information. It is generated by customizer.
+*
+* \param snsCount
+*  The number of sensors in the linear slider. The doubled snsCount has to be passed
+*  if this API is called for diplexed slider.
+*
+* \param offset
+*  The additional position offset as half of the multiplier.
 *
 * \return Returns the number of positions calculated.
 *
 *******************************************************************************/
-uint32 CapSense_DpCalcLinearCentroid(uint16 position[], uint32 multiplier, uint32 snsCount)
+uint32 CapSense_DpCalcLinearCentroid(uint16 position[], uint32 multiplier, uint32 snsCount, uint32 offset)
 {
     int32 numerator;
     int32 denominator;
@@ -595,7 +599,7 @@ uint32 CapSense_DpCalcLinearCentroid(uint16 position[], uint32 multiplier, uint3
                       (int32) localDiffArray[i][CapSense_CENTROID_POS_NEXT];
 
         denominator = ((numerator * (int32)multiplier) / denominator) +
-                      ((int32)localMax[i] * (int32)multiplier);
+                      (((int32)localMax[i] * (int32)multiplier) + (int32)offset);
 
         /* Round result and shift 8 bits left */
         position[i] = CY_LO16(((uint32)denominator + CapSense_CENTROID_ROUND_VALUE) >> 8u);
@@ -603,7 +607,7 @@ uint32 CapSense_DpCalcLinearCentroid(uint16 position[], uint32 multiplier, uint3
     return (uint32)(localMaxIndex);
 }
 #endif /* ((0u != CapSense_TOTAL_LINEAR_SLIDERS) || \
-          (CapSense_ENABLE == CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
+          (CapSense_ENABLE == CapSense_CENTROID_3X3_CSD_EN)) */
 
 
 #if CapSense_TOTAL_RADIAL_SLIDERS
@@ -619,7 +623,7 @@ uint32 CapSense_DpCalcLinearCentroid(uint16 position[], uint32 multiplier, uint3
 *   The localDiffArray[][] is used to store values of the maximum/maxima and neighbour differences.
 *   The localMaxIndex is used to store the number of maxima have been actually found.
 *
-* \param *position The pointer to the position array for temporal storage.
+* \param *position The pointer to the position array for temporary storage.
 * \param multiplier The multiplier used for position calculation.
 *                       Contains the widget resolution and total sensor information. It is generated by customizer.
 * \param snsCount The total sensor number in the widget.
@@ -708,8 +712,8 @@ void CapSense_DpFindLocalMaxDd(
                 proceed = 1u;
             }
 
-            /* Check local maximum requirement: Comparing RawCount of a local maximum candidate with
-             * RawCounts of sensors from the previous row */
+            /* Check local maximum requirement: Comparing raw count of a local maximum candidate with
+             * raw counts of sensors from the previous row */
             if ((0u == proceed) && (rx > 0u))
             {
                 /* Sensor(i-1, j+1) */
@@ -743,8 +747,8 @@ void CapSense_DpFindLocalMaxDd(
                 }
             }
 
-            /* Check local maximum requirement: Comparing RawCount of a local maximum candidate with
-             * RawCounts of sensors from the next row */
+            /* Check local maximum requirement: Comparing raw count of a local maximum candidate with
+             * raw counts of sensors from the next row */
             if ((0u == proceed) && (rx < lastRx))
             {
                 /* Sensor(i+1, j+1) */
@@ -778,8 +782,8 @@ void CapSense_DpFindLocalMaxDd(
                 }
             }
 
-            /* Check local maximum requirement: Comparing RawCount of a local maximum candidate with
-             * RawCounts of sensors from the same row
+            /* Check local maximum requirement: Comparing raw count of a local maximum candidate with
+             * raw counts of sensors from the same row
              * Sensor(i, j+1) */
             if ((0u == proceed) && (tx < lastTx))
             {
@@ -877,7 +881,7 @@ void CapSense_DpCalcTouchPadCentroid(
                     }
                     else
                     {
-                        centroid[j][i] = (ptrSensor + (((i - 1u) * ptrFlashWdgt->numRows) + (j - 1u)))->diff;
+                        centroid[j][i] = (uint16)(ptrSensor + (((i - 1u) * ptrFlashWdgt->numRows) + (j - 1u)))->diff;
                     }
                 }
             }
@@ -901,10 +905,15 @@ void CapSense_DpCalcTouchPadCentroid(
         /* The X position is calculated.
         * The weightedSumX value depends on a finger position shifted regarding the X electrode (ptrNewTouches->touch[number].x)
         * The multiplier ptrFlashWdgt->xCentroidMultiplier is a short from:
-        * CapSense_TOUCHPAD0_X_RESOLUTION * 256u) / (CapSense_TOUCHPAD0_NUM_RX - 1u))
+        * CapSense_TOUCHPAD0_X_RESOLUTION * 256u) / (CapSense_TOUCHPAD0_NUM_RX - CONFIG))
+        * where CONFIG = 0 or 1 depends on TouchpadMultiplerMethod parameter
         */
         weightedSumX = ((weightedSumX * (int32)ptrFlashWdgt->xCentroidMultiplier) / (int32)totalSum) +
                         ((int32)ptrNewTouches->touch[number].x * (int32)ptrFlashWdgt->xCentroidMultiplier);
+        /* Position correction for half of a sensor */
+        #if (CapSense_ENABLE == CapSense_TOUCHPAD_MULT_METHOD)
+            weightedSumX += (((int32)ptrFlashWdgt->xCentroidMultiplier) / 2);
+        #endif
 
         /* The X position is rounded to the nearest integer value and normalized to the resolution range */
         ptrNewTouches->touch[number].x = CY_LO16(((uint32)weightedSumX + CapSense_CENTROID_ROUND_VALUE) >> 8u);
@@ -912,15 +921,20 @@ void CapSense_DpCalcTouchPadCentroid(
         /* The Y position is calculated.
         * The weightedSumY value depends on a finger position shifted regarding the Y electrode (ptrNewTouches->touch[number].y)
         * The multiplier ptrFlashWdgt->yCentroidMultiplier is a short from:
-        * CapSense_TOUCHPAD0_Y_RESOLUTION * 256u) / (CapSense_TOUCHPAD0_NUM_TX - 1u))
+        * CapSense_TOUCHPAD0_Y_RESOLUTION * 256u) / (CapSense_TOUCHPAD0_NUM_TX - CONFIG))
+        * where CONFIG = 0 or 1 depends on TouchpadMultiplerMethod parameter
         */
         weightedSumY = ((weightedSumY * (int32)ptrFlashWdgt->yCentroidMultiplier) / (int32)totalSum) +
                         ((int32)ptrNewTouches->touch[number].y * (int32)ptrFlashWdgt->yCentroidMultiplier);
+        /* Position correction for half of a sensor */
+        #if (CapSense_ENABLE == CapSense_TOUCHPAD_MULT_METHOD)
+            weightedSumY += (((int32)ptrFlashWdgt->yCentroidMultiplier) / 2);
+        #endif
 
         /* The Y position is rounded to the nearest integer value and normalized to the resolution range */
         ptrNewTouches->touch[number].y = CY_LO16(((uint32)weightedSumY + CapSense_CENTROID_ROUND_VALUE) >> 8u);
 
-        /* The z value is a sum of RawCounts of sensors that form 3x3 matrix with a local maximum in the center */
+        /* The z value is a sum of raw counts of sensors that form 3x3 matrix with a local maximum in the center */
         ptrNewTouches->touch[number].z = CY_LO8(totalSum >> CapSense_CSX_TOUCHPAD_Z_SHIFT);
     }
 }
@@ -959,7 +973,8 @@ void CapSense_DpTouchTracking(
     {
         /* Initialize variables */
         newActiveIDs = 0u;
-
+        /* Getting active touch IDs from previous scan */
+        oldActiveIDs = 0u;
         for (i = 0u; i < ptrOldTouches->touchNum; i++)
         {
             oldActiveIDs |= (uint8)(1u << ptrOldTouches->touch[i].id);
@@ -1110,7 +1125,7 @@ void CapSense_DpTouchTracking(
 * \param ptrOldTouches The pointer to the old touches structure.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_TransferTouch(
+static void CapSense_TransferTouch(
                             uint32 newIndex, uint32 oldIndex, CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches)
 {
     ptrNewTouches->touch[newIndex].id = ptrOldTouches->touch[oldIndex].id;
@@ -1137,8 +1152,8 @@ __STATIC_INLINE void CapSense_TransferTouch(
 *   Set ID, age and on debounce parameters for a new touch.
 *
 * \details
-*   RawCount of a local maximum has to be higher than fingerOnThreshold threshold
-*   so the new touch is accepted. If RawCount is lower than the fingerOnThreshold
+*   Raw count of a local maximum has to be higher than fingerOnThreshold threshold
+*   so the new touch is accepted. If raw count is lower than the fingerOnThreshold
 *   than corresponding touch is marked with CapSense_CSX_TOUCHPAD_FT_ON_FAIL
 *   ID and will be deleted from new touches structure in CapSense_SortByAge()
 *   (new touches structure is reorganized in this case).
@@ -1259,6 +1274,7 @@ __STATIC_INLINE void CapSense_TouchDownDebounce(void)
 }
 
 
+#if (0u != CapSense_OFF_DEBOUNCE_EN)
 /*******************************************************************************
 * Function Name: CapSense_LiftOffDebounce
 ****************************************************************************//**
@@ -1277,7 +1293,6 @@ __STATIC_INLINE void CapSense_TouchDownDebounce(void)
 * \param ptrOldTouches The pointer to the old touches structure.
 *
 *******************************************************************************/
-#if CapSense_OFF_DEBOUNCE_EN
 __STATIC_INLINE void CapSense_LiftOffDebounce(uint8 offDebounce,
                                                        CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches)
 {
@@ -1336,7 +1351,7 @@ __STATIC_INLINE void CapSense_LiftOffDebounce(uint8 offDebounce,
         }
     }
 }
-#endif /* CapSense_OFF_DEBOUNCE_EN */
+#endif /* (0u != CapSense_OFF_DEBOUNCE_EN) */
 
 /*******************************************************************************
 * Function Name: CapSense_CalcDistance
@@ -1357,7 +1372,7 @@ __STATIC_INLINE void CapSense_LiftOffDebounce(uint8 offDebounce,
 * \return Returns the squared distance.
 *
 *******************************************************************************/
-__STATIC_INLINE uint32 CapSense_CalcDistance(uint32 newIndex, uint32 oldIndex,
+static uint32 CapSense_CalcDistance(uint32 newIndex, uint32 oldIndex,
                                                       CapSense_CSX_TOUCHPAD_DATA_STRUCT *ptrOldTouches)
 {
     int32 result;
@@ -1661,7 +1676,7 @@ __STATIC_INLINE void CapSense_SortByAge(void)
 * \param *source      The pointer to the source touch structure.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT *destination,
+static void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT *destination,
                                                        CapSense_CSX_TOUCHPAD_PEAK_STRUCT *source)
 {
     destination->x        =  source->x;
@@ -1675,7 +1690,7 @@ __STATIC_INLINE void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT 
 
 
 /*******************************************************************************
-* Function Name: CapSense_FilterTouchRecord
+* Function Name: CapSense_DpFilterTouchRecord
 ****************************************************************************//**
 *
 * \brief
@@ -1695,28 +1710,27 @@ __STATIC_INLINE void CapSense_CopyTouchRecord(CapSense_CSX_TOUCHPAD_PEAK_STRUCT 
 *******************************************************************************/
 uint32 CapSense_DpFilterTouchRecord(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt)
 {
-    CapSense_RAM_WD_CSX_TOUCHPAD_STRUCT *ptrWidgetRam = ptrFlashWdgt->ptr2WdgtRam;
     uint32 i;
     uint32 reportedTouchNum = 0u;
+    CapSense_RAM_WD_CSX_TOUCHPAD_STRUCT *ptrWidgetRam = ptrFlashWdgt->ptr2WdgtRam;
 
-    #if (0u != CapSense_CSX_TOUCHPAD_POSITION_FILTER_EN)
+    #if (0u != CapSense_POSITION_FILTER_EN)
         uint32 oldIdMask = 0u;
         uint32 j;
-        uint32 filterConfig;
-        uint16 filteredXPos = CapSense_CSX_TOUCHPAD_POSITION_NONE;
-        uint16 filteredYPos = CapSense_CSX_TOUCHPAD_POSITION_NONE;
+        uint16 filteredX;
+        uint16 filteredY;
+        CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory;
 
-        #if (0u != CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN)
-            CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory =
-                ptrFlashWdgt->ptr2PosHistory;
-        #endif /* 0u != CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN */
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
+    #if (0u != CapSense_POSITION_FILTER_EN)
+        ptrHistory = ptrFlashWdgt->ptr2PosHistory;
         /* Find what Ids were active in the previous report */
         for (i = 0u; i < CapSense_CSX_MAX_FINGERS; i++)
         {
-            oldIdMask |= 1Lu << ptrWidgetRam->touch[i].id;
+            oldIdMask |= 0x01Lu << ptrWidgetRam->touch[i].id;
         }
-    #endif /* (0u != CapSense_CSX_TOUCHPAD_POSITION_FILTER_EN) */
+    #endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
     /* Go through all touch fields in RAM Data Structure */
     for (i = 0u; i < CapSense_CSX_MAX_FINGERS; i++)
@@ -1724,7 +1738,7 @@ uint32 CapSense_DpFilterTouchRecord(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt
         /* Check if touch is valid to be reported: age has to be higher than 0. Id has been checked in SortByAge API */
         if ((i < ptrNewTouches->touchNum) && (ptrNewTouches->touch[i].age > 0u))
         {
-            #if (0u == CapSense_CSX_TOUCHPAD_POSITION_FILTER_EN)
+            #if (0u == CapSense_POSITION_FILTER_EN)
                 /* Report touch to the RAM Data Structure if position filter is disabled in general */
                 ptrWidgetRam->touch[i].x = ptrNewTouches->touch[i].x;
                 ptrWidgetRam->touch[i].y = ptrNewTouches->touch[i].y;
@@ -1732,84 +1746,43 @@ uint32 CapSense_DpFilterTouchRecord(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt
                 ptrWidgetRam->touch[i].id = ptrNewTouches->touch[i].id;
             #else
 
-                filterConfig = ptrFlashWdgt->staticConfig;
+                filteredX = ptrNewTouches->touch[i].x;
+                filteredY = ptrNewTouches->touch[i].y;
 
-                /* Initialize position history if the touch has the id that was absent in the previous touch report */
+                /* Initialize position and filter history if the touch has the id that was absent in the previous touch report */
                 if (0u == (oldIdMask & (1Lu << ptrNewTouches->touch[i].id)))
                 {
                     ptrWidgetRam->touch[i].x = ptrNewTouches->touch[i].x;
                     ptrWidgetRam->touch[i].y = ptrNewTouches->touch[i].y;
                     ptrWidgetRam->touch[i].z = ptrNewTouches->touch[i].z;
                     ptrWidgetRam->touch[i].id = ptrNewTouches->touch[i].id;
-
-                    #if (0u != CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN)
-                    if (0u != (filterConfig & CapSense_POS_MEDIAN_FILTER_MASK))
+                    if (NULL != ptrHistory)
                     {
-                        ptrHistory[i].xPos.posMedianZ1 = ptrNewTouches->touch[i].x;
-                        ptrHistory[i].xPos.posMedianZ2 = ptrNewTouches->touch[i].x;
-                        ptrHistory[i].yPos.posMedianZ1 = ptrNewTouches->touch[i].y;
-                        ptrHistory[i].yPos.posMedianZ2 = ptrNewTouches->touch[i].y;
+                        CapSense_InitPosFiltersDd(&ptrHistory[i], filteredX, filteredY);
                     }
-                    #endif
                 }
                 /* Find corresponding position history of the new touch (by id) in the RAW Widget Data Structure and Position History */
                 else
                 {
+                    /*
+                    * Index <i> addresses new touch array and final reported in data structure array.
+                    * Index <j> addresses filter history and previously reported in data structure array.
+                    *
+                    * If new touch appears, then it is always added at the and of arrays, therefore it
+                    * is safe to overwrite history with new touch.
+                    * Another case is moving touch from its previous reported index to new index.
+                    * This new index is always lower, so filter history of touch (i-1) was already taken
+                    * and processed for touch (i-1). Therefore, again, it is safely to copy filter history
+                    * from j to i.
+                    */
                     for(j = 0u; j < CapSense_CSX_MAX_FINGERS; j++)
                     {
                         if(ptrNewTouches->touch[i].id == ptrWidgetRam->touch[j].id)
                         {
-                            /* Run filter */
-                            #if (0u != CapSense_POS_IIR_FILTER_EN)
-                            if (0u != (filterConfig & CapSense_POS_IIR_FILTER_MASK))
-                            {
-                                filteredXPos = (uint16)CapSense_FtIIR1stOrder((uint32)ptrNewTouches->touch[i].x,
-                                                                                      (uint32)ptrWidgetRam->touch[j].x ,
-                                                                                      CapSense_POS_IIR_COEFF, 0u);
-                                filteredYPos = (uint16)CapSense_FtIIR1stOrder((uint32)ptrNewTouches->touch[i].y,
-                                                                                      (uint32)ptrWidgetRam->touch[j].y ,
-                                                                                      CapSense_POS_IIR_COEFF, 0u);
+                            CapSense_RunPosFiltersDd(ptrFlashWdgt, i, j, &filteredX, &filteredY);
 
-                            }
-                            #endif
-
-                            #if (0u != CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN)
-                            if (0u != (filterConfig & CapSense_POS_MEDIAN_FILTER_MASK))
-                            {
-                                CY_ASSERT(ptrHistory); /* ptrHistory cannot be NULL if median filter is enabled*/
-
-                                /* Run median filter */
-                                filteredXPos = CapSense_FtMedian(ptrHistory[i].xPos.posMedianZ2, ptrHistory[i].xPos.posMedianZ1, ptrNewTouches->touch[i].x);
-                                filteredYPos = CapSense_FtMedian(ptrHistory[i].yPos.posMedianZ2, ptrHistory[i].yPos.posMedianZ1, ptrNewTouches->touch[i].y);
-
-                                /* Update history */
-                                ptrHistory[i].xPos.posMedianZ2 = ptrHistory[i].xPos.posMedianZ1;
-                                ptrHistory[i].xPos.posMedianZ1 = ptrNewTouches->touch[i].x;
-                                ptrHistory[i].yPos.posMedianZ2 = ptrHistory[i].yPos.posMedianZ1;
-                                ptrHistory[i].yPos.posMedianZ1 = ptrNewTouches->touch[i].y;
-                            }
-                            #endif
-
-                            #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
-                            if (0u != (filterConfig & CapSense_POS_AVERAGE_FILTER_MASK))
-                            {
-                                filteredXPos = (ptrNewTouches->touch[i].x + ptrWidgetRam->touch[j].x) >> 1u;
-                                filteredYPos = (ptrNewTouches->touch[i].y + ptrWidgetRam->touch[j].y) >> 1u;
-                            }
-                            #endif
-
-                            #if (0u != CapSense_POS_JITTER_FILTER_EN)
-                            if (0u != (filterConfig & CapSense_POS_JITTER_FILTER_MASK))
-                            {
-                                filteredXPos = (uint16)CapSense_FtJitter((uint32)ptrNewTouches->touch[i].x,
-                                                                                 (uint32)ptrWidgetRam->touch[j].x);
-                                filteredYPos = (uint16)CapSense_FtJitter((uint32)ptrNewTouches->touch[i].y,
-                                                                                 (uint32)ptrWidgetRam->touch[j].y);
-                            }
-                            #endif
-
-                            ptrWidgetRam->touch[i].x = filteredXPos;
-                            ptrWidgetRam->touch[i].y = filteredYPos;
+                            ptrWidgetRam->touch[i].x = filteredX;
+                            ptrWidgetRam->touch[i].y = filteredY;
                             ptrWidgetRam->touch[i].z = ptrNewTouches->touch[i].z;
                             ptrWidgetRam->touch[i].id = ptrNewTouches->touch[i].id;
                         }
@@ -1824,12 +1797,245 @@ uint32 CapSense_DpFilterTouchRecord(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt
             ptrWidgetRam->touch[i].y = CapSense_CSX_TOUCHPAD_POSITION_NONE;
             ptrWidgetRam->touch[i].z = CY_LO8(CapSense_CSX_TOUCHPAD_POSITION_NONE);
             ptrWidgetRam->touch[i].id = CapSense_CSX_TOUCHPAD_UNDEFINED;
+
+            #if (0u != CapSense_POSITION_FILTER_EN)
+                if (NULL != ptrHistory)
+                {
+                    /* Initialize history for non-valid touches */
+                    CapSense_InitPosFiltersDd(&ptrHistory[i], CapSense_CSX_TOUCHPAD_POSITION_NONE, CapSense_CSX_TOUCHPAD_POSITION_NONE);
+                }
+            #endif /* (0u != CapSense_POSITION_FILTER_EN) */
         }
     }
     return reportedTouchNum;
 }
 
 #endif /* #if CapSense_CSX_TOUCHPAD_WIDGET_EN */
+
+
+#if (0u != CapSense_POSITION_FILTER_EN)
+/*******************************************************************************
+* Function Name: CapSense_InitPosFiltersSd
+****************************************************************************//**
+*
+* \brief
+*  Writes desired value into single-dimension position filter history.
+*
+* \details
+*  Writes desired value into single-dimension position filter history.
+*
+* \param ptrHistory
+*  The pointer to the structure that holds previous historical position value.
+*
+* \param value
+*  The desired value to initialize position filters history.
+*
+*******************************************************************************/
+void CapSense_InitPosFiltersSd(CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistory, uint16 value)
+{
+    if (NULL != ptrHistory)
+    {
+        #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+            ptrHistory->posMedianZ1 = value;
+            ptrHistory->posMedianZ2 = value;
+        #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+        #if (0u != CapSense_POS_IIR_FILTER_EN)
+            ptrHistory->posIIR = value;
+        #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
+
+        #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+            ptrHistory->posAIIR = value;
+        #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+        #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+            ptrHistory->posAverage = value;
+        #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
+
+        #if (0u != CapSense_POS_JITTER_FILTER_EN)
+            ptrHistory->posJitter = value;
+        #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
+    }
+}
+
+#if ((0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) || (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN))
+/*******************************************************************************
+* Function Name: CapSense_InitPosFiltersDd
+****************************************************************************//**
+*
+* \brief
+*  Writes desired value into two-dimension position filter history.
+*
+* \details
+*  Writes desired value into two-dimension position filter history.
+*
+* \param ptrHistory
+*  The pointer to the structure that holds previous historical position value.
+*
+* \param posX
+*  The desired value of X position to initialize position filters history.
+*
+* \param posY
+*  The desired value of Y position to initialize position filters history.
+*
+*******************************************************************************/
+void CapSense_InitPosFiltersDd(CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory, uint16 posX, uint16 posY)
+{
+    if (NULL != ptrHistory)
+    {
+        CapSense_InitPosFiltersSd(&ptrHistory->xPos, posX);
+        CapSense_InitPosFiltersSd(&ptrHistory->yPos, posY);
+    }
+}
+
+
+/*******************************************************************************
+* Function Name: CapSense_RunPosFiltersDd
+****************************************************************************//**
+*
+* \brief
+*  Filters two-dimension touch position of touchpad widget.
+*
+* \details
+*  Filters two-dimension touch position of touchpad widget.
+*
+* \param ptrFlashWdgt
+*  The pointer to the Flash Widget Object.
+*
+* \param i
+*  The index in the touch array where newly filtered position should be stored to.
+*
+* \param j
+*  The index in the touch array where previous position filter history should be
+*  taken from.
+*
+* \param posX
+*  The pointer to new X position to be filtered.
+*
+* \param posY
+*  The pointer to new Y position to be filtered.
+*
+*******************************************************************************/
+void CapSense_RunPosFiltersDd(CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt, uint32 i, uint32 j,
+            uint16 * posX, uint16 * posY)
+{
+    uint16 filteredX;
+    uint16 filteredY;
+    uint32 filterConfig;
+    CapSense_TOUCHPAD_POS_HISTORY_STRUCT *ptrHistory;
+    CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistoryPosX;
+    CapSense_SLIDER_POS_HISTORY_STRUCT *ptrHistoryPosY;
+    CapSense_SLIDER_POS_HISTORY_STRUCT *ptrNewHistoryPosX;
+    CapSense_SLIDER_POS_HISTORY_STRUCT *ptrNewHistoryPosY;
+
+    #if ((0u != CapSense_POS_AVERAGE_FILTER_EN) || \
+         (0u != CapSense_POS_MEDIAN_FILTER_EN))
+        uint16 tempPosition;
+    #endif /* ((0u != CapSense_POS_AVERAGE_FILTER_EN) ||
+         (0u != CapSense_POS_MEDIAN_FILTER_EN)) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONTEXT_STRUCT contextAIIR;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        ADAPTIVE_FILTER_CONFIG_STRUCT const *ptrAiirConfig = NULL;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+    filteredX = *posX;
+    filteredY = *posY;
+    filterConfig = ptrFlashWdgt->staticConfig;
+    ptrHistory = ptrFlashWdgt->ptr2PosHistory;
+    ptrHistoryPosX = &ptrHistory[j].xPos;
+    ptrHistoryPosY = &ptrHistory[j].yPos;
+    ptrNewHistoryPosX = &ptrHistory[i].xPos;
+    ptrNewHistoryPosY = &ptrHistory[i].yPos;
+
+    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+        if (0u != (filterConfig & CapSense_POS_MEDIAN_FILTER_MASK))
+        {
+            tempPosition = (uint16)CapSense_FtMedian((uint32)ptrHistoryPosX->posMedianZ2, (uint32)ptrHistoryPosX->posMedianZ1, (uint32)filteredX);
+            /* Store filter history from <j> place of previous report to <i> place of new report */
+            ptrNewHistoryPosX->posMedianZ2 = ptrHistoryPosX->posMedianZ1;
+            ptrNewHistoryPosX->posMedianZ1 = filteredX;
+            filteredX = tempPosition;
+            tempPosition = (uint16)CapSense_FtMedian((uint32)ptrHistoryPosY->posMedianZ2, (uint32)ptrHistoryPosY->posMedianZ1, (uint32)filteredY);
+            /* Store filter history from <j> place of previous report to <i> place of new report */
+            ptrNewHistoryPosY->posMedianZ2 = ptrHistoryPosY->posMedianZ1;
+            ptrNewHistoryPosY->posMedianZ1 = filteredY;
+            filteredY = tempPosition;
+        }
+    #endif
+
+    #if (0u != CapSense_POS_IIR_FILTER_EN)
+        if (0u != (filterConfig & CapSense_POS_IIR_FILTER_MASK))
+        {
+            filteredX = (uint16)CapSense_FtIIR1stOrder((uint32)filteredX, (uint32)ptrHistoryPosX->posIIR, (uint32)ptrFlashWdgt->iirFilterCoeff, 0uL);
+            ptrNewHistoryPosX->posIIR = filteredX;
+            filteredY = (uint16)CapSense_FtIIR1stOrder((uint32)filteredY, (uint32)ptrHistoryPosY->posIIR, (uint32)ptrFlashWdgt->iirFilterCoeff, 0uL);
+            ptrNewHistoryPosY->posIIR = filteredY;
+        }
+    #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        if (0u != (filterConfig & CapSense_AIIR_FILTER_MASK))
+        {
+            switch(CapSense_GET_SENSE_METHOD(ptrFlashWdgt))
+            {
+            #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                case CapSense_SENSE_METHOD_CSD_E:
+                    ptrAiirConfig = &(((CapSense_RAM_WD_CSD_TOUCHPAD_STRUCT *)ptrFlashWdgt->ptr2WdgtRam)->aiirConfig);
+                    break;
+            #endif /* #if (0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+
+            #if (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN)
+                case CapSense_SENSE_METHOD_CSX_E:
+                    ptrAiirConfig = &(((CapSense_RAM_WD_CSX_TOUCHPAD_STRUCT *)ptrFlashWdgt->ptr2WdgtRam)->aiirConfig);
+                    break;
+            #endif /* #if (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN) */
+
+            default:
+                CY_ASSERT(0 != 0);
+                break;
+            }
+            contextAIIR.previousX = ptrHistoryPosX->posAIIR;
+            contextAIIR.previousY = ptrHistoryPosY->posAIIR;
+            contextAIIR.coefficient = ptrHistoryPosX->posAIIRCoeff;
+            AdaptiveFilter_Run(ptrAiirConfig, &contextAIIR, &filteredX, &filteredY);
+            ptrNewHistoryPosX->posAIIR = contextAIIR.previousX;
+            ptrNewHistoryPosY->posAIIR = contextAIIR.previousY;
+            ptrNewHistoryPosX->posAIIRCoeff = contextAIIR.coefficient;
+        }
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+    #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+        if (0u != (filterConfig & CapSense_POS_AVERAGE_FILTER_MASK))
+        {
+            tempPosition = filteredX;
+            filteredX = (uint16)(filteredX + ptrHistoryPosX->posAverage) >> 1u;
+            ptrNewHistoryPosX->posAverage = tempPosition;
+            tempPosition = filteredY;
+            filteredY = (uint16)(filteredY + ptrHistoryPosY->posAverage) >> 1u;
+            ptrNewHistoryPosY->posAverage = tempPosition;
+        }
+    #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
+
+    #if (0u != CapSense_POS_JITTER_FILTER_EN)
+        if (0u != (filterConfig & CapSense_POS_JITTER_FILTER_MASK))
+        {
+            filteredX = (uint16)CapSense_FtJitter((uint32)filteredX, (uint32)ptrHistoryPosX->posJitter);
+            ptrNewHistoryPosX->posJitter = filteredX;
+            filteredY = (uint16)CapSense_FtJitter((uint32)filteredY, (uint32)ptrHistoryPosY->posJitter);
+            ptrNewHistoryPosY->posJitter = filteredY;
+        }
+    #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
+
+    *posX = filteredX;
+    *posY = filteredY;
+}
+#endif /* ((0u != CapSense_CSD_TOUCHPAD_WIDGET_EN) || (0u != CapSense_CSX_TOUCHPAD_WIDGET_EN)) */
+
+#endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
 
 /* [] END OF FILE */

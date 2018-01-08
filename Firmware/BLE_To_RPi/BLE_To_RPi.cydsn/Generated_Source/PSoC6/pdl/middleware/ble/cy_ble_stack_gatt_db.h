@@ -22,7 +22,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_gatt.h"
@@ -88,7 +88,7 @@ extern "C" {
 /** Characteristic properties B2: Bluetooth Spec Defined */
 #define CY_BLE_GATT_DB_CH_PROP_BROADCAST                 (0x00010000u) /**< characteristic property for broadcast */
 #define CY_BLE_GATT_DB_CH_PROP_READ                      (0x00020000u) /**< characteristic property for read */
-#define CY_BLE_GATT_DB_CH_PROP_RD_WRITE_WO_RESP          (0x00040000u) /**< characteristic property for wtite without response */
+#define CY_BLE_GATT_DB_CH_PROP_RD_WRITE_WO_RESP          (0x00040000u) /**< characteristic property for write without response */
 #define CY_BLE_GATT_DB_CH_PROP_WRITE                     (0x00080000u) /**< characteristic property for write */
 #define CY_BLE_GATT_DB_CH_PROP_NOTIFY                    (0x00100000u) /**< characteristic property for notify */
 #define CY_BLE_GATT_DB_CH_PROP_INDICATE                  (0x00200000u) /**< characteristic property for indication */
@@ -367,7 +367,7 @@ typedef struct
  */
 
 /** Characteristic Extended Property */
-typedef cy_stc_ble_gatts_att_value_t      cy_stc_ble_char_ext_prprty_t;
+typedef cy_stc_ble_gatts_att_value_t      cy_stc_ble_char_ext_property_t;
 /** Characteristic User Description */
 typedef cy_stc_ble_gatts_att_value_t      cy_stc_ble_char_user_description_t;
 /** Client Characteristic Configuration */
@@ -442,7 +442,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTS_DbRegister
 *  CY_BLE_GATT_ERR_UNLIKELY_ERROR              | Invalid arguments passed.
 *  CY_BLE_GATT_ERR_INSUFFICIENT_ENCRYPTION     | Link is not encrypted (Peer Initiated).
 *  CY_BLE_GATT_ERR_INSUFFICIENT_ENC_KEY_SIZE   | Link is encrypted with insufficient key size (Peer Initiated).
-*  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHENTICATION | Link is un-authenticated (Peer Initiated).
+*  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHENTICATION | Link is unauthenticated (Peer Initiated).
 *  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHORIZATION  | Peer client is not authorized (Peer Initiated).
 *  CY_BLE_GATT_ERR_INVALID_OFFSET              | param->offset is invalid.
 *  CY_BLE_GATT_ERR_INVALID_ATTRIBUTE_LEN       | handleValuePair.value.len is invalid.
@@ -479,7 +479,7 @@ cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_WriteAttributeValue
 *  CY_BLE_GATT_ERR_UNLIKELY_ERROR              | Invalid arguments passed.
 *  CY_BLE_GATT_ERR_INSUFFICIENT_ENCRYPTION     | Link is not encrypted (Peer Initiated).
 *  CY_BLE_GATT_ERR_INSUFFICIENT_ENC_KEY_SIZE   | Link is encrypted with insufficient key size (Peer Initiated).
-*  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHENTICATION | Link is un-authenticated (Peer Initiated).
+*  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHENTICATION | Link is unauthenticated (Peer Initiated).
 *  CY_BLE_GATT_ERR_INSUFFICIENT_AUTHORIZATION  | Peer client is not authorized (Peer Initiated).
 * 
 ******************************************************************************/
@@ -512,7 +512,7 @@ cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_ReadAttributeValue
 *  ------------                       | -----------
 *   CY_BLE_GATT_ERR_NONE              | On successful operation.
 *   CY_BLE_GATT_ERR_INVALID_HANDLE    | 'attrHandle' is not valid.
-*  CY_BLE_GATT_ERR_UNLIKELY_ERROR     | NULL pointer as input parameter.
+*   CY_BLE_GATT_ERR_UNLIKELY_ERROR    | NULL pointer as input parameter.
 * 
 ******************************************************************************/
 cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_EnableAttribute
@@ -531,7 +531,7 @@ cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_EnableAttribute
 *  This function returns error if the attribute does not belong to a service or
 *  a characteristic logical group. If attribute entry is already disabled then
 *  it returns CY_BLE_GATT_ERR_NONE as the status. All the attribute entries are
-*  enabled in the GATT database during stack initialization.
+*  enabled in the GATT database during BLE Stack initialization.
 * 
 *  \param param: Parameter is of type 'cy_stc_ble_gatts_db_attr_disable_info_t'.
 *              param->attrHandle: Attribute handle of the registered GATT Database to disable
@@ -545,7 +545,7 @@ cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_EnableAttribute
 *  ------------                       | -----------
 *   CY_BLE_GATT_ERR_NONE              | On successful operation.
 *   CY_BLE_GATT_ERR_INVALID_HANDLE    | 'attrHandle' is not valid.
-*  CY_BLE_GATT_ERR_UNLIKELY_ERROR     | NULL pointer as input parameter.
+*   CY_BLE_GATT_ERR_UNLIKELY_ERROR    | NULL pointer as input parameter.
 * 
 ******************************************************************************/
 cy_en_ble_gatt_err_code_t Cy_BLE_GATTS_DisableAttribute

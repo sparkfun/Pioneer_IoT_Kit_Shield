@@ -1,5 +1,5 @@
 /***************************************************************************//**
-* \file
+* \file  cy_sysint.c
 * \version 1.10
 *
 * \brief
@@ -25,10 +25,12 @@ extern "C" {
 ****************************************************************************//**
 *
 * \brief Initializes the referenced interrupt by setting the priority and the
-* interrupt vector. Note that the interrupt vector will only be relocated if the
-* vector table was moved to __ramVectors in SRAM. Otherwise it is ignored.
+* interrupt vector. 
 *
-* Use the CMSIS core function NVIC_EnableIRQ(config.intrSrc) to enable it.
+* Note that the interrupt vector will only be relocated if the vector table was
+* moved to __ramVectors in SRAM. Otherwise it is ignored.
+*
+* Use the CMSIS core function NVIC_EnableIRQ(config.intrSrc) to enable the interrupt.
 *
 * \param config
 * Interrupt configuration structure
@@ -39,6 +41,9 @@ extern "C" {
 * \return 
 * Initialization status  
 *
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_Init
+*
 *******************************************************************************/
 cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddress userIsr)
 {
@@ -46,25 +51,23 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 
     if(NULL != config)
     {
+        CY_ASSERT_L3(CY_SYSINT_IS_PRIORITY_VALID(config->intrPriority));
+        
         #if (CY_CPU_CORTEX_M0P)
-            if (config->intrSrc < 0)
-            {
-                NVIC_SetPriority(config->intrSrc, config->intrPriority);
-            }
-            else
+            if (config->intrSrc > SysTick_IRQn)
             {
                 /* Configure the interrupt mux */
                 Cy_SysInt_SetIntSource(config->intrSrc, config->cm0pSrc);
-                NVIC_SetPriority(config->intrSrc, config->intrPriority);
             }
-        #else
-            /* Set the priority */
-            NVIC_SetPriority(config->intrSrc, config->intrPriority);
         #endif
+        
+        NVIC_SetPriority(config->intrSrc, config->intrPriority);
         
         /* Only set the new vector if it was moved to __ramVectors */
         if (SCB->VTOR == (uint32_t)&__ramVectors)
         {
+            CY_ASSERT_L1(CY_SYSINT_IS_VECTOR_VALID(userIsr));
+
             (void)Cy_SysInt_SetVector(config->intrSrc, userIsr);
         }
     }
@@ -77,7 +80,7 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 }
 
 
-#if CY_CPU_CORTEX_M0P || defined (CY_DOXYGEN)
+#if (CY_CPU_CORTEX_M0P) || defined (CY_DOXYGEN)
 
 /*******************************************************************************
 * Function Name: Cy_SysInt_SetIntSource
@@ -94,15 +97,18 @@ cy_en_sysint_status_t Cy_SysInt_Init(const cy_stc_sysint_t* config, cy_israddres
 * \param cm0pSrc
 * Device interrupt to be routed to the NVIC mux
 *
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetIntSource
+*
 *******************************************************************************/
 void Cy_SysInt_SetIntSource(IRQn_Type intrSrc, cy_en_intr_t cm0pSrc)
 {
     /* Calculation of variables and masks */
     uint32_t regPos     = (uint32_t)intrSrc >> CY_SYSINT_CM0P_MUX_SHIFT;
-    uint32_t bitPos     = ((uint32_t)intrSrc - (regPos << CY_SYSINT_CM0P_MUX_SHIFT)) << CY_SYSINT_CM0P_MUX_SCALE;
+    uint32_t bitPos     = ((uint32_t)intrSrc - (uint32_t)(regPos << CY_SYSINT_CM0P_MUX_SHIFT)) << CY_SYSINT_CM0P_MUX_SCALE;
     uint32_t bitMask    = (uint32_t)(CY_SYSINT_CM0P_MUX_MASK << bitPos);
     uint32_t bitMaskClr = (uint32_t)(~bitMask);
-    uint32_t bitMaskSet = ((cm0pSrc << bitPos) & bitMask);
+    uint32_t bitMaskSet = (((uint32_t)cm0pSrc << bitPos) & bitMask);
 
     uint32_t tempReg;
 
@@ -159,6 +165,9 @@ void Cy_SysInt_SetIntSource(IRQn_Type intrSrc, cy_en_intr_t cm0pSrc)
 * Device interrupt source connected to the NVIC mux. A returned value of 
 * "disconnected_IRQn" (240) indicates that the interrupt source is disconnected.  
 *
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetIntSource
+*
 *******************************************************************************/
 cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc)
 {
@@ -167,39 +176,41 @@ cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc)
     uint32_t bitPos  = ((uint32_t)intrSrc - (regPos <<  CY_SYSINT_CM0P_MUX_SHIFT)) <<  CY_SYSINT_CM0P_MUX_SCALE;
     uint32_t bitMask = (uint32_t)(CY_SYSINT_CM0P_MUX_MASK << bitPos);
 
-    cy_en_intr_t tempReg;
-
+    cy_en_intr_t srcVal = disconnected_IRQn;
+    uint32_t tempReg = 0UL;
+    
     switch(regPos)
     {
         case CY_SYSINT_CM0P_MUX0:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL0 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL0 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX1:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL1 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL1 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX2:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL2 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL2 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX3:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL3 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL3 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX4:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL4 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL4 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX5:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL5 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL5 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX6:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL6 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL6 & bitMask) >> bitPos;
         break;
         case CY_SYSINT_CM0P_MUX7:
-            tempReg = (cy_en_intr_t)((CPUSS->CM0_INT_CTL7 & bitMask) >> bitPos);
+            tempReg = (CPUSS->CM0_INT_CTL7 & bitMask) >> bitPos;
         break;
         default:
-            tempReg = (cy_en_intr_t)CY_SYSINT_CM0P_MUX_ERROR;
         break;
     }
-    return tempReg;
+    
+    srcVal = (cy_en_intr_t)tempReg;
+    return (srcVal);
 }
 #endif
 
@@ -227,6 +238,9 @@ cy_en_intr_t Cy_SysInt_GetIntSource(IRQn_Type intrSrc)
 * Previous address of the ISR in the interrupt vector table, before the
 * function call
 *
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetVector
+*
 *******************************************************************************/
 cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr)
 {
@@ -235,6 +249,8 @@ cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr)
     /* Only set the new vector if it was moved to __ramVectors */
     if (SCB->VTOR == (uint32_t)&__ramVectors)
     {
+        CY_ASSERT_L1(CY_SYSINT_IS_VECTOR_VALID(userIsr));
+
         prevIsr = __ramVectors[CY_INT_IRQ_BASE + intrSrc];
         __ramVectors[CY_INT_IRQ_BASE + intrSrc] = userIsr;
     }
@@ -264,6 +280,9 @@ cy_israddress Cy_SysInt_SetVector(IRQn_Type intrSrc, cy_israddress userIsr)
 *
 * \return
 * Address of the ISR in the interrupt vector table
+*
+* \funcusage
+* \snippet sysint/sysint_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_SysInt_SetVector
 *
 *******************************************************************************/
 cy_israddress Cy_SysInt_GetVector(IRQn_Type intrSrc)

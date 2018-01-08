@@ -37,31 +37,88 @@
 * Also, the low-voltage detect circuits should be configured to generate an
 * interrupt instead of a reset.
 *
-* The Read while Write violation occurs when the flash Read operation is initiated
-* in the same flash sector where the flash Write operation is performing. The
-* violation leads to the exception generation. To avoid the Read while Write
-* violation, the user has to carefully split the Read and Write operation from the
-* same flash sector considering both cores in the multi-processor device.
-* Use different flash sectors for code and data storage. The flash is divided
-* into four equal sectors.
-*
-* \warning If the CM0 core triggers the Flash operation, another core must be in
-*          Active mode and interrupts must be enabled in both cores.
-*
-* \note "Warning[Ta023]: Call to a non __ramfunc function." - The warning may
-* appear during the build process while using IAR IDE. The reason - some
-* functions in RAM memory that use the __ramfunc keyword, may invoke
-* functions located in the ROM memory. You can ignore this warning or
-* disable it by adding the --diag_suppress=Ta023 option to the compiler.
+* A Read while Write violation occurs when a flash Read operation is initiated
+* in the same or neighboring flash sector where the flash Write, Erase, or
+* Program operation is working. This violation may cause a HardFault exception.
+* To avoid the Read while Write violation, the user must carefully split the
+* Read and Write operation on flash sectors which are not neighboring,
+* considering both cores in the multi-processor device. The flash is divided
+* into four equal sectors. You may edit the linker script to place the code
+* into neighboring sectors. For example, use sectors number 0 and 1 for code
+* and sectors 2 and 3 for data storage.
 *
 * \section group_flash_configuration Configuration Considerations
 *
-* Note that to be able to perform FLASH writes, the VCCD should be more than 0.99 V.
-* For more information see the technical reference manual (TRM).
+* \subsection group_flash_config_intro Introduction:
+* The PSoC 63/62/61/60 user-programmable Flash consists of four User Flash
+* sectors (0 through 3) and an EEPROM emulation sector. Write operations are
+* performed on a per-sector basis and may be done as Blocking or Partially
+* Non-Blocking, defined as follows:
+*
+* \subsection group_flash_config_blocking Blocking:
+* In this case, the entire Flash block is not available for the duration of the
+* Write (16ms). Therefore no Flash accesses (from any Bus Master) can occur
+* during that time. CPU execution can be performed from SRAM. All pre-fetching
+* must be disabled.
+*
+* \subsection group_flash_config_block_const Constraints for Blocking Flash operations:
+* -# During write to flash, the device should not be reset (including XRES pin,
+*    software reset, and watchdog) or unexpected changes may be made to portions
+*    of the flash.
+* -# The low-voltage detect circuits should be configured to generate an interrupt
+*    instead of a reset.
+* -# The part must be in LP mode for Flash write operations. Flash write cannot
+*    be performed in ULP mode.
+* -# Interrupts must be enabled on both active cores. Do not enter a critical
+*    section during flash operation.
+* -# User must guarantee that during flash write operation no flash read
+*    operations are performed by bus masters other than CM0+ and CM4 (DMA and
+*    Crypto).
+* -# If you do not use the default startup, ensure that firmware calls the
+*    following functions before any flash write/erase operations:
+* \snippet Flash_sut_01.cydsn/main_cm0p.c Flash Initialization
+*
+* \subsection group_flash_config_rww Partially Non-Blocking:
+* At this time, Partially Non-Blocking operations are available for EEPROM-emulation only.
+* This method has a much shorter time window when Flash accesses are not allowed.
+* Instead of being blocked for 16ms, there is a window of non-availability of
+* 2.1ms after the Write operation commences and then two windows of 150 uS
+* duration each. This results in Flash availability for about 85% of the Blocking
+* interval - see Figure 1 - Blocking Intervals in Flash Write operation.
+*
+* \image html flash-rww-diagram.png Figure 1 - Blocking Intervals in Flash Write operation
+*
+* This capability is important for communication protocols that rely on fast
+* response. Some constraints must be planned for in the Partially Non-Blocking
+* mode which are described in detail as follows:
+*
+* \subsection group_flash_config_rww_const Constraints for Partially Non-Blocking Flash operations:
+* -# Do not use Partially Non-Blocking Flash operation if you write in User
+*    Flash. It should be used for writing in EmEEPROM only.
+* -# During write to flash, the device should not be reset (including XRES pin,
+*    software reset, and watchdog) or unexpected changes may be made to portions
+*    of the flash.
+* -# The low-voltage detect circuits should be configured to generate an interrupt
+*    instead of a reset.
+* -# Do not write to and read/execute from the same flash sector at the same time.
+*    This is true for all sectors. (In this context, read means read of any bus
+*    master: CM0+, CM4, DMA, Crypto, etc.)
+* -# The part must be in LP mode for Flash write operations. Flash write cannot
+*    be performed in ULP mode.
+* -# Interrupts must be enabled on both active cores. Do not enter a Critical
+*    Section during flash operation.
+* -# User Interrupts must have priority lower than 0 (Flash Macro interrupt).
+* -# User must guarantee that during flash write operation no flash read
+*    operations are performed by bus masters other than CM0+ and CM4 (DMA and
+*    Crypto).
+* -# If you do not use the default startup, ensure that firmware calls the
+*    following functions before any flash write/erase operations:
+* \snippet Flash_sut_01.cydsn/main_cm0p.c Flash Initialization
 *
 * \section group_flash_more_information More Information
 *
-* See the technical reference manual (TRM) for more information about the Flash architecture.
+* See the technical reference manual (TRM) for more information about the Flash
+* architecture.
 *
 * \section group_flash_MISRA MISRA-C Compliance
 *
@@ -73,20 +130,18 @@
 *     <th style="width: 50%;">Description of Deviation(s)</th>
 *   </tr>
 *   <tr>
-*     <td>5.6</td>
-*     <td>R</td>
-*     <td>No identifier in one name space can have the same spelling as an identifier in another name space, with the
-*         exception of structure member and union member names.</td>
-*     <td>The "context" is used as a structure/union member; they are a label, tag or ordinary
-*         identifier.</td>
+*     <td>11.4</td>
+*     <td>A</td>
+*     <td>Casting to different object pointer type.</td>
+*     <td>The cast of the uint32_t pointer to pipe message structure pointer
+*         is used to get transmitted data via the \ref group_ipc channel.
+*         We cast only one pointer, so there is no way to avoid this cast.</td>
 *   </tr>
 *   <tr>
-*     <td>8.7</td>
+*     <td>11.5</td>
 *     <td>R</td>
-*     <td>Objects shall be defined at block scope if they are only accessed
-*         from within a single function.</td>
-*     <td>The driver defines an internal variable that can be accessed by 
-*         any core through the IPC hardware.</td>
+*     <td>Not performed, the cast that removes any const or volatile qualification from the type addressed by a pointer.</td>
+*     <td>The removal of the volatile qualification inside the function has no side effects.</td>
 *   </tr>
 * </table>
 *
@@ -95,34 +150,51 @@
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-*   <tr>
-*     <td>2.0</td>
-*     <td>Added non-blocking erase functions ( Cy_Flash_StartErase() and
-*         Cy_Flash_IsEraseComplete() ). Removed the clear cache function
-*         call.</td>
+*     <td rowspan="3"> 2.0</td>
+*     <td>Added non-blocking erase function - Cy_Flash_StartErase().
+*         Removed the clear cache function call.</td>
 *     <td>The clear cache operation is removed from the blocking Write/Erase
 *         function because in this case it is performed by the hardware.
 *         Otherwise it is documented that it is the user's responsibility to
 *         clear the cache after executing the non-blocking Write/Erase flash
 *         operation.</td>
 *   </tr>
+*   <tr>
+*     <td>Added new Cy_Flash_IsOperationComplete() function to check completeness.
+*         Obsoleted Cy_Flash_IsWriteComplete(), Cy_Flash_IsProgramComplete(),
+*         and Cy_Flash_IsEraseComplete() functions.<br>
+*         Added Cy_Flash_GetExternalStatus() function to get unparsed status where
+*         flash driver will be used in security applications with other modules
+*         as SecureImage.<br>
+*         Added Cy_Flash_Init() function to initialize all needed prerequisites
+*         for Erase/Write operations.</td>
+*     <td>Updated driver design to improve user experience.</td>
+*   </tr>
+*   <tr>
+*     <td>Updated driver implementation to remove MISRA rules deviations.</td>
+*     <td>Driver implementation quality improvement.</td>
+*   </tr>
+*   <tr>
+*     <td>1.0</td>
+*     <td>Initial version</td>
+*     <td></td>
+*   </tr>
 * </table>
 *
 * \defgroup group_flash_macros Macros
+* \{
+*     \defgroup group_flash_general_macros Flash general parameters
+*         Provides general information about flash
+*
+*     \defgroup group_flash_config_macros  Flash configuration
+*         Specifies the parameter values passed to SROM API
+* \}
 * \defgroup group_flash_functions Functions
-* \defgroup group_flash_data_structure Data Structures
 * \defgroup group_flash_enumerated_types Enumerated Types
 */
 
 #include <cy_device_headers.h>
-#include <ipc/cy_ipc_drv.h>
-#include <ipc/cy_ipc_sema.h>
-#include <ipc/cy_ipc_pipe.h>
-#include <sysclk/cy_sysclk.h>
+#include "syslib/cy_syslib.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -142,56 +214,18 @@ extern "C" {
 /** Driver minor version */
 #define CY_FLASH_DRV_VERSION_MINOR       0
 
-#define CY_FLASH_ID         (CY_PDL_DRV_ID(0x14UL))                          /**< FLASH PDL ID */
+#define CY_FLASH_ID               (CY_PDL_DRV_ID(0x14UL))                          /**< FLASH PDL ID */
 
-#define CY_FLASH_ID_INFO    (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_INFO )   /**< Return prefix for FLASH driver function status codes */
-#define CY_FLASH_ID_WARNING (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_WARNING) /**< Return prefix for FLASH driver function warning return values */
-#define CY_FLASH_ID_ERROR   (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_ERROR)   /**< Return prefix for FLASH driver function error return values */
+#define CY_FLASH_ID_INFO          (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_INFO )   /**< Return prefix for FLASH driver function status codes */
+#define CY_FLASH_ID_WARNING       (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_WARNING) /**< Return prefix for FLASH driver function warning return values */
+#define CY_FLASH_ID_ERROR         (uint32_t)( CY_FLASH_ID | CY_PDL_STATUS_ERROR)   /**< Return prefix for FLASH driver function error return values */
 
-/** \cond INTERNAL */
-#define CY_FLASH_ENTER_WAIT_LOOP    0xFFU
-#define CY_FLASH_IPC_CLIENT_ID      2U
-/** Semaphore number reserved for flash driver */
-#define CY_FLASH_WAIT_SEMA 0UL
-/** \endcond */
-
-/**
-* \addtogroup group_flash_config_macros Flash configuration
-* \{
-* Specifies the parameter values passed to SROM API
-*/
-
-/** Set SROM API in blocking mode */
-#define CY_FLASH_BLOCKING_MODE             ((0x01UL) << 8UL)
-/** Set SROM API in non blocking mode */
-#define CY_FLASH_NON_BLOCKING_MODE         (0UL)
-
-/** SROM API opcode for flash write operation */
-#define CY_FLASH_OPCODE_WRITE_ROW          ((0x05UL) << 24UL)
-/** SROM API opcode for flash program operation */
-#define CY_FLASH_OPCODE_PROGRAM_ROW        ((0x06UL) << 24UL)
-/** SROM API opcode for row erase operation */
-#define CY_FLASH_OPCODE_ERASE_ROW          ((0x1CUL) << 24UL)
-/** SROM API opcode for flash checksum operation */
-#define CY_FLASH_OPCODE_CHECKSUM           ((0x0BUL) << 24UL)
-/** SROM API opcode for flash hash operation */
-#define CY_FLASH_OPCODE_HASH               ((0x0DUL) << 24UL)
-/** SROM API flash row shift for flash checksum operation */
-#define CY_FLASH_OPCODE_CHECKSUM_ROW_SHIFT (8UL)
-/** SROM API flash data size parameter for flash write operation */
-#define CY_FLASH_CONFIG_DATASIZE           (0x06UL)
-/** Data to be programmed to flash is located in SRAM memory region */
-#define CY_FLASH_DATA_LOC_SRAM             (0x100UL)
-/** SROM API flash verification option for flash write operation */
-#define CY_FLASH_CONFIG_VERIFICATION_EN    ((0x01UL) << 16u)
-
-/** \} group_flash_config_macros */
+/** \} group_flash_macros */
 
 
 /**
-* \addtogroup group_flash_general_macros Flash general parameters
+* \addtogroup group_flash_general_macros
 * \{
-* Provides general information about flash and IPC
 */
 
 /** Flash row size */
@@ -200,16 +234,9 @@ extern "C" {
 #define CY_FLASH_NUMBER_ROWS               (CY_FLASH_SIZE / CY_FLASH_SIZEOF_ROW)
 /** Long words flash row size */
 #define CY_FLASH_SIZEOF_ROW_LONG_UNITS     (CY_FLASH_SIZEOF_ROW / sizeof(uint32_t))
-/** IPC channel to be used */
-#define CY_FLASH_IPC_STRUCT ((IPC_STRUCT_Type*) &IPC->STRUCT[CY_IPC_CHAN_SYSCALL])
-/** IPC notify bit for IPC_STRUCT0 (dedicated to flash operation) */
-#define CY_FLASH_IPC_NOTIFY_STRUCT0        (0x1UL << CY_IPC_INTR_SYSCALL1)
-/** IPC notify interrupt structure number */
-#define CY_FLASH_IPC_INTR_CM0_NOTIFY       (0x1UL << CY_IPC_INTR_FLASH_NOTIFY)
 
 /** \} group_flash_general_macros */
 
-/** \} group_flash_macros */
 
 /**
 * \addtogroup group_flash_enumerated_types
@@ -217,7 +244,7 @@ extern "C" {
 */
 
 /** This enum has the return values of the Flash driver */
-typedef enum
+typedef enum cy_en_flashdrv_status
 {
     CY_FLASH_DRV_SUCCESS                  =   0x00UL,  /**< Success */
     CY_FLASH_DRV_INV_PROT                 =   ( CY_FLASH_ID_ERROR + 0x0UL),  /**< Invalid device protection state */
@@ -227,34 +254,13 @@ typedef enum
     CY_FLASH_DRV_IPC_BUSY                 =   ( CY_FLASH_ID_ERROR + 0x5UL),  /**< IPC structure is already locked by another process */
     CY_FLASH_DRV_INVALID_INPUT_PARAMETERS =   ( CY_FLASH_ID_ERROR + 0x6UL),  /**< Input parameters passed to Flash API are not valid */
     CY_FLASH_DRV_PL_ROW_COMP_FA           =   ( CY_FLASH_ID_ERROR + 0x22UL), /**< Comparison between Page Latches and FM row failed */
-    CY_FLASH_DRV_ERR_UNC                  =   ( CY_FLASH_ID_ERROR + 0xFFUL), /**< Unknown error */
+    CY_FLASH_DRV_ERR_UNC                  =   ( CY_FLASH_ID_ERROR + 0xFFUL), /**< Unknown error code. See \ref Cy_Flash_GetExternalStatus() */
     CY_FLASH_DRV_PROGRESS_NO_ERROR        =   ( CY_FLASH_ID_INFO  + 0x0UL),  /**< Command in progress; no error */
     CY_FLASH_DRV_OPERATION_STARTED        =   ( CY_FLASH_ID_INFO  + 0x1UL),  /**< Flash operation is successfully initiated */
     CY_FLASH_DRV_OPCODE_BUSY              =   ( CY_FLASH_ID_INFO  + 0x2UL)   /**< Flash is under operation */
 } cy_en_flashdrv_status_t;
 
 /** \} group_flash_enumerated_types */
-
-/***************************************
-* Data Structure definitions
-***************************************/
-
-/**
-* \addtogroup group_flash_data_structure
-* \{
-*/
-
-/** Flash driver context */
-typedef struct
-{
-    uint32_t opcode;                    /**< Specifies the code of flash operation */
-    uint32_t arg1;                      /**< Specifies the configuration of flash operation */
-    uint32_t arg2;                      /**< Specifies the configuration of flash operation */
-    uint32_t arg3;                      /**< Specifies the configuration of flash operation */
-}cy_stc_flash_context_t;
-
-/** \} group_flash_data_structure */
-
 
 /***************************************
 * Function Prototypes
@@ -264,28 +270,24 @@ typedef struct
 * \addtogroup group_flash_functions
 * \{
 */
+void Cy_Flash_Init(void);
 cy_en_flashdrv_status_t Cy_Flash_EraseRow(uint32_t rowAddr);
 cy_en_flashdrv_status_t Cy_Flash_WriteRow(uint32_t rowAddr, const uint32_t* data);
 cy_en_flashdrv_status_t Cy_Flash_StartWrite(uint32_t rowAddr, const uint32_t* data);
-cy_en_flashdrv_status_t Cy_Flash_IsWriteComplete(void);
 cy_en_flashdrv_status_t Cy_Flash_StartProgram(uint32_t rowAddr, const uint32_t* data);
-cy_en_flashdrv_status_t Cy_Flash_IsProgramComplete(void);
 cy_en_flashdrv_status_t Cy_Flash_StartErase(uint32_t rowAddr);
-cy_en_flashdrv_status_t Cy_Flash_IsEraseComplete(void);
+cy_en_flashdrv_status_t Cy_Flash_IsOperationComplete(void);
 cy_en_flashdrv_status_t Cy_Flash_RowChecksum(uint32_t rowNum, uint32_t* checksumPtr);
 cy_en_flashdrv_status_t Cy_Flash_CalculateHash(const uint32_t* data, uint32_t numberOfBytes, uint32_t* hashPtr);
-/** \cond INTERNAL */
-typedef cy_en_flashdrv_status_t (*Cy_Flash_Proxy)(cy_stc_flash_context_t *context);
-
-typedef struct _IPC_MSG
-{
-    uint8_t  clientID;
-    uint8_t  pktType;
-    uint16_t intrRelMask;
-} IPC_MSG;
-/** \endcond */
-
+uint32_t Cy_Flash_GetExternalStatus(void);
 /** \} group_flash_functions */
+
+/** \cond INTERNAL */
+/* Macros to backward compatibility */
+#define     Cy_Flash_IsWriteComplete(...)    Cy_Flash_IsOperationComplete()
+#define     Cy_Flash_IsProgramComplete(...)  Cy_Flash_IsOperationComplete()
+#define     Cy_Flash_IsEraseComplete(...)    Cy_Flash_IsOperationComplete()
+/** \endcond */
 
 #if defined(__cplusplus)
 }
@@ -293,8 +295,6 @@ typedef struct _IPC_MSG
 
 
 #endif /* #if !defined(CY_FLASH_H) */
-/** \endcond */
-
 
 /** \} group_flash */
 

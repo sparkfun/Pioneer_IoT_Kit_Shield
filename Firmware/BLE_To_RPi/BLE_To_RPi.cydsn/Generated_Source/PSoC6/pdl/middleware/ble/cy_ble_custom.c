@@ -23,7 +23,7 @@ extern "C" {
 
 #if (CY_BLE_MODE_PROFILE && defined(CY_BLE_CUSTOM))
 
-/* The pointer on global BLE CUSTOM Config structure */
+/* The pointer to the global BLE CUSTOM Config structure */
 cy_stc_ble_custom_config_t *cy_ble_customConfigPtr = NULL;
 
 /***************************************
@@ -44,10 +44,10 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_CUSTOM_EventHandler(uint32_t eventCode, 
 *
 *  This function initializes a Custom Service.
 *
-*  \param config: Configuration structure for the Custom Service.
+*  \param config: The configuration structure for the Custom Service.
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : The return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                             | Description
@@ -67,10 +67,10 @@ cy_en_ble_api_result_t Cy_BLE_CUSTOM_Init(cy_stc_ble_custom_config_t *config)
     }
     else
     {
-        /* Registers a pointer to config structure */
+        /* Register the pointer to the config structure */
         cy_ble_customConfigPtr = config;
 
-        /* Registers Event Handler for the Custom Service */
+        /* Register an Event Handler for the Custom Service */
         apiResult = Cy_BLE_RegisterServiceEventHandler(&Cy_BLE_CUSTOM_EventHandler);
 
     #ifdef CY_BLE_CUSTOM_CLIENT
@@ -99,7 +99,7 @@ cy_en_ble_api_result_t Cy_BLE_CUSTOM_Init(cy_stc_ble_custom_config_t *config)
                                  customServCharDesc[locDescIdx].descHandle[discIdx] = 0u;
                             }
 
-                            /* initialize uuid  */
+                            /* Initialize uuid  */
                             cy_ble_serverInfo[discIdx][CY_BLE_SRVI_CUSTOMS + locServIdx].uuid = 0x0000u;
                         }
                     }
@@ -114,20 +114,18 @@ cy_en_ble_api_result_t Cy_BLE_CUSTOM_Init(cy_stc_ble_custom_config_t *config)
 
 
 #ifdef CY_BLE_CUSTOM_CLIENT
-
-
 /******************************************************************************
 * Function Name: Cy_BLE_CUSTOMC_DiscoverServiceEventHandler
 ***************************************************************************//**
 *
 *  This function is called on receiving a Read By Group Response event or
-*  Read response with 128-bit service uuid.
+*  Read response with the 128-bit service uuid.
 *
 *  \param connHandle: The connection handle.
 *  \param discServInfo: The pointer to a service information structure.
 *
 * \return
-*  None
+*  None.
 *
 ******************************************************************************/
 static void Cy_BLE_CUSTOMC_DiscoverServiceEventHandler(const cy_stc_ble_disc_srv_info_t *discServInfo)
@@ -136,8 +134,8 @@ static void Cy_BLE_CUSTOMC_DiscoverServiceEventHandler(const cy_stc_ble_disc_srv
     uint32_t fFlag = 0u;
     uint32_t j;
 
-    /* Services with 128 bit UUID have discServInfo->uuid equal to 0 and address to
-     * 128 uuid is stored in cy_ble_customCServ.uuid128
+    /* Services with the 128-bit UUID have discServInfo->uuid equal to 0 and the address to
+     * the 128-uuid is stored in cy_ble_customCServ.uuid128.
      */
     for(j = 0u; (j < CY_BLE_CUSTOMC_SERVICE_COUNT) && (fFlag == 0u); j++)
     {
@@ -167,13 +165,13 @@ static void Cy_BLE_CUSTOMC_DiscoverServiceEventHandler(const cy_stc_ble_disc_srv
 ***************************************************************************//**
 *
 *  This function is called on receiving a CY_BLE_EVT_GATTC_READ_BY_TYPE_RSP
-*  event. Based on the service index, an appropriate data structure is populated
+*  event. Based on the service index,the appropriate data structure is populated
 *  using the data received as part of the callback.
 *
-*  \param discCharInfo: The pointer to a characteristic information structure.
+*  \param discCharInfo: The pointer to the characteristic information structure.
 *
 * \return
-*  None
+*  None.
 *
 ******************************************************************************/
 static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_disc_char_info_t *discCharInfo)
@@ -188,7 +186,7 @@ static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_
     if((cy_ble_discovery[discIdx].servCount >= (uint32_t)CY_BLE_SRVI_CUSTOMS) &&
        (cy_ble_discovery[discIdx].servCount <= (uint32_t)CY_BLE_SRVI_CUSTOMS_END))
     {
-        /* Update last characteristic endHandle to declaration handle of this characteristic */
+        /* Update the last characteristic endHandle to the declaration handle of this characteristic */
         if(customsLastEndHandle[discIdx] != NULL)
         {
             if(discoveryLastServ[discIdx] == servIdx)
@@ -203,7 +201,7 @@ static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_
         {
             uint32_t fFlag = 0u;
 
-            /* Support 128 bit uuid */
+            /* Support the 128-bit uuid */
             if((discCharInfo->uuidFormat == CY_BLE_GATT_128_BIT_UUID_FORMAT) &&
                (cy_ble_customConfigPtr->customc[servIdx].customServChar[locCharIndex].uuidFormat ==
                 CY_BLE_GATT_128_BIT_UUID_FORMAT))
@@ -215,7 +213,7 @@ static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_
                 }
             }
 
-            /* And support 16 bit uuid */
+            /* And support the 16-bit uuid */
             if((discCharInfo->uuidFormat == CY_BLE_GATT_16_BIT_UUID_FORMAT) &&
                (cy_ble_customConfigPtr->customc[servIdx].customServChar[locCharIndex].uuidFormat ==
                 CY_BLE_GATT_16_BIT_UUID_FORMAT))
@@ -236,18 +234,18 @@ static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_
                 cy_ble_customConfigPtr->customc[servIdx].customServChar[locCharIndex].properties[discIdx] =
                     discCharInfo->properties;
 
-                /* Init pointer to characteristic endHandle */
+                /* Init the pointer to the characteristic endHandle */
                 customsLastEndHandle[discIdx] = &cy_ble_customConfigPtr->customc[servIdx].customServChar[locCharIndex].
                                                  customServCharEndHandle[discIdx];
 
-                /* Init service index of discovered characteristic */
+                /* Init the service index of the discovered characteristic */
                 discoveryLastServ[discIdx] = servIdx;
                 locReqHandle = 1u;
             }
         }
 
-        /* Init characteristic endHandle to Service endHandle.
-         * Characteristic endHandle will be updated to the declaration
+        /* Init the characteristic endHandle to the Service endHandle.
+         * The characteristic endHandle will be updated to the declaration
          * Handler of the following characteristic,
          * in the following characteristic discovery procedure. */
         if(customsLastEndHandle[discIdx] != NULL)
@@ -256,20 +254,20 @@ static void Cy_BLE_CUSTOMC_DiscoverCharacteristicsEventHandler(const cy_stc_ble_
                                               endHandle;
         }
 
-        /* Indicate that request was handled */
+        /* Indicate that the request was handled */
         cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
     }
 }
 
 
 /******************************************************************************
-* Function Name: Cy_BLE_GetCustomCharRange
+* Function Name: Cy_BLE_CUSTOMC_GetCharRange
 ***************************************************************************//**
 *
 * Returns a possible range of the current characteristic descriptor via
-* input parameter charRangeInfo->range
+* the input parameter charRangeInfo->range.
 *
-* \param *charRangeInfo: The pointer to a descriptor range information structure.
+* \param *charRangeInfo: The pointer to the descriptor range information structure.
 * \return
 *  None.
 *
@@ -295,7 +293,7 @@ static void Cy_BLE_CUSTOMC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeI
             uint32_t charIdx = cy_ble_discovery[discIdx].charCount;
             if(cy_ble_customConfigPtr->customc[servIdx].customServChar[charIdx].descCount > 0u)
             {
-                /* Read characteristic range */
+                /* Read the characteristic range */
                 charRangeInfo->range.startHandle = cy_ble_customConfigPtr->customc[servIdx].customServChar[charIdx].
                                                     customServCharHandle[discIdx] + 1u;
                 charRangeInfo->range.endHandle = cy_ble_customConfigPtr->customc[servIdx].customServChar[charIdx].
@@ -308,7 +306,7 @@ static void Cy_BLE_CUSTOMC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeI
             }
         }
 
-        /* Indicate that request was handled */
+        /* Indicate that the request was handled */
         cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
     }
 }
@@ -319,13 +317,13 @@ static void Cy_BLE_CUSTOMC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeI
 ***************************************************************************//**
 *
 *  This function is called on receiving a CY_BLE_EVT_GATTC_FIND_INFO_RSP event.
-*  Based on the descriptor UUID, an appropriate data structure is populated using
+*  Based on the descriptor UUID, the appropriate data structure is populated using
 *  the data received as part of the callback.
 *
-*  \param discDescrInfo: The pointer to a descriptor information structure.
+*  \param discDescrInfo: The pointer to the descriptor information structure.
 *
 * \return
-*  None
+*  None.
 *
 ******************************************************************************/
 static void Cy_BLE_CUSTOMC_DiscoverCharDescriptorsEventHandler(const cy_stc_ble_disc_descr_info_t *discDescrInfo)
@@ -387,13 +385,13 @@ static void Cy_BLE_CUSTOMC_DiscoverCharDescriptorsEventHandler(const cy_stc_ble_
 * Function Name: Cy_BLE_CUSTOM_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Custom Service.
+*  Handles events from the BLE Stack for the Custom Service.
 *
-*  \param eventCode:  The event code
-*  \param eventParam:  The event parameters
+*  \param eventCode:  The event code.
+*  \param eventParam:  The event parameters.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  The return value is of the type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_CUSTOM_EventHandler(uint32_t eventCode,
@@ -407,7 +405,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_CUSTOM_EventHandler(uint32_t eventCode,
         switch((cy_en_ble_evt_t)eventCode)
         {
         #ifdef CY_BLE_CUSTOM_CLIENT
-            /* Discovery Events */
+            /* Discovery events */
             case CY_BLE_EVT_GATTC_DISC_SERVICE:
                 Cy_BLE_CUSTOMC_DiscoverServiceEventHandler((cy_stc_ble_disc_srv_info_t*)eventParam);
                 break;
@@ -448,7 +446,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_CUSTOM_EventHandler(uint32_t eventCode,
                 cy_stc_ble_conn_handle_t locConnHandle = eventParamCast->connHandle;
                 uint32_t discIdx = Cy_BLE_GetDiscoveryIdx(locConnHandle);
 
-                /* Read response with 128-bit included service uuid */
+                /* Read the response with the 128-bit included service uuid */
                 if((Cy_BLE_GetConnectionState(locConnHandle) == CY_BLE_CONN_STATE_CLIENT_INCL_DISCOVERING) &&
                    (discIdx < CY_BLE_CONFIG_GATTC_COUNT) && (cy_ble_discovery[discIdx].inclInfo.inclDefHandle != 0u))
                 {
@@ -459,13 +457,13 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_CUSTOM_EventHandler(uint32_t eventCode,
                         .connHandle = locConnHandle
                     };
 
-                    /* Store service range */
+                    /* Store the service range */
                     discServ128Info.range = cy_ble_discovery[discIdx].inclInfo.inclHandleRange;
                     (void)memcpy((void*)discServ128Info.uuid.uuid128.value, (void*)eventParamCast->value.val,
                                  (uint32_t)eventParamCast->value.len);
                     Cy_BLE_CUSTOMC_DiscoverServiceEventHandler(&locDiscServInfo);
 
-                    /* Re-initiate Cy_BLE_GATTC_FindIncludedServices function, setting the start
+                    /* Re-initiate the function, setting the start
                      * handle to the attribute handle which is placed next to the one used in
                      * the above step.
                      */

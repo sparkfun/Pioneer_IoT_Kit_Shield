@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Sensing.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file contains the source of functions common for
 *   different sensing methods.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -65,58 +65,24 @@
 * API Constants
 ***************************************/
 
-#define CapSense_WIDGET_NUM_32                          (32u)
-#define CapSense_WIDGET_NUM_32_DIV_SHIFT                (5u)
-#define CapSense_WIDGET_NUM_32_MASK                     (0x0000001FLu)
 #define CapSense_CALIBRATION_RESOLUTION                 (12u)
-#define CapSense_COARSE_TRIM_THRESHOLD_1                (40u)
-#define CapSense_COARSE_TRIM_THRESHOLD_2                (215u)
-#define CapSense_FREQUENCY_OFFSET_5                     (20u)
-#define CapSense_FREQUENCY_OFFSET_10                    (40u)
 #define CapSense_CALIBRATION_FREQ_KHZ                   (1500u)
-#define CapSense_CALIBRATION_MD                         (2u)
-#define CapSense_MIN_IMO_FREQ_KHZ                       (6000u)
 #define CapSense_CSD_AUTOTUNE_CAL_LEVEL                 (CapSense_CSD_RAWCOUNT_CAL_LEVEL)
+#define CapSense_CSD_AUTOTUNE_CAL_UNITS                 (1000u)
 #define CapSense_CP_MIN                                 (0u)
 #define CapSense_CP_MAX                                 (65000Lu)
 #define CapSense_CP_ERROR                               (4000Lu)
 #define CapSense_CLK_SOURCE_LFSR_SCALE_OFFSET           (4u)
-
-#if (CapSense_CLK_SOURCE_DIRECT != CapSense_CSD_SNS_CLK_SOURCE)
-    #define CapSense_PRS_FACTOR_DIV                     (2u)
-#else
-    #define CapSense_PRS_FACTOR_DIV                     (0u)
-#endif /* (CapSense_CLK_SOURCE_DIRECT != CapSense_CSD_SNS_CLK_SOURCE) */
-
-#define CapSense_FLIP_FLOP_DIV                          (1u)
+#define CapSense_CSD_SNS_FREQ_KHZ_MAX                   (6000u)
 
 #define CapSense_MOD_CSD_CLK_12000KHZ                   (12000uL)
 #define CapSense_MOD_CSD_CLK_24000KHZ                   (24000uL)
 #define CapSense_MOD_CSD_CLK_48000KHZ                   (48000uL)
 
-#define CapSense_P6_MAX_FLL_FREQ_HZ                     (150000000uL)
-#define CapSense_P6_MAX_PLL_FREQ_HZ                     (100000000uL)
-
-#define CapSense_P6_MIN_FLL_FREQ_HZ                     (1000000uL)
-#define CapSense_P6_MIN_PLL_FREQ_HZ                     (1000000uL)
-
-#define CapSense_P6_PLL_INDEX                           (0uL)
-#define CapSense_P6_PERI_SRC_HFCLK                      (0uL)
-
-#if ((CapSense_CLK_SOURCE_PRS8 == CapSense_CSD_SNS_CLK_SOURCE) || \
-    (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) || \
-    (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
-    #define CapSense_FACTOR_FILTER_DELAY_12MHZ          (2u)
-#else
-    #define CapSense_FACTOR_FILTER_DELAY_12MHZ          (4u)
-#endif /* (CapSense_CLK_SOURCE_DIRECT != CapSense_CSD_SNS_CLK_SOURCE) */
-
-#define CapSense_FACTOR_MOD_SNS                         (8u)
-#define CapSense_UINT8_MAX_VAL                          (0xFFu)
-#define CapSense_MSB_OFFSET                             (8u)
+#define CapSense_EXT_CAP_DISCHARGE_TIME                 (1u)
 
 /*****************************************************************************/
-/* Enumeration types definition                                               */
+/* Enumeration types definition                                              */
 /*****************************************************************************/
 
 typedef enum
@@ -136,8 +102,8 @@ typedef enum
 * Static Function Prototypes
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -150,33 +116,27 @@ typedef enum
     #if (CapSense_ENABLE == CapSense_CSX_EN)
         static void CapSense_SsDisableCSXMode(void);
     #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
-#endif /* ((CapSense_ENABLE == CapSense_CSD_CSX_EN) || \
-           (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
-           (CapSense_ENABLE == CapSense_ADC_EN)) */
-#if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
-    static void CapSense_SsSetDirectClockMode(void);
-#endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+#endif
 
 #if(((CapSense_ENABLE == CapSense_CSX_EN) && \
-     (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE)) ||\
+     (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE) && \
+     (CapSense_DISABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES)) ||\
     ((CapSense_ENABLE == CapSense_CSD_EN) && \
      (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)))
-    __STATIC_INLINE uint8 CapSense_SsCalcLfsrSize(uint32 snsClkDivider, uint32 conversionsNum);
-    __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrSize);
-#endif /* (((CapSense_ENABLE == CapSense_CSX_EN) && \
-            (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE)) ||\
-           ((CapSense_ENABLE == CapSense_CSD_EN) && \
-            (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))) */
+    static uint8 CapSense_SsCalcLfsrSize(uint32 snsClkDivider, uint32 conversionsNum);
+    static uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrSize);
+#endif
+
 #if (CapSense_ENABLE == CapSense_CSD_EN)
     static void CapSense_SsSetWidgetSenseClkSrc(uint32 wdgtIndex, CapSense_RAM_WD_BASE_STRUCT * ptrWdgt);
-#endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
+#endif
 
 #if (CapSense_ENABLE == CapSense_CSX_EN)
-    static void CapSense_SsSetWidgetTxClkSrc(uint32 wdgtIndex, CapSense_RAM_WD_BASE_STRUCT * ptrWdgt);
-#endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
+    __STATIC_INLINE void CapSense_SsSetWidgetTxClkSrc(uint32 wdgtIndex, CapSense_RAM_WD_BASE_STRUCT * ptrWdgt);
+#endif
 
 /** \}
-* \endif */
+* \endcond */
 
 /*******************************************************************************
 * Defines module variables
@@ -186,42 +146,36 @@ typedef enum
      (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
      (CapSense_ENABLE == CapSense_ADC_EN))
     CapSense_SENSE_METHOD_ENUM CapSense_currentSenseMethod = CapSense_UNDEFINED_E;
-#endif /* ((CapSense_ENABLE == CapSense_CSD_CSX_EN) || \
-           (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
-           (CapSense_ENABLE == CapSense_ADC_EN))) */
+#endif
 
 #if(CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-    /*  Module variable keep track of frequency hopping channel index   */
+    /* Module variable keep track of multi-frequency scan channel index */
     uint8 CapSense_scanFreqIndex = 0u;
-    /*  Variable keep frequency offsets */
-    CapSense_PLL_FLL_CFG_TYPE CapSense_immunity[CapSense_NUM_SCAN_FREQS];
 #else
     /* const allows C-compiler to do optimization */
     const uint8 CapSense_scanFreqIndex = 0u;
-#endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+#endif
 
 /* Global software variables */
 volatile uint8 CapSense_widgetIndex = 0u;    /* Index of the scanning widget */
 volatile uint8 CapSense_sensorIndex = 0u;    /* Index of the scanning sensor */
 uint8 CapSense_requestScanAllWidget = 0u;
-#if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
-    uint8 CapSense_prescalersTuningDone = 0u;
-#endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
 
-/* Pointer to RAM_SNS_STRUCT structure  */
+/* Pointer to RAM_SNS_STRUCT structure */
 CapSense_RAM_SNS_STRUCT *CapSense_curRamSnsPtr;
 
 #if ((CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) || \
      (CapSense_ENABLE == CapSense_CSX_EN))
-    /*  Pointer to Flash structure holding configuration of widget to be scanned  */
+    /* Pointer to Flash structure holding configuration of widget to be scanned */
     CapSense_FLASH_WD_STRUCT const *CapSense_curFlashWdgtPtr = 0u;
-#endif /* ((CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) || \
-           (CapSense_ENABLE == CapSense_CSX_EN))  */
+#endif
+
 #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-    /*  Pointer to Flash structure holding info of sensor to be scanned  */
+    /* Pointer to Flash structure holding info of sensor to be scanned */
     CapSense_FLASH_SNS_STRUCT const *CapSense_curFlashSnsPtr = 0u;
-#endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
-/*  Pointer to Flash structure to hold Sns electrode that was connected previously  */
+#endif
+
+/* Pointer to Flash structure to hold Sns electrode that was connected previously */
 CapSense_FLASH_IO_STRUCT const *CapSense_curSnsIOPtr;
 
 
@@ -230,18 +184,18 @@ CapSense_FLASH_IO_STRUCT const *CapSense_curSnsIOPtr;
 ****************************************************************************//**
 *
 * \brief
-*  Returns the current status of the component (Scan is completed or Scan is in
+*  Returns the current status of the Component (Scan is completed or Scan is in
 *  progress).
 *
 * \details
 *  This function returns a status of the hardware block whether a scan is
-*  currently in progress or not. If the component is busy, no new scan or setup
+*  currently in progress or not. If the Component is busy, no new scan or setup
 *  widgets is made. The critical section (i.e. disable global interrupt)
 *  is recommended for the application when the device transitions from
 *  the active mode to sleep or deep sleep modes.
 *
 * \return
-*  Returns the current status of the component:
+*  Returns the current status of the Component:
 *    - CapSense_NOT_BUSY - No scan is in progress and a next scan
 *      can be initiated.
 *    - CapSense_SW_STS_BUSY - The previous scanning is not completed
@@ -250,7 +204,7 @@ CapSense_FLASH_IO_STRUCT const *CapSense_curSnsIOPtr;
 *******************************************************************************/
 uint32 CapSense_IsBusy(void)
 {
-    return ((*(volatile uint32 *)&CapSense_dsRam.status) & CapSense_SW_STS_BUSY);
+    return (CapSense_dsRam.status & CapSense_SW_STS_BUSY);
 }
 
 /*******************************************************************************
@@ -261,11 +215,11 @@ uint32 CapSense_IsBusy(void)
 *  Performs the initialization required to scan the specified widget.
 *
 * \details
-*  This function prepares the component to scan all the sensors in the specified
+*  This function prepares the Component to scan all the sensors in the specified
 *  widget by executing the following tasks:
 *    1. Re-initialize the hardware if it is not configured to perform the
 *       sensing method used by the specified widget, this happens only if the
-*       CSD and CSX methods are used in the component.
+*       CSD and CSX methods are used in the Component.
 *    2. Initialize the hardware with specific sensing configuration (e.g.
 *       sensor clock, scan resolution) used by the widget.
 *    3. Disconnect all previously connected electrodes, if the electrodes
@@ -275,9 +229,8 @@ uint32 CapSense_IsBusy(void)
 *
 *  This function does not start sensor scanning, the CapSense_Scan()
 *  function must be called to start the scan sensors in the widget. If this
-*  function is called more than once, it does not break the component operation,
+*  function is called more than once, it does not break the Component operation,
 *  but only the last initialized widget is in effect.
-
 *
 * \param widgetId
 *  Specifies the ID number of the widget to be initialized for scanning.
@@ -328,34 +281,34 @@ cy_status CapSense_SetupWidget(uint32 widgetId)
     if (CY_RET_SUCCESS == widgetStatus)
     {
         #if (CapSense_ENABLE == CapSense_CSD_CSX_EN)
-            /*  Check widget sensing method is CSX and call CSX APIs    */
+            /* Check widget sensing method is CSX and call CSX APIs */
             if (CapSense_SENSE_METHOD_CSX_E ==
                 CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[widgetId]))
             {
-                /*  Set up widget for CSX scan  */
+                /* Set up widget for CSX scan */
                 CapSense_CSXSetupWidget(widgetId);
             }
-            /*  Check widget sensing method is CSD and call appropriate API */
+            /* Check widget sensing method is CSD and call appropriate API */
             else if (CapSense_SENSE_METHOD_CSD_E ==
                      CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[widgetId]))
             {
-                /*  Set up widget for CSD scan  */
+                /* Set up widget for CSD scan */
                 CapSense_CSDSetupWidget(widgetId);
             }
             else
             {
-                /*  Sensing method is invalid, return error to caller  */
+                /* Sensing method is invalid, return error to caller */
                 widgetStatus = CY_RET_UNKNOWN;
             }
         #elif (CapSense_ENABLE == CapSense_CSD_EN)
-            /*  Set up widget for scan */
+            /* Set up widget for scan */
             CapSense_CSDSetupWidget(widgetId);
         #elif (CapSense_ENABLE == CapSense_CSX_EN)
-            /*  Set up widgets for scan     */
+            /* Set up widgets for scan */
             CapSense_CSXSetupWidget(widgetId);
         #else
             widgetStatus = CY_RET_UNKNOWN;
-            #error "No sensing method enabled, component cannot work in this mode"
+            #error "No sensing method enabled, Component cannot work in this mode"
         #endif
     }
 
@@ -396,9 +349,9 @@ cy_status CapSense_Scan(void)
     }
     else
     {
-        /*  If both CSD and CSX are enabled, call scan API based on widget sensing method    */
+        /* If both CSD and CSX are enabled, call scan API based on widget sensing method */
         #if (CapSense_ENABLE == CapSense_CSD_CSX_EN)
-            /*  Check widget sensing method and call appropriate APIs   */
+            /* Check widget sensing method and call appropriate APIs */
             switch (CapSense_currentSenseMethod)
             {
                 case CapSense_SENSE_METHOD_CSX_E:
@@ -414,17 +367,17 @@ cy_status CapSense_Scan(void)
                     break;
             }
 
-        /*  If only CSD is enabled, call CSD scan   */
+        /* If only CSD is enabled, call CSD scan */
         #elif (CapSense_ENABLE == CapSense_CSD_EN)
             CapSense_CSDScan();
 
-        /*  If only CSX is enabled, call CSX scan   */
+        /* If only CSX is enabled, call CSX scan */
         #elif (CapSense_ENABLE == CapSense_CSX_EN)
             CapSense_CSXScan();
 
         #else
             scanStatus = CY_RET_UNKNOWN;
-            #error "No sensing method enabled, component cannot work in this mode"
+            #error "No sensing method enabled, Component cannot work in this mode"
         #endif /* (CapSense_ENABLE == CapSense_CSD_CSX_EN) */
     }
 
@@ -438,12 +391,12 @@ cy_status CapSense_Scan(void)
 *
 * \brief
 *  Initializes the first enabled widget and scanning of all the sensors in the
-*  widget, then the same process is repeated for all the widgets in the component,
-*  i.e. scanning of all the widgets in the component.
+*  widget, then the same process is repeated for all the widgets in the Component,
+*  i.e. scanning of all the widgets in the Component.
 *
 * \details
 *  This function initializes a widget and scans all the sensors in the widget,
-*  and then repeats the same for all the widgets in the component. The tasks of
+*  and then repeats the same for all the widgets in the Component. The tasks of
 *  the CapSense_SetupWidget() and CapSense_Scan() functions are
 *  executed by these functions. The status of a sensor scan must be checked
 *  using the CapSense_IsBusy() API prior to starting a next scan
@@ -502,7 +455,7 @@ cy_status CapSense_ScanAllWidgets(void)
                     }
                 #endif  /* (0u != (CapSense_TOTAL_WIDGETS - 1u)) */
 
-                /*  Initiate scan and quit loop */
+                /* Initiate scan and quit loop */
                 scanStatus = CapSense_Scan();
 
                 break;
@@ -519,47 +472,41 @@ cy_status CapSense_ScanAllWidgets(void)
 ****************************************************************************//**
 *
 * \brief
-*   Performs hardware and firmware initialization required for proper operation
-*   of the CapSense component. This function is called from
-*   the CapSense_Start() API prior to calling any other APIs of the component.
+*  Performs hardware and firmware initialization required for proper operation
+*  of the CapSense Component. This function is called from
+*  the CapSense_Start() API prior to calling any other APIs of the Component.
 *
 * \details
-*   Performs hardware and firmware initialization required for proper operation
-*   of the CapSense component. This function is called from
-*   the CapSense_Start() API prior to calling any other APIs of the component.
-*   1. The function initializes immunity offsets when the frequency hopping is
-*      enabled.
-*   2. Depending on the configuration, the function initializes the CSD block
-*      for the CSD2X, CSD, CSX, or CSD+CSX modes.
-*   3. The function updates the dsRam.wdgtWorking variable with 1 when Self Test
-*      is enabled.
+*  Performs hardware and firmware initialization required for proper operation
+*  of the CapSense Component. This function is called from
+*  the CapSense_Start() API prior to calling any other APIs of the Component.
+*  1. Depending on the configuration, the function initializes the CSD block
+*     for the corresponding sensing mode.
+*  2. The function updates the dsRam.wdgtWorking variable with 1 when Self-test
+*     is enabled.
 *
-*   Calling the CapSense_Start API is the recommended method to initialize
-*   the CapSense component at power-up. The CapSense_SsInitialize()
-*   API should not be used for initialization, resume, or wake-up operations.
-*   The dsRam.wdgtWorking variable is updated.
+*  Calling the CapSense_Start API is the recommended method to initialize
+*  the CapSense Component at power-up. The CapSense_SsInitialize()
+*  API should not be used for initialization, resume, or wake-up operations.
+*  The dsRam.wdgtWorking variable is updated.
 *
 * \return status
-*   Returns status of operation:
-*   - Zero        - Indicates successful initialization.
-*   - Non-zero    - One or more errors occurred in the initialization process.
+*  Returns status of operation:
+*  - Zero        - Indicates successful initialization.
+*  - Non-zero    - One or more errors occurred in the initialization process.
 *
 *******************************************************************************/
 cy_status CapSense_SsInitialize(void)
 {
     cy_status initStatus = CY_RET_SUCCESS;
 
-    #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-        (void)CapSense_SsImmunityTblInit(CYDEV_CLK_HFCLK0__HZ);
-    #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
-
     #if((CapSense_ENABLE == CapSense_CSD_EN) ||\
         (CapSense_ENABLE == CapSense_CSX_EN))
         CapSense_SsInitializeSourceSenseClk();
     #endif /* ((CapSense_ENABLE == CapSense_CSD_EN) ||\
                (CapSense_ENABLE == CapSense_CSX_EN)) */
-    
-    /* Set all IO states to default state  */
+
+    /* Set all IO states to default state */
     CapSense_SsSetIOsInDefaultState();
 
     #if ((CapSense_ENABLE == CapSense_CSD_CSX_EN) || \
@@ -572,15 +519,15 @@ cy_status CapSense_SsInitialize(void)
          */
         CapSense_SsSwitchSensingMode(CapSense_UNDEFINED_E);
     #elif (CapSense_ENABLE == CapSense_CSD_EN)
-        /*  Initialize CSD block for CSD scanning   */
+        /* Initialize CSD block for CSD scanning */
         CapSense_SsCSDInitialize();
 
     #elif (CapSense_ENABLE == CapSense_CSX_EN)
-        /*  Initialize CSD block for CSX scanning   */
+        /* Initialize CSD block for CSX scanning */
         CapSense_CSXInitialize();
 
     #else
-        #error "No sensing method enabled, component cannot work in this mode"
+        #error "No sensing method enabled, Component cannot work in this mode"
         initStatus = CY_RET_UNKNOWN;
     #endif /* (CapSense_ENABLE == CapSense_CSD_CSX_EN) */
 
@@ -599,33 +546,34 @@ cy_status CapSense_SsInitialize(void)
 *  associated with the ganged sensor is updated.
 *
 * \details
-*  This function sets a specified state for a specified sensor element. For the 
-*  CSD widgets, sensor element is a sensor number, for the CSX widgets, it is either
-*  an RX or TX. If the sensor element is a ganged sensor, then the specified state 
-*  is also set for all ganged pins of this sensor. Scanning must be completed 
-*  before calling this API.
+*  This function sets a specified state for a specified sensor element. For the
+*  CSD widgets, sensor element is a sensor ID, for the CSX widgets, it is either
+*  an Rx or Tx electrode ID. If the specified sensor is a ganged sensor, then
+*  the specified state is set for all the electrodes belong to the sensor.
+*  This function must not be called while the Component is in the busy state.
 *
-*  The CapSense_SHIELD and CapSense_SENSOR states are not
-*  allowed if there is no CSD widget configured in the user's project.
-*  The CapSense_TX_PIN and CapSense_RX_PIN states are not
-*  allowed if there is no CSX widget configured in the user's project.
-*
-*  Calling this function directly from the application layer is not 
-*  recommended. This function is used to implement only the user's specific
+*  This function accepts the CapSense_SHIELD and
+*  CapSense_SENSOR states as an input only if there is at least
+*  one CSD widget. Similarly, this function accepts the CapSense_TX_PIN
+*  and CapSense_RX_PIN states as an input only if there is at least
+*  one CSX widget in the project.
+
+*  Calling this function directly from the application layer is not
+*  recommended. This function is used to implement only the custom-specific
 *  use cases. Functions that perform a setup and scan of a sensor/widget
 *  automatically set the required pin states. They ignore changes
 *  in the design made by the CapSense_SetPinState() function.
 *  This function neither check wdgtIndex nor sensorElement for the correctness.
-*  
-*  \param widgetId
-*  Specifies the ID number of the widget to change the pin state of the specified
+*
+* \param widgetId
+*  Specifies the ID of the widget to change the pin state of the specified
 *  sensor.
-*  A macro for the widget ID can be found in the CapSense Configuration 
+*  A macro for the widget ID can be found in the CapSense Configuration
 *  header file defined as CapSense_<WidgetName>_WDGT_ID.
 *
-*  \param sensorElement
-*  Specifies the ID number of the sensor element within the widget to change 
-*  its pin state. 
+* \param sensorElement
+*  Specifies the ID of the sensor element within the widget to change
+*  its pin state.
 *  For the CSD widgets, sensorElement is the sensor ID and can be found in the
 *  CapSense Configuration header file defined as
 *  CapSense_<WidgetName>_SNS<SensorNumber>_ID.
@@ -633,24 +581,24 @@ cy_status CapSense_SsInitialize(void)
 *  The first Rx in a widget corresponds to sensorElement = 0, the second
 *  Rx in a widget corresponds to sensorElement = 1, and so on.
 *  The last Tx in a widget corresponds to sensorElement = (RxNum + TxNum).
-*  Macros for Rx and Tx IDs can be found in the 
+*  Macros for Rx and Tx IDs can be found in the
 *  CapSense Configuration header file defined as:
-*    - CapSense_<WidgetName>_RX<RXNumber>_ID
-*    - CapSense_<WidgetName>_TX<TXNumber>_ID.
+*  - CapSense_<WidgetName>_RX<RXNumber>_ID
+*  - CapSense_<WidgetName>_TX<TXNumber>_ID.
 *
-*  \param state
-*   Specifies the state of the sensor to be set:
+* \param state
+*  Specifies the state of the sensor to be set:
 *     1. CapSense_GROUND - The pin is connected to the ground.
 *     2. CapSense_HIGHZ - The drive mode of the pin is set to High-Z
 *        Analog.
-*     3. CapSense_SHIELD - The shield signal is routed to the pin (only
-*        in CSD sensing method when shield electrode is enabled).
+*     3. CapSense_SHIELD - The shield signal is routed to the pin
+*        (available only if CSD sensing method with shield electrode is enabled).
 *     4. CapSense_SENSOR - The pin is connected to the scanning bus
-*        (only in CSD sensing method).
-*     5. CapSense_TX_PIN - The TX signal is routed to the sensor
-*        (only in CSX sensing method).
+*        (available only if CSD sensing method is enabled).
+*     5. CapSense_TX_PIN - The Tx signal is routed to the sensor
+*        (available only if CSX sensing method is enabled).
 *     6. CapSense_RX_PIN - The pin is connected to the scanning bus
-*        (only in CSX sensing method).
+*        (available only if CSX sensing method is enabled).
 *
 *******************************************************************************/
 void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
@@ -683,7 +631,6 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
         eltdNum = 1u;
     #endif
 
-
     /* Loop through all electrodes of the specified sensor element */
     for (eltdIndex = 0u; eltdIndex < eltdNum; eltdIndex++)
     {
@@ -713,7 +660,7 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
                 /* Enable sensor */
                 CapSense_CSDConnectSns(ioPtr);
                 break;
-                
+
             #if (CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
                 case CapSense_SHIELD:
                     interruptState = Cy_SysLib_EnterCriticalSection();
@@ -721,8 +668,8 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
                     Cy_GPIO_SetHSIOM((GPIO_PRT_Type*)ioPtr->pcPtr, (uint32)ioPtr->pinNumber, (en_hsiom_sel_t)CapSense_HSIOM_SEL_CSD_SHIELD);
                     Cy_SysLib_ExitCriticalSection(interruptState);
                     break;
-            #endif  /* (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) */
-        #endif  /* (CapSense_ENABLE == CapSense_CSD_EN) */
+            #endif /* (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
 
         #if (CapSense_ENABLE == CapSense_CSX_EN)
             case CapSense_TX_PIN:
@@ -738,10 +685,10 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
                 Cy_GPIO_SetDrivemode((GPIO_PRT_Type*)ioPtr->pcPtr, (uint32)ioPtr->pinNumber, CY_GPIO_DM_ANALOG);
                 Cy_SysLib_ExitCriticalSection(interruptState);
                 break;
-        #endif  /* (CapSense_ENABLE == CapSense_CSX_EN) */
+        #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
 
         default:
-            /* Wrong input */
+            /* Wrong state */
             break;
         }
 
@@ -772,7 +719,10 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
         *******************************************************************************/
         static void CapSense_SsCSDDisableMode(void)
         {
-            uint32 newRegValue;
+            uint32 newRegValue = 0uL;
+
+            /* To remove unreferenced local variable warning */
+            (void)newRegValue;
             Cy_GPIO_SetHSIOM((GPIO_PRT_Type*)CapSense_CSD_CMOD_PORT_PTR, CapSense_CSD_CMOD_PIN,
                                                                              (en_hsiom_sel_t)CapSense_HSIOM_SEL_GPIO);
 
@@ -803,12 +753,6 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
                 CapSense_SsCSDDisableShieldElectrodes();
             #endif /* ((CapSense_ENABLE == CapSense_CSD_SHIELD_EN) && \
                        (0u != CapSense_CSD_TOTAL_SHIELD_COUNT)) */
-
-            if(0uL != newRegValue)
-            {
-                /* To remove unreferenced local variable warning */
-            }
-
         }
     #endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
 
@@ -854,9 +798,12 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
     *  2. Disconnect previous CSX electrode if it has been connected.
     *  3. Initialize CSX mode.
     *
-    * \param mode Specifies the scan mode:
-    *           -  (1) CapSense_SENSE_METHOD_CSD_E
-    *           -  (2) CapSense_SENSE_METHOD_CSX_E
+    * \param mode
+    *  Specifies the scan mode:
+    *  - CapSense_SENSE_METHOD_CSD_E
+    *  - CapSense_SENSE_METHOD_CSX_E
+    *  - CapSense_SENSE_METHOD_BIST_E
+    *  - CapSense_UNDEFINED_E
     *
     *******************************************************************************/
     void CapSense_SsSwitchSensingMode(CapSense_SENSE_METHOD_ENUM mode)
@@ -864,23 +811,23 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
         if (CapSense_currentSenseMethod != mode)
         {
             /* The requested mode differes to the current one. Disable the current mode */
-            if (CapSense_SENSE_METHOD_CSD_E ==  CapSense_currentSenseMethod)
+            if (CapSense_SENSE_METHOD_CSD_E == CapSense_currentSenseMethod)
             {
                 #if (CapSense_ENABLE == CapSense_CSD_EN)
                     CapSense_SsCSDDisableMode();
                 #endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
             }
-            else if (CapSense_SENSE_METHOD_CSX_E ==  CapSense_currentSenseMethod)
+            else if (CapSense_SENSE_METHOD_CSX_E == CapSense_currentSenseMethod)
             {
                 #if (CapSense_ENABLE == CapSense_CSX_EN)
                     CapSense_SsDisableCSXMode();
                 #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
             }
-            else if (CapSense_SENSE_METHOD_BIST_E ==  CapSense_currentSenseMethod)
+            else if (CapSense_SENSE_METHOD_BIST_E == CapSense_currentSenseMethod)
             {
                 #if (CapSense_ENABLE == CapSense_SELF_TEST_EN)
                     CapSense_BistDisableMode();
-                #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
+                #endif /* (CapSense_ENABLE == CapSense_SELF_TEST_EN) */
             }
             else
             {
@@ -912,7 +859,7 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
                 #if (CapSense_ENABLE == CapSense_SELF_TEST_EN)
                     CapSense_BistInitialize();
                     CapSense_currentSenseMethod = CapSense_SENSE_METHOD_BIST_E;
-                #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
+                #endif /* (CapSense_ENABLE == CapSense_SELF_TEST_EN) */
             }
             else
             {
@@ -929,21 +876,21 @@ void CapSense_SetPinState(uint32 widgetId, uint32 sensorElement, uint32 state)
 ****************************************************************************//**
 *
 * \brief
-*   Sets all electrodes into a default state.
+*  Sets all electrodes into a default state.
 *
 * \details
-*   Sets all the CSD/CSX IOs into a default state:
-*   - HSIOM   - Disconnected, the GPIO mode.
-*   - DM      - Strong drive.
-*   - State   - Zero.
+*  Sets all the CSD/CSX IOs into a default state:
+*  - HSIOM   - Disconnected, the GPIO mode.
+*  - DM      - Strong drive.
+*  - State   - Zero.
 *
-*   Sets all the ADC channels into a default state:
-*   - HSIOM   - Disconnected, the GPIO mode.
-*   - DM      - HiZ-Analog.
-*   - State   - Zero.
+*  Sets all the ADC channels into a default state:
+*  - HSIOM   - Disconnected, the GPIO mode.
+*  - DM      - HiZ-Analog.
+*  - State   - Zero.
 *
-*   It is not recommended to call this function directly from the application
-*   layer.
+*  It is not recommended to call this function directly from the application
+*  layer.
 *
 *******************************************************************************/
 void CapSense_SsSetIOsInDefaultState(void)
@@ -951,25 +898,25 @@ void CapSense_SsSetIOsInDefaultState(void)
     CapSense_FLASH_IO_STRUCT const *ioPtr = &CapSense_ioList[0u];
     uint32 loopIndex;
 
-    /*  Loop through all electrodes */
+    /* Loop through all electrodes */
     for (loopIndex = 0u; loopIndex < CapSense_TOTAL_ELECTRODES; loopIndex++)
     {
-        /*  1. Disconnect HSIOM
-            2. Set strong DM
-            3. Set pin state to logic 0
+        /*
+        *   1. Disconnect HSIOM
+        *   2. Set strong DM
+        *   3. Set pin state to logic 0
         */
         Cy_GPIO_Pin_FastInit((GPIO_PRT_Type*)ioPtr->pcPtr, (uint32)ioPtr->pinNumber, CY_GPIO_DM_STRONG, 0u,
                                                         (en_hsiom_sel_t)CapSense_HSIOM_SEL_GPIO);
 
-        /*  Get next electrode  */
+        /* Get next electrode */
         ioPtr++;
     }
-    
+
     #if(CapSense_ENABLE == CapSense_ADC_EN)
         CapSense_ClearAdcChannels();
     #endif /* (CapSense_ENABLE == CapSense_ADC_EN) */
 }
-
 
 #if (CapSense_ENABLE == CapSense_ADC_EN)
 /*******************************************************************************
@@ -977,7 +924,7 @@ void CapSense_SsSetIOsInDefaultState(void)
 ****************************************************************************//**
 *
 * \brief
-*  This function sets the resources that do not belong to the CSDv2 HW block to
+*  This function sets the resources that do not belong to the sensing HW block to
 *  default state.
 *
 * \details
@@ -988,9 +935,9 @@ void CapSense_SsSetIOsInDefaultState(void)
 *  3. Disconnect electroded if they have been connected.
 *
 * \return
-*   Returns the status of the operation:
-*   - Zero        - Resources released successfully.
-*   - Non-zero    - One or more errors occurred in releasing process.
+*  Returns the status of the operation:
+*  - Zero        - Resources released successfully.
+*  - Non-zero    - One or more errors occurred in releasing process.
 *
 *******************************************************************************/
 cy_status CapSense_SsReleaseResources(void)
@@ -1015,6 +962,7 @@ cy_status CapSense_SsReleaseResources(void)
         #if (CapSense_ENABLE == CapSense_SELF_TEST_EN)
             CapSense_BistDisableMode();
         #endif /* (CapSense_ENABLE == CapSense_SELF_TEST_EN) */
+
         #if ((CapSense_ENABLE == CapSense_CSD_EN) && \
              (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) &&  \
              (CapSense_SNS_CONNECTION_SHIELD == CapSense_CSD_INACTIVE_SNS_CONNECTION))
@@ -1040,12 +988,12 @@ cy_status CapSense_SsReleaseResources(void)
 ****************************************************************************//**
 *
 * \brief
-*   The ISR function for multiple widget scanning implementation.
+*  The ISR function for multiple widget scanning implementation.
 *
 * \details
-*   This is the function used by the CapSense ISR to implement multiple widget
-*   scanning.
-*   Should not be used by the application layer.
+*  This is the function used by the CapSense ISR to implement multiple widget
+*  scanning.
+*  Should not be used by the application layer.
 *
 *******************************************************************************/
 void CapSense_SsPostAllWidgetsScan(void)
@@ -1078,15 +1026,17 @@ void CapSense_SsPostAllWidgetsScan(void)
                 #if ((CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN) && \
                      (CapSense_ENABLE == CapSense_CSD_EN))
                     if (CapSense_SENSE_METHOD_CSD_E ==
-                             CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[CapSense_widgetIndex]))
+                        CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[CapSense_widgetIndex]))
                     {
-                        /*  Disable the CSD block */
+                        /* Disable the CSD block */
                         CY_SET_REG32(CapSense_CSD_CONFIG_PTR, CapSense_configCsd);
                     }
                 #endif /* ((CapSense_ENABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN) && \
                            (CapSense_ENABLE == CapSense_CSD_EN)) */
 
-                /* All widgets are totally processed. Reset BUSY flag */
+                /* Update scan Counter */
+                CapSense_dsRam.scanCounter++;
+                /* all the widgets are totally processed. Reset BUSY flag */
                 CapSense_dsRam.status &= ~CapSense_SW_STS_BUSY;
 
                 /* Update status with with the failure */
@@ -1112,14 +1062,15 @@ void CapSense_SsPostAllWidgetsScan(void)
 ****************************************************************************//**
 *
 * \brief
-*   Enables and initializes for the function pointer for a callback for the ISR.
+*  Enables and initializes for the function pointer for a callback for the ISR.
 *
 * \details
-*   The  "address" is a special type cy_israddress defined by syslib. This function
-*   is used by component APIs and should not be used by an application program for
-*   proper working of the component.
+*  The "address" is a special type cy_israddress defined by syslib. This function
+*  is used by Component APIs and should not be used by an application program for
+*  proper working of the Component.
 *
-* \param  address The address of the function to be called when interrupt is fired.
+* \param address
+*  The address of the function to be called when interrupt is fired.
 *
 *******************************************************************************/
 void CapSense_SsIsrInitialize(cy_israddress address)
@@ -1133,7 +1084,7 @@ void CapSense_SsIsrInitialize(cy_israddress address)
     #if defined(CapSense_ISR__INTC_ASSIGNED)
         (void)Cy_SysInt_Init(&CapSense_ISR_cfg, address);
     #endif
-    
+
     /* Enable interrupt */
     #if defined(CapSense_ISR__INTC_ASSIGNED)
         NVIC_EnableIRQ(CapSense_ISR_cfg.intrSrc);
@@ -1142,20 +1093,49 @@ void CapSense_SsIsrInitialize(cy_israddress address)
 
 
 /*******************************************************************************
+* Function Name: CapSense_SsSetSnsFirstPhaseWidth
+****************************************************************************//**
+*
+* \brief
+*  Defines the length of the first phase of the sense clock in clk_csd cycles.
+*
+* \details
+*  It is not recommended to call this function directly by the application layer.
+*  It is used by initialization, widget APIs or wakeup functions to
+*  enable the clocks.
+*  At all times it must be assured that the phases are at least 2 clk_csd cycles
+*  (1 for non overlap, if used), if this rule is violated the result is undefined.
+*
+* \param
+*  snsClk The divider value for the sense clock.
+*
+*******************************************************************************/
+void CapSense_SsSetSnsFirstPhaseWidth(uint32 phaseWidth)
+{
+    uint32 newRegValue;
+
+    newRegValue = CY_GET_REG32(CapSense_CSD_SENSE_DUTY_PTR);
+    newRegValue &= (uint32)(~CapSense_CSD_SENSE_DUTY_SENSE_WIDTH_MSK);
+    newRegValue |= phaseWidth;
+    CY_SET_REG32(CapSense_CSD_SENSE_DUTY_PTR, newRegValue);
+}
+
+
+/*******************************************************************************
 * Function Name: CapSense_SsSetSnsClockDivider
 ****************************************************************************//**
 *
 * \brief
-*   Sets the divider values for the sense clock and then starts
-*   the sense clock.
+*  Sets the divider values for the sense clock and then starts
+*  the sense clock.
 *
 * \details
-*   It is not recommended to call this function directly by the application layer.
-*   It is used by initialization, widget APIs or wakeup functions to
-*   enable the clocks.
+*  It is not recommended to call this function directly by the application layer.
+*  It is used by initialization, widget APIs or wakeup functions to
+*  enable the clocks.
 *
 * \param
-*   snsClk The divider value for the sense clock.
+*  snsClk The divider value for the sense clock.
 *
 *******************************************************************************/
 void CapSense_SsSetSnsClockDivider(uint32 snsClk)
@@ -1175,51 +1155,22 @@ void CapSense_SsSetSnsClockDivider(uint32 snsClk)
 
 
 /*******************************************************************************
-* Function Name: CapSense_SsSetSnsFirstPhaseWidth
-****************************************************************************//**
-*
-* \brief
-*   Defines the length of the first phase of the sense clock in clk_csd cycles.
-*
-* \details
-*   It is not recommended to call this function directly by the application layer.
-*   It is used by initialization, widget APIs or wakeup functions to
-*   enable the clocks.
-*   At all times it must be assured that the phases are at least 2 clk_csd cycles
-*   (1 for non overlap, if used), if this rule is violated the result is undefined.
-*
-* \param
-*   snsClk The divider value for the sense clock.
-*
-*******************************************************************************/
-void CapSense_SsSetSnsFirstPhaseWidth(uint32 phaseWidth)
-{
-    uint32 newRegValue;
-    
-    newRegValue = CY_GET_REG32(CapSense_CSD_SENSE_DUTY_PTR);
-    newRegValue &= (uint32)(~CapSense_CSD_SENSE_DUTY_SENSE_WIDTH_MSK);
-    newRegValue |= phaseWidth;
-    CY_SET_REG32(CapSense_CSD_SENSE_DUTY_PTR, newRegValue);
-}
-
-
-/*******************************************************************************
 * Function Name: CapSense_SsSetClockDividers
 ****************************************************************************//**
 *
 * \brief
-*   Sets the divider values for sense and modulator clocks and then starts
-*   a modulator clock-phase aligned to HFCLK and sense clock-phase aligned to
-*   the modulator clock.
+*  Sets the divider values for sense and modulator clocks and then starts
+*  a modulator clock-phase aligned to HFCLK and sense clock-phase aligned to
+*  the modulator clock.
 *
 * \details
-*   It is not recommended to call this function directly by the application layer.
-*   It is used by initialization, widget APIs or wakeup functions to
-*   enable the clocks.
+*  It is not recommended to call this function directly by the application layer.
+*  It is used by initialization, widget APIs or wakeup functions to
+*  enable the clocks.
 *
 * \param
-*   snsClk The divider value for the sense clock.
-*   modClk The divider value for the modulator clock.
+*  snsClk The divider value for the sense clock.
+*  modClk The divider value for the modulator clock.
 *
 *******************************************************************************/
 void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
@@ -1261,10 +1212,10 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
     *
     * \return
     *  Returns the status of the specified widget calibration:
-    *    - CY_RET_SUCCESS - The operation is successfully completed.
-    *    - CY_RET_BAD_PARAM - The input parameter is invalid.
-    *    - CY_RET_BAD_DATA - The calibration failed and the component may not
-    *      operate as expected.
+    *  - CY_RET_SUCCESS - The operation is successfully completed.
+    *  - CY_RET_BAD_PARAM - The input parameter is invalid.
+    *  - CY_RET_BAD_DATA - The calibration failed and the Component may not
+    *    operate as expected.
     *
     *******************************************************************************/
     cy_status CapSense_CalibrateWidget(uint32 widgetId)
@@ -1298,15 +1249,15 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                 /* Exit from the loop because of a fail */
                 break;
             }
-            /*  If both CSD and CSX are enabled, calibrate widget using sensing method */
-            #if (CapSense_ENABLE == CapSense_CSD_CSX_EN)
 
+            /* If both CSD and CSX are enabled, calibrate widget using sensing method */
+            #if (CapSense_ENABLE == CapSense_CSD_CSX_EN)
                 /* Check widget sensing method and call appropriate APIs */
                 #if (CapSense_ENABLE == CapSense_CSX_IDAC_AUTOCAL_EN)
                     if (CapSense_SENSE_METHOD_CSX_E ==
                         CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[widgetId]))
                     {
-                        /* Calibrate CSX widget  */
+                        /* Calibrate CSX widget */
                        CapSense_CSXCalibrateWidget(widgetId, CapSense_CSX_RAWCOUNT_CAL_LEVEL);
                     }
                 #endif  /* (CapSense_ENABLE == CapSense_CSX_IDAC_AUTOCAL_EN) */
@@ -1320,11 +1271,11 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                     }
                 #endif  /* (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN) */
 
-            /*  If only CSD is enabled, calibrate CSD sensor  */
+            /* If only CSD is enabled, calibrate CSD sensor */
             #elif (CapSense_ENABLE == CapSense_CSD_EN)
                 calibrateStatus = CapSense_CSDCalibrateWidget(widgetId, CapSense_CSD_RAWCOUNT_CAL_LEVEL);
 
-            /*  If only CSX is enabled, call CSX scan   */
+            /* If only CSX is enabled, call CSX scan */
             #elif (CapSense_ENABLE == CapSense_CSX_EN)
                 CapSense_CSXCalibrateWidget(widgetId, CapSense_CSX_RAWCOUNT_CAL_LEVEL);
 
@@ -1348,24 +1299,23 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
     ****************************************************************************//**
     *
     * \brief
-    *  Calibrates the IDACs for all the widgets in the component to default target
-    *  value, this function detects the sensing method used by the widgets
+    *  Calibrates the IDACs for all the widgets in the Component to the default
+    *  target, this function detects the sensing method used by the widgets
     *  prior to calibration.
     *
     * \details
-    *  Calibrates the IDACs for all the widgets in the component to the default
-    *  target value. This function detects
-    *  the sensing method used by the widgets and regards the Enable
-    *  compensation IDAC parameter.
+    *  Calibrates the IDACs for all the widgets in the Component to the default
+    *  target value. This function detects the sensing method used by the widgets
+    *  and regards the Enable compensation IDAC parameter.
     *
     *  This function is available when the CSD and/or CSX Enable IDAC
     *  auto-calibration parameter is enabled.
     *
     * \return
     *  Returns the status of the calibration process:
-    *    - CY_RET_SUCCESS - The operation is successfully completed.
-    *    - CY_RET_BAD_DATA - The calibration failed and the component may not
-    *      operate as expected.
+    *  - CY_RET_SUCCESS - The operation is successfully completed.
+    *  - CY_RET_BAD_DATA - The calibration failed and the Component may not
+    *    operate as expected.
     *
     *******************************************************************************/
     cy_status CapSense_CalibrateAllWidgets(void)
@@ -1386,28 +1336,6 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
 
 #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
     /*******************************************************************************
-    * Function Name: CapSense_SsSetDirectClockMode
-    ****************************************************************************//**
-    *
-    * \brief
-    *  Sets Direct Clock Mode.
-    *
-    * \details
-    *  For CSDv1: Resets PRS bit in CapSense_configCsd variable;
-    *  For CSDv2: Resets CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK and
-    *  CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK bits in
-    *  CapSense_SENSE_PERIOD register.
-    *
-    *******************************************************************************/
-    static void CapSense_SsSetDirectClockMode(void)
-    {
-        CY_SET_REG32(CapSense_CSD_SENSE_PERIOD_PTR, CY_GET_REG32(CapSense_CSD_SENSE_PERIOD_PTR) &
-                                                             (uint32)~(CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK | \
-                                                             CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_MSK));
-    }
-
-
-    /*******************************************************************************
     * Function Name: CapSense_SsAutoTune
     ****************************************************************************//**
     *
@@ -1418,23 +1346,25 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
     *  This API performs the following:
     *  - Calibrates Modulator and Compensation IDACs.
     *  - Tunes the Sense Clock optimal value to get a Sense Clock period greater than
-    *     2*5*R*Cp.
+    *    2*5*R*Cp.
     *  - Calculates the resolution for the optimal finger capacitance.
     *
     * \return
-    *   Returns the status of the operation:
-    *   - Zero     - All the widgets are auto-tuned successfully.
-    *   - Non-zero - Auto-tuning failed for any widget.
+    *  Returns the status of the operation:
+    *  - Zero     - All the widgets are auto-tuned successfully.
+    *  - Non-zero - Auto-tuning failed for any widget.
     *
     *******************************************************************************/
     cy_status CapSense_SsAutoTune(void)
     {
         cy_status autoTuneStatus = CY_RET_SUCCESS;
         uint32 wdgtIndex;
+
         uint32 cp = 0uL;
-        #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
+        #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
             uint32 cpRow = 0uL;
-        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+
         uint32 cpWidget[CapSense_TOTAL_WIDGETS];
         CapSense_RAM_WD_BASE_STRUCT *ptrWdgt;
         AUTO_TUNE_CONFIG_TYPE autoTuneConfig;
@@ -1442,11 +1372,10 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
         /* Configure common config variables */
         autoTuneConfig.snsClkConstantR = CapSense_CSD_SNSCLK_R_CONST;
         autoTuneConfig.vRef = CapSense_CSD_VREF_MV;
-        autoTuneConfig.iDacGain = CapSense_CSD_IDAC_GAIN_VALUE_NA * CapSense_CSD_DUAL_IDAC_FACTOR;
-        autoTuneConfig.calTarget = CapSense_CSD_AUTOTUNE_CAL_LEVEL;
+        autoTuneConfig.iDacGain = CapSense_CSD_IDAC_GAIN_VALUE_NA;
 
         /* Calculate snsClk Input Clock in KHz */
-        /*  Dividers are chained */
+        /* Dividers are chained */
         autoTuneConfig.snsClkInputClock = (CYDEV_CLK_PERICLK__KHZ / CapSense_dsRam.modCsdClk);
 
         /* If both CSD and CSX are enabled, calibrate widget using sensing method */
@@ -1455,14 +1384,14 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
             CapSense_SsCSDInitialize();
         #endif /* (CapSense_ENABLE == CapSense_CSD_CSX_EN) */
 
-        /* Set flag to calibrate in PWM mode only */
-        CapSense_prescalersTuningDone = CapSense_DISABLE;
+        /*
+        * Autotune phase #1:
+        * - performing the first calibration at fixed settings
+        * - getting sensor Cp
+        * - getting sense clock frequency based on Cp
+        */
 
-        /* Switch charge clock source to direct clock mode */
-        CapSense_SsSetDirectClockMode();
-
-
-        /* Tune sense clock for all widgets */
+        /* Tune sense clock for all the widgets */
         for (wdgtIndex = 0u; wdgtIndex < CapSense_TOTAL_WIDGETS; wdgtIndex++)
         {
             if (CapSense_SENSE_METHOD_CSD_E ==
@@ -1474,36 +1403,34 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                 /* Set calibration resolution to 12 bits */
                 ptrWdgt->resolution = CapSense_CALIBRATION_RESOLUTION;
 
-                /* Set Sense clock frequency to 1.5 MHz */
-                #if (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN)
-                    CapSense_dsRam.snsCsdClk = (uint8)((uint32)autoTuneConfig.snsClkInputClock /
-                                                       CapSense_CALIBRATION_FREQ_KHZ);
-                #elif (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
-                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType) ||
-                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType))
+                /* Set clock source direct and sense clock frequency to 1.5 MHz */
+                ptrWdgt->snsClkSource = (uint8)CapSense_CLK_SOURCE_DIRECT;
+                ptrWdgt->snsClk = (uint16)((uint32)autoTuneConfig.snsClkInputClock / CapSense_CALIBRATION_FREQ_KHZ);
+                #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType) ||
+                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType))
                     {
-                        ptrWdgt->rowSnsClk = (uint16)((uint32)autoTuneConfig.snsClkInputClock /
-                                             CapSense_CALIBRATION_FREQ_KHZ);
+                        ptrWdgt->rowSnsClkSource = (uint8)CapSense_CLK_SOURCE_DIRECT;
+                        ptrWdgt->rowSnsClk = (uint16)((uint32)autoTuneConfig.snsClkInputClock / CapSense_CALIBRATION_FREQ_KHZ);
                     }
-                    ptrWdgt->snsClk = (uint16)((uint32)autoTuneConfig.snsClkInputClock /
-                                      CapSense_CALIBRATION_FREQ_KHZ);
-                #else
-                    ptrWdgt->snsClk = (uint16)((uint32)autoTuneConfig.snsClkInputClock /
-                                      CapSense_CALIBRATION_FREQ_KHZ);
-                #endif /*  (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
+                #endif
 
-                /* Calibrate CSD widget to 85% */
+                /* Calibrate CSD widget to the default calibration target */
                 (void)CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
 
-                #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
-                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType) ||
-                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType))
+                #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType) ||
+                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType))
                     {
-                        /* Get pointer to Modulator IDAC for columns */
-                        autoTuneConfig.ptrModIDAC = &ptrWdgt->rowIdacMod[0u];
-
                         /* Get pointer to Sense Clock Divider for columns */
                         autoTuneConfig.ptrSenseClk = &ptrWdgt->rowSnsClk;
+
+                        /* Get IDAC */
+                        autoTuneConfig.iDac = CapSense_calibratedIdacRow;
+
+                        /* Calculate achived calibration level */
+                        autoTuneConfig.calTarget = (uint16)(((uint32)CapSense_calibratedRawcountRow * CapSense_CSD_AUTOTUNE_CAL_UNITS) /
+                                ((uint32)(0x01uL << CapSense_CALIBRATION_RESOLUTION) - 1u));
 
                         /* Find correct sense clock value */
                         cpRow = SmartSense_TunePrescalers(&autoTuneConfig);
@@ -1513,33 +1440,27 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                             autoTuneStatus = CY_RET_BAD_DATA;
                         }
 
-                        /* Make sure that ModClk >= 4 * rowSnsClk for ModClk <= 12 MHz and rowSnsClk <= 6MHz */
-                        if (autoTuneConfig.snsClkInputClock <= CapSense_MOD_CSD_CLK_24000KHZ)
+                        /*
+                        * Multiply the sense Clock Divider by 2 while the desired Sense Clock Frequency is greater
+                        * than maximum supported Sense Clock Frequency.
+                        */
+                        while((((uint32)autoTuneConfig.snsClkInputClock) > ((uint32)ptrWdgt->snsClk * CapSense_CSD_SNS_FREQ_KHZ_MAX)) ||
+                                (CapSense_MIN_SNS_CLK_DIVIDER > ptrWdgt->snsClk))
                         {
-                            if (ptrWdgt->rowSnsClk < CapSense_FACTOR_FILTER_DELAY_12MHZ)
-                            {
-                                ptrWdgt->rowSnsClk = CapSense_FACTOR_FILTER_DELAY_12MHZ;
-                            }
-                        }
-                        else if (autoTuneConfig.snsClkInputClock <= CapSense_MOD_CSD_CLK_48000KHZ)
-                        {
-                            if (ptrWdgt->rowSnsClk < CapSense_FACTOR_MOD_SNS)
-                            {
-                                ptrWdgt->rowSnsClk = CapSense_FACTOR_MOD_SNS;
-                            }
-                        }
-                        else
-                        {
-                            /* rowSnsClk is valid*/
+                            ptrWdgt->snsClk <<= 1u;
                         }
                     }
-                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
-
-                /* Get pointer to Modulator IDAC  for rows */
-                autoTuneConfig.ptrModIDAC = &ptrWdgt->idacMod[0u];
+                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
                 /* Get pointer to Sense Clock Divider for columns */
                 autoTuneConfig.ptrSenseClk = &ptrWdgt->snsClk;
+
+                /* Get IDAC */
+                autoTuneConfig.iDac = CapSense_calibratedIdac;
+
+                /* Calculate achived calibration level */
+                autoTuneConfig.calTarget = (uint16)(((uint32)CapSense_calibratedRawcount * CapSense_CSD_AUTOTUNE_CAL_UNITS) /
+                        ((uint32)(0x01uL << CapSense_CALIBRATION_RESOLUTION) - 1u));
 
                 /* Find correct sense clock value */
                 cp = SmartSense_TunePrescalers(&autoTuneConfig);
@@ -1549,48 +1470,45 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                     autoTuneStatus = CY_RET_BAD_DATA;
                 }
 
-                /* Make sure that ModClk >= 4 * SnsClk for ModClk <= 12 MHz and SnsClk <= 6MHz */
-                if (autoTuneConfig.snsClkInputClock <= CapSense_MOD_CSD_CLK_24000KHZ)
+                /*
+                * Multiply the sense Clock Divider by 2 while the desired Sense Clock Frequency is greater
+                * than MAX supported Sense Clock Frequency.
+                */
+                while((((uint32)autoTuneConfig.snsClkInputClock) > ((uint32)ptrWdgt->snsClk * CapSense_CSD_SNS_FREQ_KHZ_MAX)) ||
+                        (CapSense_MIN_SNS_CLK_DIVIDER > ptrWdgt->snsClk))
                 {
-                    if (ptrWdgt->snsClk < CapSense_FACTOR_FILTER_DELAY_12MHZ)
-                    {
-                        ptrWdgt->snsClk = CapSense_FACTOR_FILTER_DELAY_12MHZ;
-                    }
-                }
-                else if (autoTuneConfig.snsClkInputClock <= CapSense_MOD_CSD_CLK_48000KHZ)
-                {
-                    if (ptrWdgt->snsClk < CapSense_FACTOR_MOD_SNS)
-                    {
-                        ptrWdgt->snsClk = CapSense_FACTOR_MOD_SNS;
-                    }
-                }
-                else
-                {
-                    /* SnsClk is valid*/
+                    ptrWdgt->snsClk <<= 1u;
                 }
 
                 cpWidget[wdgtIndex] = cp;
 
-                #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
-                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType) ||
-                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType))
+                #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType) ||
+                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType))
                     {
                         if (cpRow > cp)
                         {
                             cpWidget[wdgtIndex] = cpRow;
                         }
                     }
-                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+            }
+            else
+            {
+                #if (CapSense_ENABLE == CapSense_CSX_EN)
+                    /* Non-CSD widget */
+                    cpWidget[wdgtIndex] = 1u;
+                #endif /* (CapSense_ENABLE == CapSense_CSX_EN) */
             }
         }
 
-        /* Set flag to indicate that calibration in PWM mode has been performed */
-        CapSense_prescalersTuningDone = 1u;
+        /*
+        * Autotune phase #2:
+        * - repeating calibration with new sense clock frequency
+        * - getting resolution
+        */
 
-        /* Multiply Clk divider to 2 for PRS mode to take into account average PRS frequency */
-        autoTuneConfig.prsFactor = CapSense_PRS_FACTOR_DIV;
-
-        /* Tune sensitivity and resolution for all widgets */
+        /* Tune resolution for all the widgets */
         for (wdgtIndex = 0u; wdgtIndex < CapSense_TOTAL_WIDGETS; wdgtIndex++)
         {
             if (CapSense_SENSE_METHOD_CSD_E ==
@@ -1599,18 +1517,21 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                 ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
                           CapSense_dsFlash.wdgtArray[wdgtIndex].ptr2WdgtRam;
 
-                /* Get pointer to Modulator IDAC for rows */
-                autoTuneConfig.ptrModIDAC = &ptrWdgt->idacMod[0u];
+                /* Calibrate CSD widget to the default calibration target */
+                autoTuneStatus |= CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
 
-                /* Get pointer to maximum Sense Clock Divider (column or row) */
+                /* Get pointer to Sense Clock Divider (column or row) */
                 autoTuneConfig.ptrSenseClk = &ptrWdgt->snsClk;
 
                 /* Set parasitic capacitance for columns */
                 autoTuneConfig.sensorCap = cpWidget[wdgtIndex];
 
-                #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
-                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType) ||
-                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[(wdgtIndex)].wdgtType))
+                /* Get IDAC */
+                autoTuneConfig.iDac = CapSense_calibratedIdac;
+
+                #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                    if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType) ||
+                        (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType))
 
                     {
                         /* Set the minimum sense clock frequency to calculate the resolution */
@@ -1621,9 +1542,12 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
 
                             /* Set parasitic capacitance for rows */
                             autoTuneConfig.sensorCap = cpWidget[wdgtIndex];
+
+                            /* Get IDAC */
+                            autoTuneConfig.iDac = CapSense_calibratedIdacRow;
                         }
                     }
-                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+                #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
                 /* Get finger capacitance */
                 autoTuneConfig.fingerCap = ptrWdgt->fingerCap;
@@ -1631,33 +1555,31 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
                 /* Init pointer to sigPFC */
                 autoTuneConfig.sigPFC = &ptrWdgt->sigPFC;
 
-                #if (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
-                    CapSense_SsSetWidgetSenseClkSrc(wdgtIndex, ptrWdgt);
-                #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
-
-                /* Calibrate CSD widget to 85% */
-                autoTuneStatus |= CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
-
                 /* Find resolution */
                 ptrWdgt->resolution = SmartSense_TuneSensitivity(&autoTuneConfig);
+            }
+        }
 
-                #if (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
-                    CapSense_SsSetWidgetSenseClkSrc(wdgtIndex, ptrWdgt);
+        /*
+        * Autotune phase #3:
+        * - selecting a widget clock source if AUTO
+        * - repeating calibration with found clock frequency, resolution and clock source
+        * - updating sensitivity
+        */
 
-                    #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
-                        if (((uint8)CapSense_CLK_SOURCE_DIRECT == ptrWdgt->snsClkSource) ||
-                            ((uint8)CapSense_CLK_SOURCE_DIRECT == ptrWdgt->rowSnsClkSource))
-                        {
-                            /* Recalibrate CSD widget to 85% because source is changed to direct */
-                            autoTuneStatus |= CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
-                        }
-                    #else
-                        if ((uint8)CapSense_CLK_SOURCE_DIRECT == ptrWdgt->snsClkSource)
-                        {
-                            autoTuneStatus |= CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
-                        }
-                    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
-                #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
+        /* Tune sensitivity for all the widgets */
+        for (wdgtIndex = 0u; wdgtIndex < CapSense_TOTAL_WIDGETS; wdgtIndex++)
+        {
+            if (CapSense_SENSE_METHOD_CSD_E ==
+                CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[wdgtIndex]))
+            {
+                ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
+                          CapSense_dsFlash.wdgtArray[wdgtIndex].ptr2WdgtRam;
+
+                CapSense_SsSetWidgetSenseClkSrc(wdgtIndex, ptrWdgt);
+
+                /* Calibrate CSD widget to the default calibration target */
+                autoTuneStatus |= CapSense_CSDCalibrateWidget(wdgtIndex, CapSense_CSD_AUTOTUNE_CAL_LEVEL);
 
                 #if (CapSense_ENABLE == CapSense_TST_WDGT_CRC_EN)
                     CapSense_DsUpdateWidgetCrc(wdgtIndex);
@@ -1669,309 +1591,191 @@ void CapSense_SsSetClockDividers(uint32 snsClk, uint32 modClk)
     }
 #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)) */
 
+
 #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-
-    /*******************************************************************************
-    * Function Name: CapSense_SsImmunityTblInit
-    ****************************************************************************//**
-    *
-    * \brief
-    *  Initializes the CapSense_immunity[] table with appropriate FLL/PLL
-    *  dividers for each frequency channel.
-    *
-    * \details
-    *  This is an internal function that initializes the CapSense_immunity[]
-    *  table with appropriate FLL/PLL dividers for each frequency channel.
-    *
-    * \return
-    *  Returns the status of the initialization process. If CY_RET_SUCCESS is not
-    *  received, some of the initialization fails and the component may not operate
-    *  as expected.
-    *
-    *******************************************************************************/
-    cy_status CapSense_SsImmunityTblInit(uint32 clkSrcFreqHz)
-    {
-        uint32 pathMuxFreqHz;
-        uint32 reference;
-        uint32 feedback;
-        uint32 output;
-
-        uint32 freqShift;
-        cy_en_fll_pll_output_mode_t outputMode;
-        cy_en_hf_clk_sources_t hfClk0Source;
-        cy_stc_fll_manual_config_t fllManualCfg;
-
-        cy_status ch1Result = CY_RET_UNKNOWN;
-        cy_status ch2Result = CY_RET_UNKNOWN;
-        cy_status retVal;
-
-        /* The value of freqShift is 5% of FLL/PLL output frequency. */
-        freqShift = clkSrcFreqHz / 20uL;
-        hfClk0Source = Cy_SysClk_HfClockGetSource(CapSense_P6_PERI_SRC_HFCLK);
-
-        if(CY_SYSCLK_HFCLK_IN_CLKPATH0 == hfClk0Source)
-        {
-            Cy_SysClk_FllGetConfiguration(&fllManualCfg);
-
-            pathMuxFreqHz = (clkSrcFreqHz * reference * (output + 1uL)) / fllManualCfg.fllMult;
-
-            /* FLL is used as the source of High Frequency Clock 0. */
-            CapSense_immunity[CapSense_FREQ_CHANNEL_0].fllManualCfg = fllManualCfg;
-
-            if((clkSrcFreqHz + freqShift) > CapSense_P6_MAX_FLL_FREQ_HZ)
-            {
-                ch1Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz - freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz - (freqShift * 2uL)), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-            else if((clkSrcFreqHz - freqShift) < CapSense_P6_MIN_FLL_FREQ_HZ)
-            {
-                ch1Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz + freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz + (freqShift * 2uL)), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-            else
-            {
-                ch1Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz + freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcFllDividers(pathMuxFreqHz, (clkSrcFreqHz - freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-        }
-        else if(CY_SYSCLK_HFCLK_IN_CLKPATH1 == hfClk0Source)
-        {
-            /* PLL is used as the source of High Frequency Clock 0. */
-            (void)Cy_SysClk_PllGetConfiguration(0uL, &feedback, &reference, &output, &outputMode);
-            pathMuxFreqHz = (clkSrcFreqHz * reference * (output + 1uL)) / feedback;
-
-            CapSense_immunity[CapSense_FREQ_CHANNEL_0].feedback     = feedback;
-            CapSense_immunity[CapSense_FREQ_CHANNEL_0].reference    = reference;
-            CapSense_immunity[CapSense_FREQ_CHANNEL_0].outputMode   = outputMode;
-            CapSense_immunity[CapSense_FREQ_CHANNEL_0].output       = output;
-
-            if((clkSrcFreqHz + freqShift) > CapSense_P6_MAX_PLL_FREQ_HZ)
-            {
-                ch1Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz - freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz - (freqShift * 2uL)), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-            else if((clkSrcFreqHz - freqShift) < CapSense_P6_MIN_PLL_FREQ_HZ)
-            {
-                ch1Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz + freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz + (freqShift * 2uL)), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-            else
-            {
-                ch1Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz + freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_1]);
-                ch2Result = CapSense_SsCalcPllDividers(pathMuxFreqHz, (clkSrcFreqHz - freqShift), &CapSense_immunity[CapSense_FREQ_CHANNEL_2]);
-            }
-        }
-        else
-        {
-            /* Not supported SYSCLK_HFCLK_IN_CLKPATH */
-            CY_ASSERT(0u);
-        }
-
-        if((CY_RET_SUCCESS != ch1Result) || (CY_RET_SUCCESS != ch2Result))
-        {
-            retVal = CY_RET_UNKNOWN;
-            CapSense_immunity[CapSense_FREQ_CHANNEL_1] = CapSense_immunity[CapSense_FREQ_CHANNEL_0];
-            CapSense_immunity[CapSense_FREQ_CHANNEL_2] = CapSense_immunity[CapSense_FREQ_CHANNEL_0];
-        }
-        else
-        {
-            retVal = CY_RET_SUCCESS;
-        }
-
-        return(retVal);
-    }
-
-
-    /*******************************************************************************
-    * Function Name: CapSense_SsCalcFllDividers
-    ****************************************************************************//**
-    *
-    * \brief
-    *  Calculates the FLL dividers based on the input frequency and desired output
-    *  frequency.
-    *
-    * \details
-    *  Calculates the FLL dividers based on the input frequency and desired output
-    *  frequency.
-    *
-    * \param inputFreq
-    *  FLL input frequency.
-    *
-    * \param outputFreq
-    *  Desired output frequency.
-    *
-    * \param multiplier
-    *  Pointer to variable to store feedback divider value.
-    *
-    * \param reference
-    *  Pointer to variable to store reference divider value.
-    *
-    * \param output
-    *  Pointer to variable to store output divider value.
-    *
-    * \return
-    *  Returns the status of the calculation process. If CY_RET_SUCCESS is not
-    *  received, then the calculation failed.
-    *
-    *******************************************************************************/
-    cy_status CapSense_SsCalcFllDividers(uint32 inputFreq, uint32 outputFreq, CapSense_PLL_FLL_CFG_TYPE *fllCfg)
-    {
-        /* for each possible value of FLL_OUTPUT_DIV and FLL_REF_DIV, try
-           to find a value for FLL_MULT that gives an output frequency as
-           close as possible to the desired output frequency. */
-        uint32 outTmp, refTmp, multTmp, ffllTmp;
-        uint32 ffllBest = 0uL; /* to ensure at least one pass through the for loops below */
-        cy_status retVal = CY_RET_UNKNOWN;
-
-        /* FLL_OUTPUT_DIV is 1 bit; range is 0 to 1. Must be 1 if output
-           frequency is less than 48 MHz. */
-        for (outTmp = (outputFreq < 48000000ul) ? 1uL : 0uL;
-             (outTmp < 2uL) && (ffllBest != outputFreq); outTmp++)
-        {
-            /* FLL_REF_DIV is 13 bits; allowed range is 1 to 2^13 - 1 */
-            for (refTmp = 1uL; (refTmp < 8192uL) && (ffllBest != outputFreq); refTmp++)
-            {
-                /* calculate a test value for FLL_MULT */
-                multTmp = CY_SYSCLK_DIV_ROUND(outputFreq * refTmp * (outTmp + 1uL), inputFreq);
-                /* FLL_MULT is 18 bits; allowed range is 1 to 2^18 - 1 */
-                if ((1uL <= multTmp) && (multTmp < (1uL << 18)))
-                {
-                    /* Calculate what output frequency will actually be produced.
-                       If it's closer to the target than what we have so far, then
-                       save it. */
-                    ffllTmp = ((multTmp * inputFreq) / refTmp) / (outTmp + 1uL);
-                    if ((uint32)abs((int32)ffllTmp - (int32)outputFreq) <
-                        (uint32)abs((int32)ffllBest - (int32)outputFreq))
-                    {
-                        ffllBest = ffllTmp;
-                        fllCfg->fllManualCfg.fllMult = multTmp;
-                        fllCfg->fllManualCfg.outputMode = (cy_en_fll_pll_output_mode_t)outTmp;
-                        fllCfg->fllManualCfg.refDiv = refTmp;
-                        retVal = CY_RET_SUCCESS;
-                    }
-                }
-                /* exit loops if ffllBest equals outputFreq */
-            }
-        }
-        return(retVal);
-    }
-
-
-    /*******************************************************************************
-    * Function Name: CapSense_SsCalcPllDividers
-    ****************************************************************************//**
-    *
-    * \brief
-    *  Calculates the PLL dividers based on the input frequency and desired output
-    *  frequency.
-    *
-    * \details
-    *  Calculates the PLL dividers based on the input frequency and desired output
-    *  frequency.
-    *
-    * \param inputFreq
-    *  FLL input frequency.
-    *
-    * \param outputFreq
-    *  Desired output frequency.
-    *
-    * \param clkPath
-    *  Selects which PLL to get dividers from.
-    *
-    * \param feedback
-    *  Pointer to variable to store feedback divider value.
-    *
-    * \param reference
-    *  Pointer to variable to store reference divider value.
-    *
-    * \param output
-    *  Pointer to variable to store output divider value.
-    *
-    * \return
-    *  Returns the status of the calculation process. If CY_RET_SUCCESS is not
-    *  received, then the calculation failed.
-    *
-    *******************************************************************************/
-    cy_status CapSense_SsCalcPllDividers(uint32 inputFreq, uint32 outputFreq, CapSense_PLL_FLL_CFG_TYPE *pllCfg)
-    {
-        /* for each possible value of OUTPUT_DIV and REFERENCE_DIV (refDivTmp), try
-           to find a value for FEEDBACK_DIV (fbDivTmp) that gives an output frequency
-           as close as possible to the desired output frequency. */
-        uint32 fbDivTmp, refDivTmp, outDivTmp, foutTmp;
-        uint32 foutBest = 0uL; /* to ensure at least one pass through the for loops below */
-        cy_status retVal = CY_RET_UNKNOWN;
-
-        /* OUTPUT_DIV is 9 bits; range is 2 to 2^9 - 1 */
-        for (outDivTmp = 2uL; (outDivTmp < 512uL) && (foutBest != outputFreq); outDivTmp++)
-        {
-            /* REFERENCE_DIV (refDivTmp) is 5 bits; allowed range is 1 to 2^5 - 1 */
-            for (refDivTmp = 1uL; (refDivTmp < 31uL) && (foutBest != outputFreq); refDivTmp++)
-            {
-                /* calculate a test value for FEEDBACK_DIV (fbDivTmp) */
-                fbDivTmp = CY_SYSCLK_DIV_ROUND(outputFreq * refDivTmp * outDivTmp, inputFreq);
-                /* FEEDBACK_DIV is 7 bits; allowed range is 1 to 50 */
-                if ((1uL <= fbDivTmp) && (fbDivTmp <= 50uL))
-                {
-                    /* Calculate what output frequency will actually be produced.
-                       If it's closer to the target than what we have so far, then
-                       save it. */
-                    foutTmp = ((fbDivTmp * inputFreq) / refDivTmp) / outDivTmp;
-                    if ((uint32)abs((int32)foutTmp - (int32)outputFreq) <
-                        (uint32)abs((int32)foutBest - (int32)outputFreq))
-                    {
-                        foutBest = foutTmp;
-                        pllCfg->feedback = fbDivTmp;
-                        pllCfg->reference = refDivTmp;
-                        pllCfg->output = outDivTmp;
-                        retVal = CY_RET_SUCCESS;
-                    }
-                }
-                /* exit loops if foutBest equals outputFreq */
-            }
-        }
-        return(retVal);
-    }
-
     /*******************************************************************************
     * Function Name: CapSense_SsChangeClkFreq
     ****************************************************************************//**
     *
     * \brief
-    *  This function changes the FLL/PLL frequency.
+    *  This function changes the sensor clock frequency by configuring
+    *  the corresponding divider.
     *
     * \details
-    *  The FLL/PLL frequency can have three offsets: 0%, -5% and +5%. The FLL/PLL
-    *  settings are contained in the CapSense_immunity[value] array for each
-    *  frequency channel.
+    *  This function changes the sensor clock frequency by configuring
+    *  the corresponding divider.
     *
-    * \param value The frequency channel ID.
+    * \param chId
+    *  The frequency channel ID.
     *
     *******************************************************************************/
-    void CapSense_SsChangeClkFreq(uint32 value)
+    void CapSense_SsChangeClkFreq(uint32 chId)
     {
-        cy_en_hf_clk_sources_t hfClk0Source;
+        uint32 snsClkDivider;
+        uint32 freqOffset1 = 0u;
+        uint32 freqOffset2 = 0u;
 
-        hfClk0Source = Cy_SysClk_HfClockGetSource(CapSense_P6_PERI_SRC_HFCLK);
+        #if (0u != CapSense_TOTAL_CSD_WIDGETS)
+            uint32 conversionsNum;
 
-        if(CY_SYSCLK_HFCLK_IN_CLKPATH0 == hfClk0Source)
-        {
-            /* FLL is used as the source of High Frequency Clock 0. */
-            (void)Cy_SysClk_FllManualConfigure(&CapSense_immunity[value].fllManualCfg);
-        }
-        else if(CY_SYSCLK_HFCLK_IN_CLKPATH1 == hfClk0Source)
-        {
-            /* PLL is used as the source of High Frequency Clock 0. */
-            (void)Cy_SysClk_PllManualConfigure(CapSense_P6_PLL_INDEX,
-                                         CapSense_immunity[value].feedback,
-                                         CapSense_immunity[value].reference,
-                                         CapSense_immunity[value].output,
-                                         CapSense_immunity[value].outputMode);
+            #if((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
+                uint32 snsClkSrc;
+            #endif
+        #endif
 
-        }
-        else
+        #if ((0u != CapSense_TOTAL_CSD_WIDGETS) || \
+             ((CapSense_DISABLE == CapSense_CSX_COMMON_TX_CLK_EN) && (0u != CapSense_TOTAL_CSX_WIDGETS)))
+            CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt = &CapSense_dsFlash.wdgtArray[CapSense_widgetIndex];
+            CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)ptrFlashWdgt->ptr2WdgtRam;
+        #endif
+
+        switch(CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[CapSense_widgetIndex]))
         {
-            /* Not supported SYSCLK_HFCLK_IN_CLKPATH */
-            CY_ASSERT(0u);
+        #if (0u != CapSense_TOTAL_CSD_WIDGETS)
+            case CapSense_SENSE_METHOD_CSD_E:
+                /* Get sensor clock divider value */
+                #if (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN)
+                    snsClkDivider = CapSense_dsRam.snsCsdClk;
+                #else /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
+                    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                        /* Get SnsClck divider for rows or columns */
+                        if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
+                        {
+                            snsClkDivider = ptrWdgt->rowSnsClk;
+                        }
+                        else
+                        {
+                            snsClkDivider = ptrWdgt->snsClk;
+                        }
+                    #else
+                        snsClkDivider = ptrWdgt->snsClk;
+                    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+                #endif /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
+
+                freqOffset1 = CapSense_CSD_MFS_DIVIDER_OFFSET_F1;
+                freqOffset2 = CapSense_CSD_MFS_DIVIDER_OFFSET_F2;
+
+                #if((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                    (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                    (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
+                    /* Get sense clk source */
+                    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                        /* Get SnsClc Source for rows or columns */
+                        if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
+                        {
+                            snsClkSrc = (uint32)ptrWdgt->rowSnsClkSource;
+                        }
+                        else
+                        {
+                            snsClkSrc = (uint32)ptrWdgt->snsClkSource;
+                        }
+                    #else
+                        snsClkSrc = (uint32)ptrWdgt->snsClkSource;
+                    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+
+                    switch (snsClkSrc)
+                    {
+                    case CapSense_CLK_SOURCE_PRS8:
+                    case CapSense_CLK_SOURCE_PRS12:
+                        /* Multiply by 2 for PRS8/PRS12 mode */
+                        freqOffset1 <<= 1u;
+                        freqOffset2 <<= 1u;
+                        break;
+
+                    default:
+                        break;
+                    }
+                #endif
+
+                /* Change the divider based on the chId */
+                switch (chId)
+                {
+                    case CapSense_FREQ_CHANNEL_1:
+                    {
+                        snsClkDivider += freqOffset1;
+                        break;
+                    }
+                    case CapSense_FREQ_CHANNEL_2:
+                    {
+                        snsClkDivider += freqOffset2;
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
+
+                /* Set Number Of Conversions based on scanning resolution */
+                conversionsNum = CapSense_SsCSDGetNumberOfConversions(snsClkDivider, (uint32)ptrWdgt->resolution, (uint32)ptrWdgt->snsClkSource);
+                CY_SET_REG32(CapSense_CSD_SEQ_NORM_CNT_PTR, (conversionsNum & CapSense_CSD_SEQ_NORM_CNT_CONV_CNT_MSK));
+
+                #if((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                    (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+                    (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
+                    switch (snsClkSrc)
+                    {
+                    case CapSense_CLK_SOURCE_PRS8:
+                    case CapSense_CLK_SOURCE_PRS12:
+                        /* Divide by 2 for PRS8/PRS12 mode */
+                        snsClkDivider >>= 1;
+                        if (snsClkDivider == 0u)
+                        {
+                            snsClkDivider = 1u;
+                        }
+                        break;
+
+                    default:
+                        break;
+                    }
+                #endif
+
+                /* Configure the new divider */
+                CapSense_SsSetSnsClockDivider(snsClkDivider);
+
+                break;
+        #endif /* #if (0u != CapSense_TOTAL_CSD_WIDGETS) */
+
+        #if (0u != CapSense_TOTAL_CSX_WIDGETS)
+            case CapSense_SENSE_METHOD_CSX_E:
+                #if (CapSense_ENABLE == CapSense_CSX_COMMON_TX_CLK_EN)
+                    snsClkDivider = CapSense_dsRam.snsCsxClk;
+                #else /* (CapSense_ENABLE == CapSense_CSX_COMMON_TX_CLK_EN) */
+                    snsClkDivider = ptrWdgt->snsClk;
+                #endif /* (CapSense_ENABLE == CapSense_CSX_COMMON_TX_CLK_EN) */
+                freqOffset1 = CapSense_CSX_MFS_DIVIDER_OFFSET_F1;
+                freqOffset2 = CapSense_CSX_MFS_DIVIDER_OFFSET_F2;
+
+                /* Change the divider based on the chId */
+                switch (chId)
+                {
+                    case CapSense_FREQ_CHANNEL_1:
+                    {
+                        snsClkDivider += freqOffset1;
+                        break;
+                    }
+                    case CapSense_FREQ_CHANNEL_2:
+                    {
+                        snsClkDivider += freqOffset2;
+                        break;
+                    }
+                    default:
+                    {
+                        break;
+                    }
+                }
+
+                /* Configure the new divider */
+                CapSense_SsSetSnsClockDivider(snsClkDivider);
+
+                break;
+        #endif /* #if (0u != CapSense_TOTAL_CSX_WIDGETS) */
+
+        default:
+            CY_ASSERT(0 != 0);
+            break;
         }
     }
 #endif  /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
@@ -1999,7 +1803,7 @@ void CapSense_SsInitializeSourceSenseClk(void)
     for (wdgtIndex = 0u; wdgtIndex < CapSense_TOTAL_WIDGETS; wdgtIndex++)
     {
         ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)CapSense_dsFlash.wdgtArray[wdgtIndex].ptr2WdgtRam;
-        
+
         switch(CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[wdgtIndex]))
         {
         #if (0u != CapSense_TOTAL_CSD_WIDGETS)
@@ -2015,10 +1819,10 @@ void CapSense_SsInitializeSourceSenseClk(void)
         #endif /* #if (0u != CapSense_TOTAL_CSX_WIDGETS) */
 
         default:
-            CY_ASSERT(0u);
+            CY_ASSERT(0 != 0);
             break;
         }
-        
+
         #if (CapSense_ENABLE == CapSense_TST_WDGT_CRC_EN)
             CapSense_DsUpdateWidgetCrc(wdgtIndex);
         #endif /* (CapSense_ENABLE == CapSense_TST_WDGT_CRC_EN) */
@@ -2037,9 +1841,9 @@ void CapSense_SsInitializeSourceSenseClk(void)
     *  Sets a source for the sense clock for a widget.
     *
     * \param wdgtIndex
-    *   Specifies the ID of the widget.
+    *  Specifies the ID of the widget.
     * \param ptrWdgt
-    *   The pointer to the RAM_WD_BASE_STRUCT structure.
+    *  The pointer to the RAM_WD_BASE_STRUCT structure.
     *
     * \details
     *  Updates snsClkSource and rowSnsClkSource with a source for the sense Clk for a
@@ -2064,9 +1868,14 @@ void CapSense_SsInitializeSourceSenseClk(void)
                 lfsrSize = CapSense_SsCalcLfsrSize(snsClkDivider, conversionsNum);
                 if (CapSense_CLK_SOURCE_DIRECT == lfsrSize)
                 {
-                    lfsrSize = CapSense_SsCSDCalcPrsSize(snsClkDivider, (uint32)ptrWdgt->resolution);
+                    lfsrSize = CapSense_SsCSDCalcPrsSize(snsClkDivider << 1uL, (uint32)ptrWdgt->resolution);
                 }
                 lfsrScale = CapSense_SsCalcLfsrScale(snsClkDivider, lfsrSize);
+
+                if((lfsrSize == CapSense_CLK_SOURCE_PRS8) || (lfsrSize == CapSense_CLK_SOURCE_PRS12))
+                {
+                    CapSense_SsCSDSetColSnsClkDivider(wdgtIndex, snsClkDivider);
+                }
         #else
             lfsrSize = (uint8)CapSense_DEFAULT_MODULATION_MODE;
             lfsrScale = 0u;
@@ -2075,7 +1884,7 @@ void CapSense_SsInitializeSourceSenseClk(void)
 
         ptrWdgt->snsClkSource = lfsrSize | (uint8)(lfsrScale << CapSense_CLK_SOURCE_LFSR_SCALE_OFFSET);
 
-        #if (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))
+        #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
             if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType) ||
                 (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[wdgtIndex].wdgtType))
             {
@@ -2085,16 +1894,21 @@ void CapSense_SsInitializeSourceSenseClk(void)
                         lfsrSize = CapSense_SsCalcLfsrSize(snsClkDivider, conversionsNum);
                         if (CapSense_CLK_SOURCE_DIRECT == lfsrSize)
                         {
-                            lfsrSize = CapSense_SsCSDCalcPrsSize(snsClkDivider, (uint32)ptrWdgt->resolution);
+                            lfsrSize = CapSense_SsCSDCalcPrsSize(snsClkDivider << 1uL, (uint32)ptrWdgt->resolution);
                         }
                         lfsrScale = CapSense_SsCalcLfsrScale(snsClkDivider, lfsrSize);
+
+                        if((lfsrSize == CapSense_CLK_SOURCE_PRS8) || (lfsrSize == CapSense_CLK_SOURCE_PRS12))
+                        {
+                            CapSense_SsCSDSetRowSnsClkDivider(wdgtIndex, snsClkDivider);
+                        }
                 #else
                     lfsrSize = (uint8)CapSense_DEFAULT_MODULATION_MODE;
                     lfsrScale = 0u;
                 #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
                 ptrWdgt->rowSnsClkSource = lfsrSize | (uint8)(lfsrScale << CapSense_CLK_SOURCE_LFSR_SCALE_OFFSET);
             }
-        #endif /* (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
+        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
     }
 #endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
 
@@ -2108,15 +1922,15 @@ void CapSense_SsInitializeSourceSenseClk(void)
     *  Sets a source for the Tx clock for a widget.
     *
     * \param wdgtIndex
-    *   Specifies the ID of the widget.
+    *  Specifies the ID of the widget.
     * \param ptrWdgt
-    *   The pointer to the RAM_WD_BASE_STRUCT structure.
+    *  The pointer to the RAM_WD_BASE_STRUCT structure.
     *
     * \details
     *  Updates snsClkSource with with a source for Tx Clk for a widget.
     *
     *******************************************************************************/
-    static void CapSense_SsSetWidgetTxClkSrc(uint32 wdgtIndex, CapSense_RAM_WD_BASE_STRUCT * ptrWdgt)
+    __STATIC_INLINE void CapSense_SsSetWidgetTxClkSrc(uint32 wdgtIndex, CapSense_RAM_WD_BASE_STRUCT * ptrWdgt)
     {
         uint8 lfsrSize;
         uint8 lfsrScale;
@@ -2136,10 +1950,14 @@ void CapSense_SsInitializeSourceSenseClk(void)
             #else
                 lfsrSize = (uint8)CapSense_CLK_SOURCE_DIRECT;
                 lfsrScale = 0u;
+                /* Unused function argument */
+                (void)wdgtIndex;
             #endif /* (CapSense_ENABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES) */
         #else
             lfsrSize = (uint8)CapSense_CSX_TX_CLK_SOURCE;
             lfsrScale = 0u;
+            /* Unused function argument */
+            (void)wdgtIndex;
         #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE) */
 
         ptrWdgt->snsClkSource = lfsrSize | (uint8)(lfsrScale << CapSense_CLK_SOURCE_LFSR_SCALE_OFFSET);
@@ -2148,7 +1966,8 @@ void CapSense_SsInitializeSourceSenseClk(void)
 
 
 #if(((CapSense_ENABLE == CapSense_CSX_EN) && \
-     (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE)) ||\
+     (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE) && \
+     (CapSense_DISABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES)) ||\
     ((CapSense_ENABLE == CapSense_CSD_EN) && \
      (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)))
 /*******************************************************************************
@@ -2156,15 +1975,15 @@ void CapSense_SsInitializeSourceSenseClk(void)
 ****************************************************************************//**
 *
 * \brief
-*   This is an internal function that finds a SSC polynomial size in the Auto mode.
+*  This is an internal function that finds a SSC polynomial size in the Auto mode.
 *
 * \details
-*   The SSC polynomial size in the auto mode is found based on the following
-*   requirements:
-*   - an LFSR value should be selected so that the max clock dither is limited with +/-10%.
-*   - at least one full spread spectrum polynomial should pass during the scan time.
-*   - the value of the number of conversions should be an integer multiple of the
-*     repeat period of the programmed LFSR_SIZE.
+*  The SSC polynomial size in the auto mode is found based on the following
+*  requirements:
+*  - an LFSR value should be selected so that the max clock dither is limited with +/-10%.
+*  - at least one full spread spectrum polynomial should pass during the scan time.
+*  - the value of the number of conversions should be an integer multiple of the
+*    repeat period of the programmed LFSR_SIZE.
 *
 * \param
 *  snsClkDivider The divider value for the sense clock.
@@ -2173,7 +1992,7 @@ void CapSense_SsInitializeSourceSenseClk(void)
 * \return lfsrSize The LFSRSIZE value for the SENSE_PERIOD register.
 *
 *******************************************************************************/
-__STATIC_INLINE  uint8 CapSense_SsCalcLfsrSize(uint32 snsClkDivider, uint32 conversionsNum)
+static uint8 CapSense_SsCalcLfsrSize(uint32 snsClkDivider, uint32 conversionsNum)
 {
     uint8 lfsrSize = 0u;
 
@@ -2216,29 +2035,29 @@ __STATIC_INLINE  uint8 CapSense_SsCalcLfsrSize(uint32 snsClkDivider, uint32 conv
 ****************************************************************************//**
 *
 * \brief
-*   This is an internal function that calculates the LFSR scale value.
+*  This is an internal function that calculates the LFSR scale value.
 *
 * \details
-*   The LFSR scale value is used to increase the clock dither if the desired dither
-*   is wider than can be achieved with the current Sense Clock Divider and current LFSR
-*   period.
+*  The LFSR scale value is used to increase the clock dither if the desired dither
+*  is wider than can be achieved with the current Sense Clock Divider and current LFSR
+*  period.
 *
-*   This returns the LFSR scale value needed to keep the clock dither in
-*   range +/-10%.
+*  This returns the LFSR scale value needed to keep the clock dither in
+*  range +/-10%.
 *
 * \param
 *  snsClkDivider The divider value for the sense clock.
 *  lfsrSize The period of the LFSR sequence.
-*           CapSense_CLK_SOURCE_DIRECT The spreadspectrum is not used.
-*           CapSense_CLK_SOURCE_SSC1   The length of LFSR sequence is 63 cycles.
-*           CapSense_CLK_SOURCE_SSC2   The length of LFSR sequence is 127 cycles.
-*           CapSense_CLK_SOURCE_SSC3   The length of LFSR sequence is 255 cycles.
-*           CapSense_CLK_SOURCE_SSC4   The length of LFSR sequence is 511 cycles.
+*          CapSense_CLK_SOURCE_DIRECT The spreadspectrum is not used.
+*          CapSense_CLK_SOURCE_SSC1   The length of LFSR sequence is 63 cycles.
+*          CapSense_CLK_SOURCE_SSC2   The length of LFSR sequence is 127 cycles.
+*          CapSense_CLK_SOURCE_SSC3   The length of LFSR sequence is 255 cycles.
+*          CapSense_CLK_SOURCE_SSC4   The length of LFSR sequence is 511 cycles.
 *
 * \return The LFSR scale value needed to keep the clock dither in range +/-10%.
 *
 *******************************************************************************/
-__STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrSize)
+static uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrSize)
 {
     uint32 lfsrScale;
     uint32 lfsrRange;
@@ -2301,10 +2120,12 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
 
     return ((uint8)lfsrScale);
 }
-#endif /* (((CapSense_ENABLE == CapSense_CSX_EN) &&  \
-            (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE)) ||\
-          ((CapSense_ENABLE == CapSense_CSD_EN) &&  \
-           (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))) */
+
+#endif /* (((CapSense_ENABLE == CapSense_CSX_EN) && \
+            (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSX_TX_CLK_SOURCE) && \
+            (CapSense_DISABLE == CapSense_CSX_SKIP_OVSMPL_SPECIFIC_NODES)) ||\
+           ((CapSense_ENABLE == CapSense_CSD_EN) && \
+            (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))) */
 
 
 #if (CapSense_ENABLE == CapSense_CSD_EN)
@@ -2318,10 +2139,10 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
     *  an inactive state.
     *
     * \details
-    *   The function goes through all the widgets and updates appropriate bits in
-    *   the IO HSIOM, PC and DR registers depending on the Inactive sensor connection
-    *   parameter. DR register bits are set to zero when the Inactive sensor
-    *   connection is Ground or Hi-Z.
+    *  The function goes through all the widgets and updates appropriate bits in
+    *  the IO HSIOM, PC and DR registers depending on the Inactive sensor connection
+    *  parameter. DR register bits are set to zero when the Inactive sensor
+    *  connection is Ground or Hi-Z.
     *
     *******************************************************************************/
     void CapSense_SsClearCSDSensors(void)
@@ -2331,14 +2152,14 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
 
         #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
             uint32 pinIndex;
-        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
         #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
             /* Declare ptr to sensor IO structure */
             CapSense_FLASH_IO_STRUCT const *curDedicatedSnsIOPtr;
-            /*  Pointer to Flash structure holding info of sensor to be scanned  */
+            /* Pointer to Flash structure holding info of sensor to be scanned */
             CapSense_FLASH_SNS_STRUCT const *curFlashSnsPtr;
-        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
         CapSense_FLASH_IO_STRUCT const *curSnsIOPtr;
 
         for (wdgtIndex = 0u; wdgtIndex < CapSense_TOTAL_WIDGETS; wdgtIndex++)
@@ -2349,11 +2170,11 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
                 curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                                 CapSense_dsFlash.wdgtArray[wdgtIndex].ptr2SnsFlash;
 
-                /* Go through all sensors in widget */
-                for (snsIndex = 0u; snsIndex < (uint8)CapSense_dsFlash.wdgtArray[(wdgtIndex)].totalNumSns; snsIndex++)
+                /* Go through all the sensors in widget */
+                for (snsIndex = 0u; snsIndex < (uint8)CapSense_dsFlash.wdgtArray[wdgtIndex].totalNumSns; snsIndex++)
                 {
                     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-                        /* Check ganged sns flag  */
+                        /* Check ganged sns flag */
                         if (CapSense_GANGED_SNS_MASK == (CapSense_dsFlash.wdgtArray[wdgtIndex].staticConfig &
                                                                  CapSense_GANGED_SNS_MASK))
                         {
@@ -2379,7 +2200,7 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
                     #else
                         /* Disable sensor */
                         CapSense_CSDDisconnectSns(&curSnsIOPtr[snsIndex]);
-                    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+                    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
                 }
             }
         }
@@ -2394,7 +2215,7 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
     *  and Column Sense Clock divider value for two-dimension widgets.
     *
     * \details
-    *  This function gets the Sense Clock Divider value based on the component
+    *  This function gets the Sense Clock Divider value based on the Component
     *  configuration. The function is applicable for one-dimension widgets and for
     *  two-dimension widgets.
     *
@@ -2402,7 +2223,7 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
     *  widgetId Specifies the ID of the widget.
     *
     * \return The Sense Clock Divider value for one-dimension widgets
-    *         and the Column Sense Clock divider value for two-dimension widgets.
+    *        and the Column Sense Clock divider value for two-dimension widgets.
     *
     *******************************************************************************/
     uint32 CapSense_SsCSDGetColSnsClkDivider(uint32 widgetId)
@@ -2427,7 +2248,45 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
     }
 
 
-    #if (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))
+    /*******************************************************************************
+    * Function Name: CapSense_SsCSDSetColSnsClkDivider
+    ****************************************************************************//**
+    *
+    * \brief
+    *  This function sets the Sense Clock Divider value for one-dimension widgets
+    *  and Column Sense Clock divider value for two-dimension widgets.
+    *
+    * \details
+    *  This function sets the Sense Clock Divider value based on the Component
+    *  configuration. The function is applicable for one-dimension widgets and for
+    *  two-dimension widgets.
+    *
+    * \param
+    *  widgetId Specifies the ID of the widget.
+    *
+    * \return The Sense Clock Divider value for one-dimension widgets
+    *        and the Column Sense Clock divider value for two-dimension widgets.
+    *
+    *******************************************************************************/
+    void CapSense_SsCSDSetColSnsClkDivider(uint32 widgetId, uint32 dividerVal)
+    {
+        /* Get sense divider based on configuration */
+        #if (CapSense_ENABLE != CapSense_CSD_COMMON_SNS_CLK_EN)
+            CapSense_RAM_WD_BASE_STRUCT *ptrWdgt;
+
+            ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
+            CapSense_dsFlash.wdgtArray[widgetId].ptr2WdgtRam;
+
+            ptrWdgt->snsClk = (uint16)dividerVal;
+        #else
+            CapSense_dsRam.snsCsdClk = (uint16)dividerVal;
+
+            (void)widgetId; /* This parameter is unused in such configurations */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
+    }
+
+
+    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
         /*******************************************************************************
         * Function Name: CapSense_SsCSDGetRowSnsClkDivider
         ****************************************************************************//**
@@ -2437,15 +2296,16 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
         *  and the Column Sense Clock divider value for two-dimension widgets.
         *
         * \details
-        *  This function gets the Sense Clock Divider value based on the component
+        *  This function gets the Sense Clock Divider value based on the Component
         *  configuration. The function is applicable for one-dimension widgets and for
         *  two-dimension widgets.
         *
         * \param
         *  widgetId Specifies the ID of the widget.
         *
-        * \return The Sense Clock Divider value for one-dimension widgets
-        *         and Column Sense Clock divider value for two-dimension widgets.
+        * \return
+        *  Returns the sense clock divider value for one-dimension widgets
+        *  and column sense clock divider value for two-dimension widgets.
         *
         *******************************************************************************/
         uint32 CapSense_SsCSDGetRowSnsClkDivider(uint32 widgetId)
@@ -2468,7 +2328,46 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
 
             return (retVal);
         }
-    #endif /* (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
+
+
+        /*******************************************************************************
+        * Function Name: CapSense_SsCSDSetRowSnsClkDivider
+        ****************************************************************************//**
+        *
+        * \brief
+        *  This function sets the Sense Clock Divider value for one-dimension widgets
+        *  and the Column Sense Clock divider value for two-dimension widgets.
+        *
+        * \details
+        *  This function sets the Sense Clock Divider value based on the Component
+        *  configuration. The function is applicable for one-dimension widgets and for
+        *  two-dimension widgets.
+        *
+        * \param
+        *  widgetId Specifies the ID of the widget.
+        *
+        * \param
+        *  dividerVal Specifies the Sense Clock Divider value.
+        *
+        *******************************************************************************/
+        void CapSense_SsCSDSetRowSnsClkDivider(uint32 widgetId, uint32 dividerVal)
+        {
+            /* Get sense divider based on configuration */
+            #if (CapSense_ENABLE != CapSense_CSD_COMMON_SNS_CLK_EN)
+                CapSense_RAM_WD_BASE_STRUCT *ptrWdgt;
+
+                ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
+                CapSense_dsFlash.wdgtArray[widgetId].ptr2WdgtRam;
+
+                ptrWdgt->rowSnsClk = (uint16)dividerVal;
+            #else
+                CapSense_dsRam.snsCsdClk = (uint16)dividerVal;
+
+                (void)widgetId; /* This parameter is unused in such configurations */
+            #endif /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
+        }
+    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+
 
     #if (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
         /*******************************************************************************
@@ -2476,12 +2375,12 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
         ****************************************************************************//**
         *
         * \brief
-        *   The function finds PRS polynomial size in the Auto mode.
+        *  The function finds PRS polynomial size in the Auto mode.
         *
         * \details
-        *   The PRS polynomial size in the Auto mode is found based on the following
-        *   requirements:
-        *   - at least one full spread spectrum polynomial should pass during scan time.
+        *  The PRS polynomial size in the Auto mode is found based on the following
+        *  requirements:
+        *  - at least one full spread spectrum polynomial should pass during scan time.
         *
         * \param
         *  snsClkDivider The divider value for the sense clock.
@@ -2493,18 +2392,13 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
         uint8 CapSense_SsCSDCalcPrsSize(uint32 snsClkDivider, uint32 resolution)
         {
             uint32 prsSize;
-            uint32 modClkDivider;
 
-            modClkDivider = 1uL;
-
-            if ((snsClkDivider * CapSense_PRS_LENGTH_12_BITS) <
-                (modClkDivider * ((0x00000001Lu << resolution) - 1u)))
+            if ((snsClkDivider * CapSense_PRS_LENGTH_12_BITS) <= ((0x00000001Lu << resolution) - 1u))
             {
                 /* Set PRS12 mode */
                 prsSize = CapSense_CLK_SOURCE_PRS12;
             }
-            else if ((snsClkDivider * CapSense_PRS_LENGTH_8_BITS) <
-                     (modClkDivider * ((0x00000001Lu << resolution) - 1u)))
+            else if ((snsClkDivider * CapSense_PRS_LENGTH_8_BITS) <= ((0x00000001Lu << resolution) - 1u))
             {
                 /* Set PRS8 mode */
                 prsSize = CapSense_CLK_SOURCE_PRS8;
@@ -2519,6 +2413,64 @@ __STATIC_INLINE uint8 CapSense_SsCalcLfsrScale(uint32 snsClkDivider, uint8 lfsrS
         }
     #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
 #endif /* (CapSense_ENABLE == CapSense_CSD_EN) */
+
+
+/*******************************************************************************
+* Function Name: CapSense_BistDischargeExtCapacitors
+****************************************************************************//**
+*
+* \brief
+*  The function discharge available external capacitors.
+*
+* \details
+*  The function discharge available external capacitors by connection them
+*  to GND using STRONG GPIO drive mode. Additionaly, the function disconnects
+*  the capacitors from analog mux buses if connected.
+*  Note: the function does not restore the connection to analog mux busses
+*  and supposes that all the capacitors belong to a single device port.
+*
+*******************************************************************************/
+void CapSense_BistDischargeExtCapacitors(void)
+{
+    #if (CapSense_ENABLE == CapSense_CSD_EN)
+        Cy_GPIO_SetHSIOM(CapSense_Cmod_0_PORT, CapSense_Cmod_0_NUM, HSIOM_SEL_GPIO);
+        Cy_GPIO_Clr(CapSense_Cmod_0_PORT, CapSense_Cmod_0_NUM);
+        Cy_GPIO_SetDrivemode(CapSense_Cmod_0_PORT, CapSense_Cmod_0_NUM, CY_GPIO_DM_STRONG_IN_OFF);
+
+        #if((CapSense_ENABLE == CapSense_CSD_SHIELD_EN) && \
+            (CapSense_ENABLE == CapSense_CSD_SHIELD_TANK_EN))
+            Cy_GPIO_SetHSIOM(CapSense_Csh_0_PORT, CapSense_Csh_0_NUM, HSIOM_SEL_GPIO);
+            Cy_GPIO_Clr(CapSense_Csh_0_PORT, CapSense_Csh_0_NUM);
+            Cy_GPIO_SetDrivemode(CapSense_Csh_0_PORT, CapSense_Csh_0_NUM, CY_GPIO_DM_STRONG_IN_OFF);
+        #endif
+    #endif
+
+    #if (CapSense_ENABLE == CapSense_CSX_EN)
+        Cy_GPIO_SetHSIOM(CapSense_CintA_0_PORT, CapSense_CintA_0_NUM, HSIOM_SEL_GPIO);
+        Cy_GPIO_Clr(CapSense_CintA_0_PORT, CapSense_CintA_0_NUM);
+        Cy_GPIO_SetDrivemode(CapSense_CintA_0_PORT, CapSense_CintA_0_NUM, CY_GPIO_DM_STRONG_IN_OFF);
+
+        Cy_GPIO_SetHSIOM(CapSense_CintB_0_PORT, CapSense_CintB_0_NUM, HSIOM_SEL_GPIO);
+        Cy_GPIO_Clr(CapSense_CintB_0_PORT, CapSense_CintB_0_NUM);
+        Cy_GPIO_SetDrivemode(CapSense_CintB_0_PORT, CapSense_CintB_0_NUM, CY_GPIO_DM_STRONG_IN_OFF);
+    #endif
+
+    Cy_SysLib_DelayUs(CapSense_EXT_CAP_DISCHARGE_TIME);
+
+    #if (CapSense_ENABLE == CapSense_CSD_EN)
+        Cy_GPIO_SetDrivemode(CapSense_Cmod_0_PORT, CapSense_Cmod_0_NUM, CY_GPIO_DM_ANALOG);
+
+        #if((CapSense_ENABLE == CapSense_CSD_SHIELD_EN) && \
+            (CapSense_ENABLE == CapSense_CSD_SHIELD_TANK_EN))
+            Cy_GPIO_SetDrivemode(CapSense_Csh_0_PORT, CapSense_Csh_0_NUM, CY_GPIO_DM_ANALOG);
+        #endif
+    #endif
+
+    #if (CapSense_ENABLE == CapSense_CSX_EN)
+        Cy_GPIO_SetDrivemode(CapSense_CintA_0_PORT, CapSense_CintA_0_NUM, CY_GPIO_DM_ANALOG);
+        Cy_GPIO_SetDrivemode(CapSense_CintB_0_PORT, CapSense_CintB_0_NUM, CY_GPIO_DM_ANALOG);
+    #endif
+}
 
 
 /* [] END OF FILE */

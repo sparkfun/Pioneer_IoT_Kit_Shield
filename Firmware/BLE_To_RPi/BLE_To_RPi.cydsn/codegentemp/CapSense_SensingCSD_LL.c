@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file CapSense_SensingCSD_LL.c
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file defines the data structure global variables and provides
@@ -8,7 +8,7 @@
 *   the Sensing module. The file contains the APIs used for the CSD block
 *   initialization, calibration, and scanning.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -45,8 +45,8 @@
 #include "CapSense_ModClk.h"
 #include "CapSense_Structure.h"
 #include "CapSense_Configuration.h"
-#include "CapSense_SensingCSD_LL.h"
 #include "CapSense_Sensing.h"
+#include "CapSense_SensingCSD_LL.h"
 #include "cyapicallbacks.h"
 
 #if (CapSense_ENABLE == CapSense_CSD_EN)
@@ -54,9 +54,6 @@
 /***************************************
 * API Constants
 ***************************************/
-#define CapSense_MOD_CSD_CLK_12MHZ                      (12000000uL)
-#define CapSense_MOD_CSD_CLK_24MHZ                      (24000000uL)
-#define CapSense_MOD_CSD_CLK_48MHZ                      (48000000uL)
 
 #define CapSense_COARSE_INIT_WATCHDOG_TIME              (3u)
 #define CapSense_COARSE_INIT_WATCHDOG_CYCLES_CALC       (CapSense_COARSE_INIT_WATCHDOG_TIME * CapSense_CPU_CLOCK_FREQ_MHZ)
@@ -92,14 +89,19 @@
 #define CapSense_DEFAULT_CSD_ADC_CTL                    (0x00000000uL)
 #define CapSense_DEFAULT_HSCMP_CFG                      (0x00000000uL)
 
+/* CY_ID285392 */
+#define CapSense_FILTER_DELAY_MAX                   (CapSense_CSD_CONFIG_FILTER_DELAY_4_CYCLES)
+#define CapSense_EXTRA_COUNTS_MAX                   (CapSense_FILTER_DELAY_MAX + 5u)
+#define CapSense_16_BIT_RESOLUTION                  (16uL)
+
 #if (CapSense_IDAC_SINKING == CapSense_CSD_IDAC_CONFIG)
     #if(CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
         #define CapSense_DEFAULT_CSD_IO_SEL             (CapSense_CSD_TX_N_OUT_EN_PHI1 | CapSense_CSD_TX_N_AMUXA_EN_PHI2 |\
                                                                  CapSense_CSD_TX_OUT_EN_PHI1_DELAY | CapSense_CSD_TX_AMUXB_EN_PHI2_DELAY |\
-                                                                 CapSense_CSD_TX_OUT_MSK | CapSense_CSD_TX_N_OUT_MSK)
+                                                                 CapSense_CSD_TX_OUT_MSK | CapSense_CSD_TX_N_OUT_STATIC_CLOSE)
     #else
         #define CapSense_DEFAULT_CSD_IO_SEL             (CapSense_CSD_TX_N_OUT_EN_PHI1 | CapSense_CSD_TX_N_AMUXA_EN_PHI2 |\
-                                                                                                         CapSense_CSD_TX_N_OUT_MSK)
+                                                                                                         CapSense_CSD_TX_N_OUT_STATIC_CLOSE)
     #endif /* (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) */
 #else
     #if(CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
@@ -109,7 +111,6 @@
         #define CapSense_DEFAULT_CSD_IO_SEL             (CapSense_CSD_TX_N_OUT_EN_PHI1 | CapSense_CSD_TX_N_AMUXA_EN_PHI2)
     #endif /* (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) */
 #endif /* (CapSense_IDAC_SINKING == CapSense_CSD_IDAC_CONFIG) */
-
 
 /***************************************
 * Variables
@@ -122,13 +123,23 @@ static uint8 CapSense_eleCsdDisconnectFlag = 0u;
     uint8 CapSense_badConversionsNum = CapSense_BAD_CONVERSIONS_NUM;
 #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
+#if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+    /* Stores IDAC and raw count that corresponds to a sensor with maximum Cp within a widget */
+    uint8 CapSense_calibratedIdac = 1u;
+    uint16 CapSense_calibratedRawcount = 1u;
+    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+        uint8 CapSense_calibratedIdacRow = 1u;
+        uint16 CapSense_calibratedRawcountRow = 1u;
+    #endif /*(CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+#endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+
 
 /*******************************************************************************
 * Static Function Prototypes
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -158,17 +169,17 @@ static uint8 CapSense_eleCsdDisconnectFlag = 0u;
                                                              uint8 *ptrIdac,
                                                              uint8 *iDAC8Max);
 #endif /* ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) || \
-           (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN))  */
+           (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN)) */
 
 static void CapSense_SsCSDSetFilterDelay(void);
-__STATIC_INLINE void CapSense_SsCSDCmodPrecharge(void);
-__STATIC_INLINE void CapSense_SsCSDTriggerScan(void);
+static void CapSense_SsCSDCmodPrecharge(void);
+static void CapSense_SsCSDTriggerScan(void);
 static void CapSense_SsCSDConfigIDACs(void);
 
 static void CapSense_SsCSDSetModeSnsClockDivider(uint32 snsClkSource, uint32 snsClkDivider);
 
 /** \}
-* \endif */
+* \endcond */
 
 
 #if (CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
@@ -186,8 +197,8 @@ static void CapSense_SsCSDSetModeSnsClockDivider(uint32 snsClkSource, uint32 sns
     * \param delay
     *   Specifies the shield delay value:
     *                               0 - no delay
-    *                               1 - 5ns delay (50 ns for CSDv1 block)
-    *                               2 - 10ns delay (100 ns for CSDv1 block)
+    *                               1 - 5ns delay
+    *                               2 - 10ns delay
     *                               3 - 20ns delay
     *
     *******************************************************************************/
@@ -284,18 +295,17 @@ static void CapSense_SsCSDSetModeSnsClockDivider(uint32 snsClkSource, uint32 sns
 ****************************************************************************//**
 *
 * \brief
-*   Sets sense source and Sense Clock Divider
+*  Sets sense source and Sense Clock Divider
 *
 * \details
-*   For CSDv2: Updates CapSense_SENSE_PERIOD register with
-*   sense source and Sense Clock Divider.
-*   For CSDv1: Updates CapSense_configCsd variable with
-*   sense source and sets sense clock divider.
+*  Updates CapSense_SENSE_PERIOD register with
+*  sense source and Sense Clock Divider.
 *
-* \param
-*   snsClkSource The sense source for the sense clock.
-* \param
-*   snsClkDivider The divider value for the sense clock.
+* \param snsClkSource
+*  The sense source for the sense clock.
+*
+* \param snsClkDivider
+*  The divider value for the sense clock.
 *
 *******************************************************************************/
 static void CapSense_SsCSDSetModeSnsClockDivider(uint32 snsClkSource, uint32 snsClkDivider)
@@ -310,13 +320,13 @@ static void CapSense_SsCSDSetModeSnsClockDivider(uint32 snsClkSource, uint32 sns
 ****************************************************************************//**
 *
 * \brief
-*   Sets the filter delay for CSDv2 HW IP block.
+*   Sets the filter delay for HW IP block.
 *
 * \details
-*   This function updates CSDv2 configuration variable CapSense_configCsd
+*   This function updates HW configuration variable CapSense_configCsd
 *   with the filter delay which depends on the sample clock frequency.
-*   This variable is written into CSDv2 CONFIG register during enabling
-*   to CSDv2 block.
+*   This variable is written into CONFIG register during enabling
+*   to HW IP block.
 *
 *******************************************************************************/
 static void CapSense_SsCSDSetFilterDelay(void)
@@ -378,7 +388,7 @@ static void CapSense_SsCSDConfigIDACs(void)
 *   This API initializes the CSD module.
 *
 * \details
-*   The function performs the following steps for CSDv2 HW block:
+*   The function performs the following steps:
 *   1) Sets GPIO output to "0" for all sensor pins;
 *   2) Connects CMOD to AMUXBUS-A and to CSDBUS-A;
 *   3) Connects CMOD to (sense path) to CSDCOMP;
@@ -393,22 +403,14 @@ static void CapSense_SsCSDConfigIDACs(void)
 *       Sample Init period, interrupts,
 *       CMOD and Csh_tank/shield initialization switch resistance).
 *
-*   The function performs the following steps for CSDv1 HW block:
-*   1) Sets all the sensors to the inactive state;
-*   2) Enables Shield Electrodes;
-*   3) Configures the CSD block and IDACs;
-*   4) Connects Cmod to AMUXBUS-A;
-*   5) Enables the clocks;
-*   6) Sets the shield delay;
-*   7) Enables the CSD block; connects Vref Buffer to the AMUX bus.
-*
 *******************************************************************************/
 void CapSense_SsCSDInitialize(void)
 {
     uint32 newRegValue;
 
-    /* Set all sensors to inactive state */
+    /* Set all the sensors to inactive state */
     CapSense_SsClearCSDSensors();
+    CapSense_BistDischargeExtCapacitors();
 
     #if (CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
         /* Connect shields to AMUX-B bus (config HSIOM regs) */
@@ -487,7 +489,7 @@ void CapSense_SsCSDInitialize(void)
         /* Connect VREFLOW (from AMBUF and RefGen is in bypass mode) to CSDCOMP when Vdda < 2 V */
         CY_SET_REG32(CapSense_CSD_SW_CMP_N_SEL_PTR, CapSense_CSD_SW_CMP_N_SEL_SW_SCRH_STATIC_CLOSE);
 
-        /*  Connect Vrefhi to AMUBUF positive input when Vdaa < 2V
+        /* Connect Vrefhi to AMUBUF positive input when Vdaa < 2V
          *  Connect AMUBUF to SCDCMP negative input when Vdaa < 2V
          */
         #if (CapSense_ENABLE == CapSense_CSD_SHIELD_EN)
@@ -549,7 +551,7 @@ void CapSense_SsCSDInitialize(void)
         CapSense_SsSetShieldDelay(CapSense_CSD_SHIELD_DELAY);
     #endif /* (CapSense_ENABLE == CapSense_CSD_SHIELD_EN) */
 
-    /* Configure CSDv2 filter delay */
+    /* Configure HW IP block filter delay */
     CapSense_SsCSDSetFilterDelay();
 
     #if (CapSense_DISABLE == CapSense_BLOCK_OFF_AFTER_SCAN_EN)
@@ -603,13 +605,13 @@ void CapSense_SsCSDElectrodeCheck(void)
     {
         /* Disconnect if electrodes were previous connected by CSDSetupWidgetExt() API */
         #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-            /* Check ganged sns flag  */
+            /* Check ganged sns flag */
             if (CapSense_GANGED_SNS_MASK == (CapSense_curFlashWdgtPtr->staticConfig & CapSense_GANGED_SNS_MASK))
             {
                 /* Get number of ganged pins */
                 tempVal = CapSense_curFlashSnsPtr->numPins;
 
-                /* Get IO pointer  */
+                /* Get IO pointer */
                 CapSense_curSnsIOPtr = &CapSense_ioList[CapSense_curFlashSnsPtr->firstPinId];
 
                 /* Disconnect all ganged sensors */
@@ -628,7 +630,7 @@ void CapSense_SsCSDElectrodeCheck(void)
         #else
             /* Disable sensor */
             CapSense_CSDDisconnectSns(CapSense_curSnsIOPtr);
-        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
         CapSense_eleCsdDisconnectFlag = 0u;
     }
@@ -675,7 +677,7 @@ void CapSense_SsCSDSetUpIdacs(CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt)
     idacARegValue &= ~(CapSense_CSD_IDACA_VAL_MSK);
 
     /* Set IDACA value */
-    #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
+    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
         if (CapSense_dsFlash.wdgtArray[(CapSense_widgetIndex)].numCols <= CapSense_sensorIndex)
         {
             idacARegValue |= (uint32)ptrWdgt->rowIdacMod[CapSense_scanFreqIndex];
@@ -686,7 +688,7 @@ void CapSense_SsCSDSetUpIdacs(CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt)
         }
     #else
         idacARegValue |= (uint32)ptrWdgt->idacMod[CapSense_scanFreqIndex];
-    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
     /* Update IDACA register with new value */
     CY_SET_REG32(CapSense_CSD_IDACA_PTR, idacARegValue);
@@ -733,54 +735,52 @@ void CapSense_SsCSDSetUpIdacs(CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt)
 *******************************************************************************/
 uint32 CapSense_SsCSDGetNumberOfConversions(uint32 snsClkDivider, uint32 resolution, uint32 snsClkSrc)
 {
+    uint32 divider;
     uint32 conversionsNum;
 
-    if(snsClkSrc == 0uL)
-    {
-        ;
-    }
+    (void)snsClkSrc;
 
     /* Calculate scanning resolution value in register */
     conversionsNum = (uint32)((1uL << resolution) - 1uL);
 
     #if(CapSense_SENSING_LOW_EMI == CapSense_CSD_SENSING_METHOD)
-        snsClkDivider = snsClkDivider -  (snsClkDivider / 5uL) - 1uL;
+        divider = snsClkDivider - (snsClkDivider / 5uL) - 1uL;
+    #else
+        divider = snsClkDivider;
     #endif /* (CapSense_SENSING_LOW_EMI == CapSense_CSD_SENSING_METHOD) */
 
-    if (0u < snsClkDivider)
+    /* CY_ID285392 */
+    if (0u < divider)
     {
-        conversionsNum /= snsClkDivider;
+        if(resolution >= CapSense_16_BIT_RESOLUTION)
+        {
+            conversionsNum = (conversionsNum - CapSense_EXTRA_COUNTS_MAX) / divider;
+        }
+        else
+        {
+            conversionsNum /= divider;
+        }
     }
 
-    #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
-        /* Use direct clock if pre-scalers have not been tuned */
-        if (CapSense_ENABLE == CapSense_prescalersTuningDone)
+    #if((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+        (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+        (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
+        switch (snsClkSrc)
         {
-    #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
-        #if ((CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) || \
-             (CapSense_CLK_SOURCE_PRS8 == CapSense_CSD_SNS_CLK_SOURCE))
-             /* Divide by 4 for PRS8/PRS12 mode */
-             conversionsNum >>= 2u;
-        #elif (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
-             snsClkDivider = snsClkDivider * (uint32)CapSense_dsRam.modCsdClk;
+            case CapSense_CLK_SOURCE_PRS8:
+            case CapSense_CLK_SOURCE_PRS12:
+                /* Divide by 2 for PRS8/PRS12 mode */
+                conversionsNum >>= 1u;
+                break;
 
-             /* Check if PRS8/12 mode was set */
-             if (((CapSense_CLK_SOURCE_PRS8 == snsClkSrc) ||
-                  (CapSense_CLK_SOURCE_PRS12 == snsClkSrc)) &&
-                 (CapSense_HFCLK_SNSCLK_FACTOR >= snsClkDivider))
-             {
-                 /* Divide by 4 for PRS8/PRS12 mode */
-                 conversionsNum >>= 2u;
-             }
-        #else
-             /* SSC or Direct Clock mode  */
-        #endif /* ((CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) || \
-                   (CapSense_CLK_SOURCE_PRS8 == CapSense_CSD_SNS_CLK_SOURCE)) */
-    #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+            default:
+                break;
         }
-    #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+    #endif /* ((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+               (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+               (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)) */
 
-    return conversionsNum;
+    return((conversionsNum > 0uL) ? (conversionsNum) : 1uL);
 }
 
 
@@ -798,22 +798,18 @@ uint32 CapSense_SsCSDGetNumberOfConversions(uint32 snsClkDivider, uint32 resolut
 void CapSense_SsCSDConfigClock(void)
 {
     uint32 snsClkDivider;
+    uint32 snsClkSrc;
     uint32 newRegValue;
 
-    #if ((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) || \
-         (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
-        CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
-                 CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2WdgtRam;
-    #endif /* ((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) || \
-               (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)) */
+    CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
+             CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2WdgtRam;
 
     /* Get sense divider based on configuration */
     #if (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN)
         snsClkDivider = (uint32)CapSense_dsRam.snsCsdClk;
     #else
-        #if (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | \
-                                         CapSense_CSD_TOUCHPAD_WIDGET_EN))
-            /*  Get SnsClck divider for rows or columns */
+        #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+            /* Get SnsClck divider for rows or columns */
             if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
             {
                 snsClkDivider = (uint32)(ptrWdgt->rowSnsClk);
@@ -824,67 +820,56 @@ void CapSense_SsCSDConfigClock(void)
             }
         #else
             snsClkDivider = (uint32)(ptrWdgt->snsClk);
-        #endif /*  (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | \
-                                                CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
+        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
     #endif /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
 
-    #if (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
-        /* Get sense clk source calculated in CapSense_SsCSDInitialize() before */
-        #if (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | \
-                                         CapSense_CSD_TOUCHPAD_WIDGET_EN))
-            /*  Get SnsClc Source for rows or columns */
-            if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
-            {
-                newRegValue = (uint32)ptrWdgt->rowSnsClkSource;
-            }
-            else
-            {
-                newRegValue = (uint32)ptrWdgt->snsClkSource;
-            }
-        #else
-            newRegValue = (uint32)ptrWdgt->snsClkSource;
-        #endif /*  (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | \
-                                                CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
-    #else
-        newRegValue = CapSense_DEFAULT_MODULATION_MODE;
-    #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
-
-    #if (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)
-        if ((CapSense_CLK_SOURCE_PRS8 == newRegValue) ||
-            (CapSense_CLK_SOURCE_PRS12 == newRegValue))
+    /* Get sense clk source calculated in CapSense_SsCSDInitialize() before */
+    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+        /* Get SnsClc Source for rows or columns */
+        if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
         {
-            newRegValue = (newRegValue << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS) |
-                CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK;
+            snsClkSrc = (uint32)ptrWdgt->rowSnsClkSource;
         }
         else
         {
-            newRegValue = (newRegValue << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS);
-        }
-    #elif (CapSense_CLK_SOURCE_PRS8 == CapSense_CSD_SNS_CLK_SOURCE)
-        newRegValue = (newRegValue << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS) |
-            CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK;
-    #elif (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE)
-        newRegValue = (newRegValue << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS) |
-            CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK;
-    #else
-        newRegValue = (newRegValue << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS);
-    #endif /* (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE) */
-
-    newRegValue |= CapSense_CSD_SENSE_PERIOD_LFSR_BITS_MSK;
-
-    #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
-        /* Use direct clock if pre-scalers have not been tuned */
-        if (CapSense_ENABLE == CapSense_prescalersTuningDone)
-        {
-            CapSense_SsCSDSetModeSnsClockDivider(newRegValue, snsClkDivider);
-        }
-        else
-        {
-            CapSense_SsSetSnsClockDivider(snsClkDivider);
+            snsClkSrc = (uint32)ptrWdgt->snsClkSource;
         }
     #else
-        CapSense_SsCSDSetModeSnsClockDivider(newRegValue, snsClkDivider);
-    #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+        snsClkSrc = (uint32)ptrWdgt->snsClkSource;
+    #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+
+    newRegValue = (snsClkSrc << CapSense_CSD_SENSE_PERIOD_LFSR_SIZE_POS);
+
+    /* Configuring PRS SEL_BIT */
+    if ((CapSense_CLK_SOURCE_PRS8 == snsClkSrc) ||
+        (CapSense_CLK_SOURCE_PRS12 == snsClkSrc))
+    {
+        newRegValue |= CapSense_CSD_SENSE_PERIOD_SEL_LFSR_MSB_MSK;
+    }
+
+    #if((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+        (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+        (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE))
+        switch (snsClkSrc)
+        {
+        case CapSense_CLK_SOURCE_PRS8:
+        case CapSense_CLK_SOURCE_PRS12:
+            /* Divide by 2 for PRS8/PRS12 mode */
+            snsClkDivider >>= 1;
+            if (snsClkDivider == 0u)
+            {
+                snsClkDivider = 1u;
+            }
+            break;
+
+        default:
+            break;
+        }
+    #endif /* ((CapSense_CLK_SOURCE_PRS8  == CapSense_CSD_SNS_CLK_SOURCE) ||\
+               (CapSense_CLK_SOURCE_PRS12 == CapSense_CSD_SNS_CLK_SOURCE) ||\
+               (CapSense_CLK_SOURCE_PRSAUTO == CapSense_CSD_SNS_CLK_SOURCE)) */
+
+    CapSense_SsCSDSetModeSnsClockDivider(newRegValue, snsClkDivider);
 
     #if(CapSense_SENSING_LOW_EMI == CapSense_CSD_SENSING_METHOD)
         /* Calculate duration of the  first phase of the sense clock to have 80:20 duty cycle. */
@@ -904,13 +889,9 @@ void CapSense_SsCSDConfigClock(void)
 *   Calculates Scan Duration which is defined by scan resolution
 *
 * \details
-*   For CSDv2: The function calculates the number of conversions and updates
+*   The function calculates the number of conversions and updates
 *   SEQ_NORM_CNT register. The number of conversions depends on resolution and
 *   snsClk divider.
-*   For CSDv1: The function recalculate the resolution using following equation:
-*   2^resolution - 1. The calculated value is contained in
-*   CapSense_counterResolution global variable and used in
-*   CapSense_SsCSDStartSample() function to trigger the scan process.
 *
 * \param ptrWdgt
 *  The pointer to the RAM_WD_BASE_STRUCT structure.
@@ -925,8 +906,8 @@ void CapSense_SsCSDCalculateScanDuration(CapSense_RAM_WD_BASE_STRUCT const *ptrW
     #if (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN)
         snsClkDivider = CapSense_dsRam.snsCsdClk;
     #else
-        #if (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN))
-            /*  Get SnsClck divider for rows or columns */
+        #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+            /* Get SnsClck divider for rows or columns */
             if (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].numCols <= CapSense_sensorIndex)
             {
                 snsClkDivider = (uint32)(ptrWdgt->rowSnsClk);
@@ -937,10 +918,10 @@ void CapSense_SsCSDCalculateScanDuration(CapSense_RAM_WD_BASE_STRUCT const *ptrW
             }
         #else
             snsClkDivider = (uint32)(ptrWdgt->snsClk);
-        #endif /*  (CapSense_ENABLE == (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)) */
+        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
     #endif /* (CapSense_ENABLE == CapSense_CSD_COMMON_SNS_CLK_EN) */
 
-        conversionsNum = CapSense_SsCSDGetNumberOfConversions(snsClkDivider, (uint32)ptrWdgt->resolution, (uint32)ptrWdgt->snsClkSource);
+    conversionsNum = CapSense_SsCSDGetNumberOfConversions(snsClkDivider, (uint32)ptrWdgt->resolution, (uint32)ptrWdgt->snsClkSource);
 
     /* Set Number Of Conversions based on scanning resolution */
     CY_SET_REG32(CapSense_CSD_SEQ_NORM_CNT_PTR, (conversionsNum & CapSense_CSD_SEQ_NORM_CNT_CONV_CNT_MSK));
@@ -988,6 +969,9 @@ void CapSense_CSDSetupWidget(uint32 widgetId)
     CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
                                                     CapSense_dsFlash.wdgtArray[widgetId].ptr2WdgtRam;
 
+    /* Save widget Id to have assess to it after scanning  */
+    CapSense_widgetIndex = (uint8)widgetId;
+
     #if ((CapSense_ENABLE == CapSense_CSD_CSX_EN) || \
         (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
         (CapSense_ENABLE == CapSense_ADC_EN))
@@ -996,11 +980,13 @@ void CapSense_CSDSetupWidget(uint32 widgetId)
                (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
                (CapSense_ENABLE == CapSense_ADC_EN)) */
 
+    #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
+        /* Reset the frequency scan channel if enabled */
+        CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
+    #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+
     /* Disconnect previous electrode if it has been connected */
     CapSense_SsCSDElectrodeCheck();
-
-    /* Save widget Id to have assess to it after scanning  */
-    CapSense_widgetIndex = (uint8)widgetId;
 
     /* Initialize IO Sns electrode structure pointer to current widget */
     CapSense_curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
@@ -1010,7 +996,7 @@ void CapSense_CSDSetupWidget(uint32 widgetId)
     CapSense_dsRam.status &= ~CapSense_STATUS_WDGT0_MASK;
     CapSense_dsRam.status |= CapSense_widgetIndex;
 
-    /* Set up scanning resolution (Number ofconversion for CSDv2) */
+    /* Set up scanning resolution (Number of conversion) */
     CapSense_SsCSDCalculateScanDuration(ptrWdgt);
 
     #if ((CapSense_DISABLE == CapSense_CSD_COMMON_SNS_CLK_EN) ||\
@@ -1069,10 +1055,10 @@ void CapSense_CSDSetupWidgetExt(uint32 widgetId, uint32 sensorId)
     CapSense_RAM_WD_BASE_STRUCT const *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
                                                     CapSense_dsFlash.wdgtArray[widgetId].ptr2WdgtRam;
 
-    /* Save widget and sensor Ids to have access to it after scanning  */
+    /* Save widget and sensor Ids to have access to it after scanning */
     CapSense_sensorIndex = (uint8)sensorId;
 
-    /*  Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor  */
+    /* Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor */
     CapSense_curRamSnsPtr = (CapSense_RAM_SNS_STRUCT *)
                                               CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsRam
                                               + CapSense_sensorIndex;
@@ -1083,9 +1069,9 @@ void CapSense_CSDSetupWidgetExt(uint32 widgetId, uint32 sensorId)
     CapSense_SsCSDSetUpIdacs(ptrWdgt);
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-        /*  Initialise access pointers for current pointer to widget configuration in Flash */
+        /* initialize access pointers for current pointer to widget configuration in Flash */
         CapSense_curFlashWdgtPtr = &CapSense_dsFlash.wdgtArray[widgetId];
-    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
         CapSense_SsCSDConnectSensorExt(widgetId, sensorId);
@@ -1093,7 +1079,7 @@ void CapSense_CSDSetupWidgetExt(uint32 widgetId, uint32 sensorId)
         /* Enable sensor */
         CapSense_curSnsIOPtr += CapSense_sensorIndex;
         CapSense_CSDConnectSns(CapSense_curSnsIOPtr);
-    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
         /* Save sns pointer */
@@ -1104,7 +1090,7 @@ void CapSense_CSDSetupWidgetExt(uint32 widgetId, uint32 sensorId)
 
     CapSense_eleCsdDisconnectFlag = CapSense_DISCONNECT_IO_FLAG;
 
-    /*  Setup ISR handler to single-sensor scan function */
+    /* Setup ISR handler to single-sensor scan function */
     CapSense_SsIsrInitialize(&CapSense_CSDPostSingleScan);
 }
 
@@ -1120,17 +1106,10 @@ void CapSense_CSDSetupWidgetExt(uint32 widgetId, uint32 sensorId)
 *   This function assumes that the CSD block is already set up using
 *   the CapSense_CSDSetupWidget API and the sensor port-pin is connected to the CSD
 *   block using CapSense_CSDConnectSns.
-*   For CSDv1 the function performs the following tasks:
-*   1. Disconnects the Vref buffer from AMUX;
-*   2. Precharges Cmod;
-*   3. Makes the PreSettling delay to have a stable Vref voltage;
-*   4. Sets the resolution to the Counter register to start scanning.
 *
 *******************************************************************************/
 void CapSense_SsCSDStartSample(void)
 {
-    /* CSDv2 HW IP block section */
-
     #ifdef CapSense_START_SAMPLE_CALLBACK
         CapSense_StartSampleCallback(CapSense_widgetIndex, CapSense_sensorIndex);
     #endif /* CapSense_START_SAMPLE_CALLBACK */
@@ -1206,6 +1185,11 @@ void CapSense_CSDScanExt(void)
     /* Set Start of sensor scan flag */
     CapSense_dsRam.status |= (CapSense_SW_STS_BUSY | CapSense_WDGT_SW_STS_BUSY);
 
+    #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
+        /* Reset the frequency scan channel if enabled */
+        CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
+    #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+
     #if (CapSense_ENABLE != CapSense_BLOCK_OFF_AFTER_SCAN_EN)
         #if(CapSense_CSD_ANALOG_STARTUP_DELAY_US > 0uL)
             Cy_SysLib_DelayUs(CapSense_CSD_ANALOG_STARTUP_DELAY_US);
@@ -1257,31 +1241,36 @@ void CapSense_CSDScan(void)
       */
     CapSense_sensorIndex = 0u;
 
-    /*  Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor  */
+    /* Update global pointer to CapSense_RAM_SNS_STRUCT to current sensor */
     CapSense_curRamSnsPtr = (CapSense_RAM_SNS_STRUCT *)
                                               CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2SnsRam
                                               + CapSense_sensorIndex;
+
+    #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
+        /* Reset the frequency scan channel if enabled */
+        CapSense_scanFreqIndex = CapSense_FREQ_CHANNEL_0;
+    #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
     /* Setup Idac Value */
    CapSense_SsCSDSetUpIdacs(ptrWdgt);
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-        /* Check ganged sns flag  */
+        /* Check ganged sns flag */
         if (CapSense_GANGED_SNS_MASK == (CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].staticConfig &
             CapSense_GANGED_SNS_MASK))
         {
-            /*  Setup ISR handler to multiple-sensor scan function with ganged sensors */
+            /* Setup ISR handler to multiple-sensor scan function with ganged sensors */
             CapSense_SsIsrInitialize(&CapSense_CSDPostMultiScanGanged);
         }
         else
         {
-            /*  Set up ISR handler to multiple-sensor scan function without ganged sensors */
+            /* Set up ISR handler to multiple-sensor scan function without ganged sensors */
             CapSense_SsIsrInitialize(&CapSense_CSDPostMultiScan);
         }
 
         CapSense_SsCSDConnectSensorExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
     #else
-        /* Initialise ptr to sensor IO structure to appropriate address */
+        /* initialize ptr to sensor IO structure to appropriate address */
         CapSense_curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                         CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2SnsFlash
                                         + CapSense_sensorIndex;
@@ -1289,9 +1278,9 @@ void CapSense_CSDScan(void)
         /* Enable sensor */
         CapSense_CSDConnectSns(CapSense_curSnsIOPtr);
 
-        /*  Set-up ISR handler to multiple-sensor scan function without ganged sensors */
+        /* Set-up ISR handler to multiple-sensor scan function without ganged sensors */
         CapSense_SsIsrInitialize(&CapSense_CSDPostMultiScan);
-    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+    #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
     /* Start scanning */
     CapSense_CSDScanExt();
@@ -1303,7 +1292,7 @@ void CapSense_CSDScan(void)
 ****************************************************************************//**
 *
 * \brief
-*  Connects a ganged sensor port-pin to the CapSense block via the AMUX bus.
+*  Connects a ganged sensor port-pin to the sensing HW block via the AMUX bus.
 *
 * \details
 *   The function gets the IO configuration registers addresses, their shifts and
@@ -1323,13 +1312,13 @@ void CapSense_SsCSDConnectSensorExt(uint32 widgetId, uint32 sensorId)
         uint32 tempVal;
     #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
-    /*  Initialise ptr to sensor IO structure to appropriate address */
+    /* initialize ptr to sensor IO structure to appropriate address */
     CapSense_curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                                       CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsFlash
                                                       + sensorId;
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-        /* Check ganged sns flag  */
+        /* Check ganged sns flag */
         if (CapSense_GANGED_SNS_MASK ==
            (CapSense_dsFlash.wdgtArray[widgetId].staticConfig &
             CapSense_GANGED_SNS_MASK))
@@ -1342,10 +1331,10 @@ void CapSense_SsCSDConnectSensorExt(uint32 widgetId, uint32 sensorId)
             /* Get number of ganged pins */
             tempVal = CapSense_curFlashSnsPtr->numPins;
 
-            /* Get IO pointer  */
+            /* Get IO pointer */
             CapSense_curSnsIOPtr = &CapSense_ioList[CapSense_curFlashSnsPtr->firstPinId];
 
-            /* Connect all ganged sensors  */
+            /* Connect all ganged sensors */
             do
             {
                 CapSense_CSDConnectSns(CapSense_curSnsIOPtr);
@@ -1370,7 +1359,7 @@ void CapSense_SsCSDConnectSensorExt(uint32 widgetId, uint32 sensorId)
 ****************************************************************************//**
 *
 * \brief
-*  Disconnects a ganged sensor port-pin from the CapSense block and AMUX bus.
+*  Disconnects a ganged sensor port-pin from the sensing HW block and AMUX bus.
 *  Sets the default state of the un-scanned sensor.
 *
 * \details
@@ -1393,13 +1382,13 @@ void CapSense_SsCSDDisconnectSnsExt(uint32 widgetId, uint32 sensorId)
         uint32 tempVal;
     #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
-    /*  Initialise ptr to sensor IO structure to appropriate address        */
+    /* initialize ptr to sensor IO structure to appropriate address */
     CapSense_curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                                       CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsFlash
                                                       + sensorId;
 
     #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
-        /* Check ganged sns flag  */
+        /* Check ganged sns flag */
         if ((CapSense_dsFlash.wdgtArray[widgetId].staticConfig &
             CapSense_GANGED_SNS_MASK) == CapSense_GANGED_SNS_MASK)
         {
@@ -1411,7 +1400,7 @@ void CapSense_SsCSDDisconnectSnsExt(uint32 widgetId, uint32 sensorId)
             /* Get number of ganged pins */
             tempVal = CapSense_curFlashSnsPtr->numPins;
 
-            /* Get IO pointer  */
+            /* Get IO pointer */
             CapSense_curSnsIOPtr = &CapSense_ioList[CapSense_curFlashSnsPtr->firstPinId];
 
             /* Disconnect all ganged sensors */
@@ -1439,10 +1428,10 @@ void CapSense_SsCSDDisconnectSnsExt(uint32 widgetId, uint32 sensorId)
 ****************************************************************************//**
 *
 * \brief
-*  Connects a port pin used by the sensor to the AMUX bus of the CapSense block.
+*  Connects a port pin used by the sensor to the AMUX bus of the sensing HW block.
 *
 * \details
-*  Connects a port pin used by the sensor to the AMUX bus of the CapSense block
+*  Connects a port pin used by the sensor to the AMUX bus of the sensing HW block
 *  while a sensor is being scanned. The function ignores the fact if
 *  the sensor is a ganged sensor and connects only a specified pin.
 *
@@ -1457,7 +1446,7 @@ void CapSense_SsCSDDisconnectSnsExt(uint32 widgetId, uint32 sensorId)
 *
 * \param  snsAddrPtr
 *  Specifies the pointer to the FLASH_IO_STRUCT object belonging to a sensor
-*  which to be connected to the CapSense block.
+*  which to be connected to the sensing HW block.
 *
 *******************************************************************************/
 void CapSense_CSDConnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
@@ -1476,7 +1465,7 @@ void CapSense_CSDConnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
 ****************************************************************************//**
 *
 * \brief
-*  Disconnects a sensor port pin from the CapSense block and the AMUX bus. Sets
+*  Disconnects a sensor port pin from the sensing HW block and the AMUX bus. Sets
 *  the default state of the un-scanned sensor.
 *
 * \details
@@ -1492,7 +1481,7 @@ void CapSense_CSDConnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
 *
 * \param  snsAddrPtr
 *  Specifies the pointer to the FLASH_IO_STRUCT object belonging to a sensor
-*  which should be disconnected from the CapSense block.
+*  which should be disconnected from the sensing HW block.
 *
 *******************************************************************************/
 void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
@@ -1516,9 +1505,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                 (CapSense_SNS_CONNECTION_SHIELD != CapSense_CSD_INACTIVE_SNS_CONNECTION)) */
 }
 
-
 #if ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) || \
-     (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
      (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN))
     #if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
         /*******************************************************************************
@@ -1529,8 +1516,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         *  This function set single IDAC mode.
         *
         * \details
-        *   For CSDv1: The function enables Modulator IDAC only in variable mode.
-        *   For CSDv2: The function enables IDACA LEG1 in CSD mode, IDACA LEG2 in GP mode.
+        *  The function enables IDACA LEG1 in CSD mode, IDACA LEG2 in GP mode.
         *
         *******************************************************************************/
         static void CapSense_SsCSDSetSingleIdacMode(void)
@@ -1552,7 +1538,6 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         }
     #endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
 #endif /* ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) || \
-           (CapSense_ENABLE == CapSense_SELF_TEST_EN) || \
            (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN)) */
 
 #if ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) || \
@@ -1650,7 +1635,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
     *
     * \details
     *   The function performs the following tasks:
-    *   1. Initialises The Compensation IDAC to zero
+    *   1. initializes The Compensation IDAC to zero
     *   2. Enables the calibrated sensor
     *   3. Performs eight iteration steps to get the target = rawLevel
     *      setting and resetting the IDAC value bits beginning from the
@@ -1678,23 +1663,23 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                                                            uint8 *iDAC8Max)
     {
         cy_status calibrateStatus;
-        uint32 rawData0;
-        uint8 calMask = (uint8)CapSense_CAL_MIDDLE_BIT;
+        uint32 calMask = ((uint32)CapSense_CAL_MIDDLE_BIT << 1uL);
         uint32 watchdogCounter;
+
+        uint16 rawData0 = 0u;
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-            uint32 rawData1;
-            uint32 rawData2;
+            uint16 rawData1 = 0u;
+            uint16 rawData2 = 0u;
         #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
-        /*  Declare and initialise ptr to widget and sensor structures to appropriate address        */
+        /* Declare and initialize ptr to widget and sensor structures to appropriate address */
         CapSense_RAM_WD_BASE_STRUCT *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
                                                         CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2WdgtRam;
 
-        /* Init compensation IDAC */
-        ptrIdac[0u] = calMask;
+        ptrIdac[0u] = 0u;
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-            ptrIdac[CapSense_FREQ_CHANNEL_1] = calMask;
-            ptrIdac[CapSense_FREQ_CHANNEL_2] = calMask;
+            ptrIdac[CapSense_FREQ_CHANNEL_1] = 0u;
+            ptrIdac[CapSense_FREQ_CHANNEL_2] = 0u;
         #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
         /* Setup the calibrated sensor of the widget (Set IDAC = calMask and connect the sensor) */
@@ -1703,7 +1688,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         #if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
             /* Set single IDAC mode */
             CapSense_SsCSDSetSingleIdacMode();
-        #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
 
         /*
          * Perform the iteration steps to get target = rawLevel.
@@ -1711,12 +1696,46 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
          */
         do
         {
+            /* Decrease IDAC until rawData reaches rawLevel */
+            if (rawData0 < rawLevel)
+            {
+                /* Reset bit for null channel (decrease IDAC -> will increase rawData) */
+                ptrIdac[0u] &= (uint8)(~calMask);
+            }
+            #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
+                if (rawData1 < rawLevel)
+                {
+                    ptrIdac[CapSense_FREQ_CHANNEL_1] &= (uint8)(~calMask);
+                }
+                if (rawData2 < rawLevel)
+                {
+                    ptrIdac[CapSense_FREQ_CHANNEL_2] &= (uint8)(~calMask);
+                }
+            #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+
+            /*
+            * Shift calMask to set or reset next bit.
+            * Perform scan even if callibration mask is equal to zero.
+            * It gives raw counts for the last changed IDAC.
+            */
+            calMask >>= 1u;
+
+            /* Set bit for null channel */
+            ptrIdac[0u] |= (uint8)calMask;
+            #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
+                ptrIdac[CapSense_FREQ_CHANNEL_1] |= (uint8)calMask;
+                ptrIdac[CapSense_FREQ_CHANNEL_2] |= (uint8)calMask;
+            #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+
+            /* Update IDAC */
+            CapSense_SsCSDSetUpIdacs(ptrWdgt);
+
             /* Scan sensor */
             CapSense_CSDScanExt();
 
             /* Initialize Watchdog Counter with time interval which is enough to charge 100 nF capacitor */
             watchdogCounter = CapSense_CALIBR_WATCHDOG_CYCLES_NUM;
-            while (((*(volatile uint8 *)&CapSense_dsRam.status & CapSense_SW_STS_BUSY) != 0u) &&
+            while (((CapSense_dsRam.status & CapSense_SW_STS_BUSY) != 0u) &&
                    (0u != watchdogCounter))
             {
                 /* Wait until scan complete and decrement Watchdog Counter to prevent unending loop */
@@ -1729,52 +1748,20 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                 rawData1 = CapSense_curRamSnsPtr->raw[CapSense_FREQ_CHANNEL_1];
                 rawData2 = CapSense_curRamSnsPtr->raw[CapSense_FREQ_CHANNEL_2];
             #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
-
-            /* Decrease IDAC until rawData reaches rawLevel */
-            if (rawData0 < rawLevel)
-            {
-                /* Reset bit for null channel (decrease IDAC -> will increase rawData) */
-                ptrIdac[0u] &= (uint8)(~calMask);
-            }
-            #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                if (rawData1 < rawLevel)
-                {
-                    /* Reset bit for null channel  */
-                    ptrIdac[CapSense_FREQ_CHANNEL_1] &= (uint8)(~calMask);
-                }
-                if (rawData2 < rawLevel)
-                {
-                    /* Reset bit for null channel  */
-                    ptrIdac[CapSense_FREQ_CHANNEL_2] &= (uint8)(~calMask);
-                }
-            #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
-
-            /* Shift calMask to set or reset next bit */
-            calMask >>= 1u;
-
-            /* Set bit for null channel */
-            ptrIdac[0u] |= calMask;
-            #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                ptrIdac[CapSense_FREQ_CHANNEL_1] |= calMask;
-                ptrIdac[CapSense_FREQ_CHANNEL_2] |= calMask;
-            #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
-
-            /* Update IDAC */
-            CapSense_SsCSDSetUpIdacs(ptrWdgt);
         }
         while (calMask > 0u);
 
         #if (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)
             CapSense_SsCSDDisconnectSnsExt((uint32)CapSense_widgetIndex, (uint32)CapSense_sensorIndex);
         #else
-            /*  Initialise pointer to sensor IO structure    */
+            /* initialize pointer to sensor IO structure */
             CapSense_curSnsIOPtr = (CapSense_FLASH_IO_STRUCT const *)
                                             CapSense_dsFlash.wdgtArray[CapSense_widgetIndex].ptr2SnsFlash
                                             + CapSense_sensorIndex;
 
             /* Disable sensor */
             CapSense_CSDDisconnectSns(CapSense_curSnsIOPtr);
-        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN)  */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_GANGED_SNS_EN) */
 
         /* Set flag about disconnecting the electrode */
         CapSense_eleCsdDisconnectFlag = 0u;
@@ -1782,24 +1769,29 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         #if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
             /* Restore IDAC configuration to default state */
             CapSense_SsCSDRestoreIdacMode();
-        #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+        #endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
 
         /* Check if IDAC is in correct range */
-        calibrateStatus = CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, rawData0);
+        calibrateStatus = CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, (uint32)rawData0);
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-            calibrateStatus |= CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, rawData1);
-            calibrateStatus |= CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, rawData2);
+            calibrateStatus |= CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, (uint32)rawData1);
+            calibrateStatus |= CapSense_SsCSDCalibrateCheck(ptrWdgt, rawLevel, (uint32)rawData2);
         #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
         /*
          * Update maximum IDAC value in widget. iDAC8Max variable will contain
          * maximum IDAC value after all the sensors in a widget have been scanned.
          */
+        if (*iDAC8Max < ptrIdac[0u])
+        {
+            *iDAC8Max = ptrIdac[0u];
+            #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+                /* Stores IDAC and raw count that corresponds to a sensor with maximum Cp within a widget */
+                CapSense_calibratedIdac = *iDAC8Max;
+                CapSense_calibratedRawcount = rawData0;
+            #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+        }
         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-            if (iDAC8Max[CapSense_FREQ_CHANNEL_0] < ptrIdac[CapSense_FREQ_CHANNEL_0])
-            {
-                iDAC8Max[CapSense_FREQ_CHANNEL_0] = ptrIdac[CapSense_FREQ_CHANNEL_0];
-            }
             if (iDAC8Max[CapSense_FREQ_CHANNEL_1] < ptrIdac[CapSense_FREQ_CHANNEL_1])
             {
                 iDAC8Max[CapSense_FREQ_CHANNEL_1] = ptrIdac[CapSense_FREQ_CHANNEL_1];
@@ -1807,11 +1799,6 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
             if (iDAC8Max[CapSense_FREQ_CHANNEL_2] < ptrIdac[CapSense_FREQ_CHANNEL_2])
             {
                 iDAC8Max[CapSense_FREQ_CHANNEL_2] = ptrIdac[CapSense_FREQ_CHANNEL_2];
-            }
-        #else
-            if (*iDAC8Max < ptrIdac[0u])
-            {
-                *iDAC8Max = ptrIdac[0u];
             }
         #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
@@ -1869,7 +1856,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
     *  Returns the status of the specified widget calibration:
     *    - CY_RET_SUCCESS - The operation is successfully completed.
     *    - CY_RET_BAD_PARAM - The input parameter is invalid.
-    *    - CY_RET_BAD_DATA - The calibration failed and the component may not operate as expected.
+    *    - CY_RET_BAD_DATA - The calibration failed and the Component may not operate as expected.
     *
     *******************************************************************************/
     cy_status CapSense_CSDCalibrateWidget(uint32 widgetId, uint32 target)
@@ -1877,7 +1864,14 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         uint32 rawLevel;
         cy_status calibrateStatus = CY_RET_SUCCESS;
 
-        /*  Declare and initialise ptr to widget and sensor structures to appropriate address        */
+        #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+            #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+                uint8 maxIdac = 1u;
+                uint16 maxRaw = 1u;
+            #endif /*(CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+        #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+
+        /* Declare and initialize ptr to widget and sensor structures to appropriate address */
         CapSense_RAM_WD_BASE_STRUCT *ptrWdgt = (CapSense_RAM_WD_BASE_STRUCT *)
                                               CapSense_dsFlash.wdgtArray[widgetId].ptr2WdgtRam;
 
@@ -1904,7 +1898,12 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
         /* Init pointer to Modulator IDAC */
         ptrIdac = &ptrWdgt->idacMod[0u];
 
-        /* Go through all sensors (or columns of touchpad) of widget to calibrate them */
+        #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+            CapSense_calibratedIdac = 1u;
+            CapSense_calibratedRawcount = 1u;
+        #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+
+        /* Go through all the sensors (or columns of touchpad) of widget to calibrate them */
         for (CapSense_sensorIndex = 0u;
              CapSense_sensorIndex < CapSense_dsFlash.wdgtArray[widgetId].numCols;
              CapSense_sensorIndex++)
@@ -1915,25 +1914,21 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
 
         /* Normalize idacMod and idacComp values */
         #if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
-            /* Calculate Modulator value: idacMod = (iDAC8Max + 1)/2  */
+            /* Calculate Modulator value: idacMod = (iDAC8Max + 1)/2 */
             ptrIdac[0u] = (iDAC8Max[0u] + 1u) >> 1u;
-
             #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                /* Do same for first frequency channel  */
                 ptrIdac[CapSense_FREQ_CHANNEL_1] =  (iDAC8Max[CapSense_FREQ_CHANNEL_1] + 1u) >> 1u;
-
-                /* Do same for second frequency channel  */
                 ptrIdac[CapSense_FREQ_CHANNEL_2] = (iDAC8Max[CapSense_FREQ_CHANNEL_2] + 1u) >> 1u;
             #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
-            /* Go through all columns of touchpad (or all sensors in button) to normalize them */
+            /* Go through all columns of touchpad (or all the sensors in button) to normalize them */
             for (CapSense_sensorIndex = 0u;
                  CapSense_sensorIndex < CapSense_dsFlash.wdgtArray[widgetId].numCols;
                  CapSense_sensorIndex++)
             {
                 CapSense_curRamSnsPtr = (CapSense_RAM_SNS_STRUCT *)
                          CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsRam + CapSense_sensorIndex;
-                /* Calculate Compensation IDAC value: idacComp(i) = (iDAC8(i) - idacMod) * 85% */
+                /* Calculate Compensation IDAC value: idacComp(i) = (iDAC8(i) - idacMod) * Target */
                 if (CapSense_curRamSnsPtr->idacComp[0u] >= ptrIdac[0u])
                 {
                     CapSense_curRamSnsPtr->idacComp[0u] -= ptrIdac[0u];
@@ -1948,7 +1943,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                     CapSense_curRamSnsPtr->idacComp[0u] = 0u;
                 }
                 #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                    /* Do same for first frequency channel  */
+                    /* Do same for first frequency channel */
                     if (CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_1] >= ptrIdac[CapSense_FREQ_CHANNEL_1])
                     {
                         CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_1] -= ptrIdac[CapSense_FREQ_CHANNEL_1];
@@ -1962,7 +1957,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                     {
                        CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_1] = 0u;
                     }
-                    /* Do same for second frequency channel  */
+                    /* Do same for second frequency channel */
                     if (CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_2] >= ptrIdac[CapSense_FREQ_CHANNEL_2])
                     {
                         CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_2] -= ptrIdac[CapSense_FREQ_CHANNEL_2];
@@ -1987,7 +1982,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
             #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
         #endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
 
-        #if (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN)
+        #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
             if ((CapSense_WD_TOUCHPAD_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[widgetId].wdgtType) ||
                 (CapSense_WD_MATRIX_BUTTON_E == (CapSense_WD_TYPE_ENUM)CapSense_dsFlash.wdgtArray[widgetId].wdgtType))
             {
@@ -1997,12 +1992,16 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                 /* Reset the maximum value for columns */
                 iDAC8Max[0u] = 1u;
                 #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                    /* Do same for first frequency channel  */
                     iDAC8Max[CapSense_FREQ_CHANNEL_1] = 1u;
-
-                    /* Do same for second frequency channel  */
                     iDAC8Max[CapSense_FREQ_CHANNEL_2] = 1u;
                 #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
+
+                #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+                    maxIdac = CapSense_calibratedIdac;
+                    maxRaw = CapSense_calibratedRawcount;
+                    CapSense_calibratedIdac = 1u;
+                    CapSense_calibratedRawcount = 1u;
+                #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
 
                 /* Go through all columns of touchpad to calibrate them */
                 for (CapSense_sensorIndex = CapSense_dsFlash.wdgtArray[widgetId].numCols;
@@ -2013,15 +2012,19 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                     calibrateStatus |= CapSense_SsCSDCalibrateOneSensor(rawLevel, ptrIdac, iDAC8Max);
                 }
 
+                #if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+                    CapSense_calibratedIdacRow = CapSense_calibratedIdac;
+                    CapSense_calibratedRawcountRow = CapSense_calibratedRawcount;
+                    CapSense_calibratedIdac = maxIdac;
+                    CapSense_calibratedRawcount = maxRaw;
+                #endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
+
                 /* Normalize idacMod and idacComp values */
                 #if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
-                    /* Calculate Modulator value: idacMod = (iDAC8Max + 1)/2  */
+                    /* Calculate Modulator value: idacMod = (iDAC8Max + 1)/2 */
                     ptrIdac[0u] = (iDAC8Max[0u] + 1u) >> 1u;
                     #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                        /* Do same for first frequency channel  */
                         ptrIdac[CapSense_FREQ_CHANNEL_1] =  (iDAC8Max[CapSense_FREQ_CHANNEL_1] + 1u) >> 1u;
-
-                        /* Do same for second frequency channel  */
                         ptrIdac[CapSense_FREQ_CHANNEL_2] = (iDAC8Max[CapSense_FREQ_CHANNEL_2] + 1u) >> 1u;
                     #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
 
@@ -2033,7 +2036,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                         CapSense_curRamSnsPtr = (CapSense_RAM_SNS_STRUCT *)
                                  CapSense_dsFlash.wdgtArray[widgetId].ptr2SnsRam + CapSense_sensorIndex;
 
-                        /* Calculate Compensation IDAC value: idacComp(i) = (iDAC8(i) - idacMod) * 85% */
+                        /* Calculate Compensation IDAC value: idacComp(i) = (iDAC8(i) - idacMod) * Target */
                         if (CapSense_curRamSnsPtr->idacComp[0u] >= ptrIdac[0u])
                         {
                             CapSense_curRamSnsPtr->idacComp[0u] -= ptrIdac[0u];
@@ -2044,7 +2047,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                             #endif /* (CapSense_ENABLE == CapSense_CSD_DEDICATED_IDAC_COMP_EN) */
                         }
                         #if (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN)
-                            /* Do same for first frequency channel  */
+                            /* Do same for first frequency channel */
                             if (CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_1] >= ptrIdac[CapSense_FREQ_CHANNEL_1])
                             {
                                 CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_1] -= ptrIdac[CapSense_FREQ_CHANNEL_1];
@@ -2054,7 +2057,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                                         CapSense_PERCENTAGE_100) - 1u) / CapSense_PERCENTAGE_100);
                                 #endif /* (CapSense_ENABLE == CapSense_CSD_DEDICATED_IDAC_COMP_EN) */
                             }
-                            /* Do same for second frequency channel  */
+                            /* Do same for second frequency channel */
                             if (CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_2] >= ptrIdac[CapSense_FREQ_CHANNEL_2])
                             {
                                 CapSense_curRamSnsPtr->idacComp[CapSense_FREQ_CHANNEL_2] -= ptrIdac[CapSense_FREQ_CHANNEL_2];
@@ -2075,14 +2078,14 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
                     #endif /* (CapSense_ENABLE == CapSense_MULTI_FREQ_SCAN_EN) */
                 #endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
             }
-        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN | CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+        #endif /* (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
 
         CapSense_sensorIndex = 0u;
 
         return calibrateStatus;
     }
 #endif /* ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)) || \
-            (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN))  */
+            (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN)) */
 
 
 /*******************************************************************************
@@ -2093,13 +2096,6 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
 *  This function initializes the Cmod charging to Vref.
 *
 * \details
-*  For CSDv1:
-*  The function initializes the Cmod charging to Vref.
-*  Then it waits the even when Cmod is completely charged
-*  to Vref to have stable Rawcounts. Software Watchdog Counter is implemented to
-*  prevent the project hanging.
-*
-*  For CSDv2:
 *  Coarse initialization for CMOD and Cch.
 *  The coarse initialization is performed by HSCOMP.
 *  The HSCOMP monitors the Cmod voltage via Cmod sense path
@@ -2107,7 +2103,7 @@ void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr)
 *  and static connection of Cmod to AMUXBUS-A.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_SsCSDCmodPrecharge(void)
+static void CapSense_SsCSDCmodPrecharge(void)
 {
     uint32 watchdogCounter;
 
@@ -2171,10 +2167,6 @@ __STATIC_INLINE void CapSense_SsCSDCmodPrecharge(void)
 *  This function triggers the scanning.
 *
 * \details
-*  For CSDv1:
-*  Writes resolution to start the scanning.
-*
-*  For CSDv2:
 *  Trigger the fine initialization (scan some dummy cycles) and start sampling.
 *  Fine initialization for CMOD and Start scan.
 *  For the fine initialization and sampling, Cmod is static connected to AMUXBUS-A
@@ -2184,7 +2176,7 @@ __STATIC_INLINE void CapSense_SsCSDCmodPrecharge(void)
 *  to Vref using IDACs by connecting IDAC to CSDBUS-A and then the AMUXBUS-A.
 *
 *******************************************************************************/
-__STATIC_INLINE void CapSense_SsCSDTriggerScan(void)
+static void CapSense_SsCSDTriggerScan(void)
 {
     uint32 watchdogCounter;
 
@@ -2221,7 +2213,7 @@ __STATIC_INLINE void CapSense_SsCSDTriggerScan(void)
     #endif /* (CapSense_DISABLE == CapSense_CSD_SHIELD_EN) */
 
     #if (CapSense_CLK_SOURCE_DIRECT != CapSense_CSD_SNS_CLK_SOURCE)
-        /*  Force the LFSR to it's initial state (all ones) */
+        /* Force the LFSR to it's initial state (all ones) */
         CY_SET_REG32(CapSense_CSD_SENSE_PERIOD_PTR, CY_GET_REG32(CapSense_CSD_SENSE_PERIOD_PTR) |
                                                        CapSense_CSD_SENSE_PERIOD_LFSR_CLEAR_MSK);
     #endif /* (CapSense_CLK_SOURCE_DIRECT != CapSense_CSD_SNS_CLK_SOURCE) */
@@ -2232,7 +2224,7 @@ __STATIC_INLINE void CapSense_SsCSDTriggerScan(void)
     /* Init Watchdog Counter to prevent a hang */
     watchdogCounter = CapSense_CSD_PRECHARGE_WATCHDOG_CYCLES_NUM;
 
-    /* Wait for IDLE state of the CSDv2 HW sequencer */
+    /* Wait for IDLE state of the HW sequencer */
     while((0u != (CapSense_CSD_STAT_SEQ_REG & CapSense_CSD_STAT_SEQ_SEQ_STATE_MSK)) && (0u != watchdogCounter))
     {
         watchdogCounter--;

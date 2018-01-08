@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Heart Rate Service of the BLE Component.
+*  the Heart Rate Service.
 *
 ********************************************************************************
 * \copyright
@@ -106,7 +106,7 @@ typedef struct
     /** Heart Rate Service GATT DB handles structure */
     const cy_stc_ble_hrss_t *hrss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_hrs_config_t;
 /** @} */

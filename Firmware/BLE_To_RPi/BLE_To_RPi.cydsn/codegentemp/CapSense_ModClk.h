@@ -59,7 +59,7 @@
 *******************************************************************************/
 __STATIC_INLINE void CapSense_ModClk_Enable(void)
 {
-    Cy_SysClk_PeriphEnableDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM);
+    (void)Cy_SysClk_PeriphEnableDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -75,7 +75,7 @@ __STATIC_INLINE void CapSense_ModClk_Enable(void)
 *******************************************************************************/
 __STATIC_INLINE void CapSense_ModClk_Disable(void)
 {
-    Cy_SysClk_PeriphDisableDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM);
+    (void)Cy_SysClk_PeriphDisableDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -97,7 +97,7 @@ __STATIC_INLINE void CapSense_ModClk_Disable(void)
 *******************************************************************************/
 __STATIC_INLINE void CapSense_ModClk_SetDivider(uint32_t dividerValue)
 {
-    Cy_SysClk_PeriphSetDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM, dividerValue);
+    (void)Cy_SysClk_PeriphSetDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM, dividerValue);
 }
 
 /*******************************************************************************
@@ -145,7 +145,7 @@ __STATIC_INLINE uint32_t CapSense_ModClk_GetDivider(void)
 *******************************************************************************/
 __STATIC_INLINE void CapSense_ModClk_SetFracDivider(uint32_t dividerIntValue, uint32_t dividerFracValue)
 {
-    Cy_SysClk_PeriphSetFracDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM, dividerIntValue, dividerFracValue);
+    (void)Cy_SysClk_PeriphSetFracDivider(CapSense_ModClk_DIV_TYPE, CapSense_ModClk_DIV_NUM, dividerIntValue, dividerFracValue);
 }
 
 /*******************************************************************************

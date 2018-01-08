@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in the
-*  Bond Management Service of the BLE Component.
+*  Bond Management Service.
 *
 ********************************************************************************
 * \copyright
@@ -115,7 +115,7 @@ typedef struct
     /** Bond Management Service GATT DB handles structure */
     const cy_stc_ble_bmss_t *bmss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_bms_config_t;
 

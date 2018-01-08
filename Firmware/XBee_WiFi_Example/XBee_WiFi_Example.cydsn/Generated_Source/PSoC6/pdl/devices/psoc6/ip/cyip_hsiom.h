@@ -5,8 +5,8 @@
 * HSIOM IP definitions
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright
@@ -44,14 +44,7 @@ typedef struct {
         HSIOM_PRT_Type PRT[128];                /*!< 0x00000000 HSIOM port registers */
    __IM uint32_t RESERVED[1536];
   __IOM uint32_t AMUX_SPLIT_CTL[64];            /*!< 0x00002000 AMUX splitter cell control */
-   __IM uint32_t RESERVED1[64];
-  __IOM uint32_t MONITOR_CTL_0;                 /*!< 0x00002200 Power/Ground Monitor cell control 0 */
-  __IOM uint32_t MONITOR_CTL_1;                 /*!< 0x00002204 Power/Ground Monitor cell control 1 */
-  __IOM uint32_t MONITOR_CTL_2;                 /*!< 0x00002208 Power/Ground Monitor cell control 2 */
-  __IOM uint32_t MONITOR_CTL_3;                 /*!< 0x0000220C Power/Ground Monitor cell control 3 */
-   __IM uint32_t RESERVED2[12];
-  __IOM uint32_t ALT_JTAG_EN;                   /*!< 0x00002240 Alternate JTAG IF selection register */
-} HSIOM_Type;                                   /*!< Size = 8772 (0x2244) */
+} HSIOM_Type;                                   /*!< Size = 8448 (0x2100) */
 
 
 /* HSIOM_PRT.PORT_SEL0 */
@@ -87,21 +80,6 @@ typedef struct {
 #define HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_SR_Msk   0x20UL
 #define HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_S0_Pos   6UL
 #define HSIOM_AMUX_SPLIT_CTL_SWITCH_BB_S0_Msk   0x40UL
-/* HSIOM.MONITOR_CTL_0 */
-#define HSIOM_MONITOR_CTL_0_MONITOR_EN_Pos      0UL
-#define HSIOM_MONITOR_CTL_0_MONITOR_EN_Msk      0xFFFFFFFFUL
-/* HSIOM.MONITOR_CTL_1 */
-#define HSIOM_MONITOR_CTL_1_MONITOR_EN_Pos      0UL
-#define HSIOM_MONITOR_CTL_1_MONITOR_EN_Msk      0xFFFFFFFFUL
-/* HSIOM.MONITOR_CTL_2 */
-#define HSIOM_MONITOR_CTL_2_MONITOR_EN_Pos      0UL
-#define HSIOM_MONITOR_CTL_2_MONITOR_EN_Msk      0xFFFFFFFFUL
-/* HSIOM.MONITOR_CTL_3 */
-#define HSIOM_MONITOR_CTL_3_MONITOR_EN_Pos      0UL
-#define HSIOM_MONITOR_CTL_3_MONITOR_EN_Msk      0xFFFFFFFFUL
-/* HSIOM.ALT_JTAG_EN */
-#define HSIOM_ALT_JTAG_EN_ENABLE_Pos            31UL
-#define HSIOM_ALT_JTAG_EN_ENABLE_Msk            0x80000000UL
 
 
 #endif /* _CYIP_HSIOM_H_ */

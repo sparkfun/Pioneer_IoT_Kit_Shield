@@ -23,7 +23,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common Stack includes
 ***************************************/
 #include "BLE_config.h"
 #include "cy_ble_stack.h"
@@ -36,8 +36,8 @@ extern "C" {
 ** Constants
 ***************************************/
 /** Bluetooth Stack busy status */
-#define CY_BLE_STACK_STATE_BUSY                  (0x01u) /**< stack busy status */
-#define CY_BLE_STACK_STATE_FREE                  (0x00u) /**< stack free status */
+#define CY_BLE_STACK_STATE_BUSY                  (0x01u) /**< Stack busy status */
+#define CY_BLE_STACK_STATE_FREE                  (0x00u) /**< Stack free status */
 
 /***************************************
 **  Memory pool configuration data defines
@@ -47,7 +47,7 @@ extern "C" {
 
 /** Size of the heap when GATT MTU, L2CAP MTU, and MPS sizes are specified as 23 Bytes */
 /** An extra 256 bytes is added as we allocate eight chunks of 32 bytes in the buffer pool and
-   64 u bytes is the overhead required by mint buf management to store each extra chunk ( 8 chunks * 8 bytes overhead).
+   64 u bytes is the overhead required by mint buffer management to store each extra chunk ( 8 chunks * 8 bytes overhead).
    4 bytes of default memory for AES engine, 40u bytes for SMP-AES engine  */ 
 #define CY_BLE_DEFAULT_HOST_RAM_SIZE             (16u + 1024u + 824u + 120u + 256u + 64u +4u +40u)
 
@@ -77,7 +77,7 @@ extern "C" {
 #define CY_BLE_RAM_SIZE_L2CAP_SINGLE_CONN             (0x90u)
 
 /**
- * HCI per connecton heap requirement . This memory include memory for Hci remote device structure(8 bytes) and hci command queue 
+ * HCI per connection heap requirement . This memory include memory for Hci remote device structure(8 bytes) and HCI command queue 
  * with depth of 6 per connection(0x30 bytes).
  */
 #define CY_BLE_RAM_SIZE_HCI_SINGLE_CONN              (0x38u) 
@@ -125,7 +125,7 @@ extern "C" {
  * This includes memory for SMP FSM, SMP Crypto tool box, and ECC
  */
 #define CY_BLE_RAM_SIZE_SECURE_SINGLE_CONN        (0x3B0u) /**< SC single connection */
-/** SC multiconnection */
+/** SC multi-connection */
 #define CY_BLE_RAM_SIZE_SECURE_CONNECTIONS        (CY_BLE_MAX_CONNECTION_INSTANCES * CY_BLE_RAM_SIZE_SECURE_SINGLE_CONN)
 
 /** Data Buffer Pool identifiers to support configurable parameters for L2CAP and
@@ -156,7 +156,7 @@ extern "C" {
 /** GATT minimum attribute length buffers*/
 #define CY_BLE_GATT_MIN_NO_OF_ATT_MTU_BUFF        (0x03u)
 
-/** Max attribute size can be of 0xFFFF but the Stack has a limitation
+/** Max attribute size can be of 0xFFFF but the BLE Stack has a limitation
  * on buffer creation as it requires an additional eight bytes and 
  * L2CAP header size (four bytes)
  * */
@@ -165,7 +165,7 @@ extern "C" {
 /** L2CAP MTU minimum value */
 #define CY_BLE_L2CAP_MTU_MIN_VALUE                (0x17u)
 
-/** Max L2CAP MTU or MPS size can be of 0xFFFF, but the Stack has a limitation
+/** Max L2CAP MTU or MPS size can be of 0xFFFF, but the BLE Stack has a limitation
  * on buffer creation as it requires an additional eight bytes and 
  * L2CAP header size (four bytes)
  * */
@@ -194,7 +194,7 @@ extern "C" {
 /** Size of the checksum to be stored in Flash memory  */
 #define CY_BLE_STACK_CHECKSUM_SIZE                    (0x2u)
 
-/**  Flash size is configurable by component; configuration is mentioned below.
+/**  Flash size is configurable by BLE Middleware; configuration is mentioned below.
     * \#define CY_BLE_STACK_FLASH_STORAGE_SIZE       CY_BLE_STACK_CHECKSUM_SIZE + (total memory required for 
     * flash storage based on below calculation)
     *
@@ -207,7 +207,7 @@ extern "C" {
     *
     * Whitelist list memory computation 
     * CY_BLE_MAX_WHITELIST_LIST_SZ: 
-    *       It is a user-configured value for the size of whitelist using the BLE PDL.
+    *       It is a user-configured value for the size of Whitelist using the BLE PDL.
     *       Range: 1 to 16.
     * Memory required =
     * (((CY_BLE_LL_ONE_WHITELIST_HEAP_REQ * CY_BLE_MAX_WHITELIST_LIST_SZ) +
@@ -215,7 +215,7 @@ extern "C" {
     *
     * Resolving list memory computation 
     * CY_BLE_MAX_RESOLVABLE_DEVICES: 
-    *       It is a user-configured value for the size of resolving list using the BLE PDL.
+    *       It is a user-configured value for the size of Resolving list using the BLE PDL.
     *       Range: 1 to 16, 0 if Privacy 1.2 feature is not used.
     * Memory required =
     * (((CY_BLE_LL_PRIVACY_HEAP_REQ * CY_BLE_MAX_RESOLVABLE_DEVICES) +
@@ -252,7 +252,7 @@ extern "C" {
  @{
 */
 
-/** Timeout happened reason due to stack started times or application stated timers. 
+/** Timeout happened reason due to BLE Stack started timers or application stated timers. 
     It is the application's responsibility to disconnect or keep the channel on depending on type of timeout;
     i.e., GATT procedure timeout: the application may choose to disconnect.*/
 typedef enum
@@ -297,7 +297,7 @@ typedef enum
 }cy_en_ble_phy_mask_t;
 
 
-/** PHY preference masks used for Cy_BLE_SetPhy API. */
+/** PHY preference masks used for Cy_BLE_SetPhy() API. */
 typedef enum
 {
     /** All PHY settings are preferred by the host */
@@ -315,7 +315,7 @@ typedef enum
 }cy_en_ble_phy_no_pref_mask_t;
 
 
-/** Privacy modes used for Cy_BLE_SetPrivacyMode API. */
+/** Privacy modes used for Cy_BLE_SetPrivacyMode() API. */
 typedef enum
 {
     /* Network privacy mode */
@@ -323,7 +323,6 @@ typedef enum
     /* Device privacy mode */
     CY_BLE_PRIVACY_MODE_DEVICE,
 }cy_en_ble_privacy_mode_t;
-
 
 
 /***************************************
@@ -347,7 +346,7 @@ typedef struct
 /** Connection Handle */
 typedef struct
 {
-    /** Identifies the peer device(s) bonded or in current connection. The Stack supports
+    /** Identifies the peer device(s) bonded or in current connection. The BLE Stack supports
        CY_BLE_GAP_MAX_BONDED_DEVICE+CY_BLE_MAX_CONNECTION_INSTANCES devices.
        first device connected is assigned a value (CY_BLE_GAP_MAX_BONDED_DEVICE
        +CY_BLE_MAX_CONNECTION_INSTANCES)-1. If one device is present in the bonded list, 
@@ -370,7 +369,7 @@ typedef struct
       * CY_BLE_PERSISTENT_BOND_LIST_BITMASK  - B0 Bond List Data
       * CY_BLE_PERSISTENT_RPA_LIST_BITMASK   - B1 Resolving List Data
       * CY_BLE_PERSISTENT_WHITELIST_BITMASK  - B2 Whitelist Data
-      * Bit B3 is internally used by the stack and other bits are reserved for
+      * Bit B3 is internally used by the BLE Stack and other bits are reserved for
       * future use.
       */
     uint8_t     bitField;
@@ -613,7 +612,7 @@ typedef struct
 }cy_stc_ble_privacy_mode_info_t;
 
 
-/** Random number generated from the Stack */
+/** Random number generated from the BLE Stack */
 typedef struct
 {
     /** public = 0, Random = 1 */
@@ -624,7 +623,7 @@ typedef struct
 
 }cy_stc_ble_peer_id_addr_t;
 
-/** Random number generated from the Stack */
+/** Random number generated from the BLE Stack */
 typedef struct
 {
     /** standard HCI command/data packet */
@@ -861,10 +860,10 @@ typedef struct
 /** Resolving list information param */
 typedef struct
 {
-    /** Internally used by the Stack */
+    /** Internally used by the BLE Stack */
     uint16_t flags;
 
-    /** Internally used by the Stack */    
+    /** Internally used by the BLE Stack */
     uint16_t extendedFlags;
     
     /** Peer ID Address */
@@ -902,13 +901,13 @@ typedef struct
 */
 
 /******************************************************************************
-* Function Name: Cy_BLE_StoreStackData
+* Function Name: Cy_BLE_StoreStackData 
 ***************************************************************************//**
 * 
-*  This function instructs the Stack to backup the Stack internal RAM data into flash.
-*  This API must be called by the application to back up Stack data. If this API is not 
-*  called appropriately, the Stack internal data structure will not be available on the 
-*  power cycle.
+*  This function instructs the BLE Stack to backup the Stack internal RAM data into Flash.
+*  This API must be called by the application to back up Stack data. This API must be called
+*  when the BLE Stack generates CY_BLE_EVT_PENDING_FLASH_WRITE event, but before any Stack shutdown.
+*  Note-the BLE Stack internal data will not be available on power cycle.
 *     
 *  \param param: Parameter is of type 'cy_stc_ble_stack_flash_param_t'.
 *   
@@ -919,7 +918,7 @@ typedef struct
 *  Errors codes                              | Description
 *  ------------                              | -----------
 *   CY_BLE_SUCCESS                           | On successful operation.
-*   CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS      | Flash write in progress, application needs to  call Cy_BLE_StoreStackData to complete the operation.
+*   CY_BLE_INFO_FLASH_WRITE_IN_PROGRESS      | Flash write in progress, application needs to call this API again to complete the operation. 
 *   CY_BLE_ERROR_FLASH_WRITE                 | Error in flash Write. 
 *   CY_BLE_ERROR_INVALID_PARAMETER           | If param pointer is NULL.
 ******************************************************************************/
@@ -933,12 +932,11 @@ cy_en_ble_api_result_t Cy_BLE_StoreStackData
 * Function Name: Cy_BLE_StartTimer 
 ***************************************************************************//**
 * 
-*  This function provides a timer start utility to the BLE-Component. The BLE-Component can
-*  use this timer for certain operations like deferring writing CCCD to flash.
+*  This function provides a timer start utility to the BLE Middleware. The BLE Middleware can 
+*  use this timer for certain operations like deferring writing CCCD to Flash.
 *  This function should not be used for generic purposes as the timer ticks are
-*  updated only when there are LL activities. The BLE stack internally takes care of the 
-*  timing requirement for GATT, GAP, and L2CAP signaling on-going procedures.
-*  Maximum timer support for application is restricted to 4.
+*  updated only when there are LL activities. 
+*  Maximum number of timers support is restricted to 4.
 *
 *  \param param: parameter of type 'cy_stc_ble_timer_info_t'
 *  param->timerHandle: output parameter.
@@ -951,7 +949,7 @@ cy_en_ble_api_result_t Cy_BLE_StoreStackData
 *   ------------                             | -----------
 *   CY_BLE_SUCCESS                           | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER           | Timeout is set to zero.   
-*   CY_BLE_ERROR_INVALID_OPERATION           | On failed operation.
+*   CY_BLE_ERROR_INVALID_OPERATION           | On failed operation. 
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_StartTimer
@@ -963,11 +961,10 @@ cy_en_ble_api_result_t Cy_BLE_StartTimer
 * Function Name: Cy_BLE_StopTimer 
 ***************************************************************************//**
 * 
-*  This function provides a timer stop utility to the BLE-Component. The BLE-Component can  
-*  use this timer for certain operations like deferring writing CCCD to flash.  
+*  This function provides a timer stop utility to the BLE Middleware. The BLE Middleware can  
+*  use this timer for certain operations like deferring writing CCCD to Flash.  
 *  This function should not be used for generic purposes as the timer ticks are  
-*  updated only when there are LL activities. The BLE stack internally takes care of the 
-*  timing requirement for GATT, GAP, and L2CAP signaling on-going procedures.
+*  updated only when there are LL activities. 
 * 
 *  \param param: parameter of type 'cy_stc_ble_timer_info_t'
 *   param->timeout: to be ignored.
@@ -990,16 +987,17 @@ cy_en_ble_api_result_t Cy_BLE_StopTimer
 
 
 /******************************************************************************
-* Function Name: Cy_BLE_GetRssi
+* Function Name: Cy_BLE_GetRssi 
 ***************************************************************************//**
 * 
 *  This function reads the recorded Received Signal Strength Indicator (RSSI) 
-*  value for the last successfully received packet from the BLE radio 
+*  value of the last received packet on the specified connection.
 *  sub-system. 
-*  RSSI value is informed thorough 'CY_BLE_EVT_GET_RSSI_COMPLETE'
+*  RSSI value is informed thorough 'CY_BLE_EVT_GET_RSSI_COMPLETE' event
 *     
 *  \param param: Parameter is of type 'cy_stc_ble_rssi_info_t'
 *   param->rssi: ignore this parameter
+*   param->bdHandle: connection handle 
 * 
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -1011,7 +1009,7 @@ cy_en_ble_api_result_t Cy_BLE_StopTimer
 *   CY_BLE_ERROR_INVALID_PARAMETER           | On specifying NULL as input parameter.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY            | If connection does not exists for corresponding 'bdHandle'.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | If BLE Stack resources are unavailable.
 *
 *   Information     | Description
 *   -----------     | -----------
@@ -1029,15 +1027,15 @@ cy_en_ble_api_result_t Cy_BLE_GetRssi
 * Function Name: Cy_BLE_GetTxPowerLevel
 ***************************************************************************//**
 * 
-*  This function reads the transmit power of the BLE radio for the given BLE
-*  sub-system channel group. 
+*  This function reads the transmit power set for the Advertising channel operations 
+*  or transmit power set for a Data channel operations (per connection). 
 * 
-*  Tx power level is informed thorough 'CY_BLE_EVT_GET_TX_PWR_COMPLETE'
+*  Tx power level is informed thorough 'CY_BLE_EVT_GET_TX_PWR_COMPLETE' event 
 *
 *  \param param: Pointer to a variable of type 'cy_stc_ble_tx_pwr_config_param_t' where, 
 *                * cy_stc_ble_tx_pwr_config_param_t -> bleSsChId indicates Channel group for which
-*                  power level is to be read. The value can be advertisement
-*                  channels (CY_BLE_LL_ADV_CH_TYPE) or data channels 
+*                  power level is to be read. The value can be Advertisement
+*                  channel (CY_BLE_LL_ADV_CH_TYPE) or Data channel 
 *                  (CY_BLE_LL_CONN_CH_TYPE).
 *                * bdHandle indicates peer device handle. This is not applicable for advertisement
 *                  channels (CY_BLE_LL_ADV_CH_TYPE).
@@ -1052,7 +1050,7 @@ cy_en_ble_api_result_t Cy_BLE_GetRssi
 *    CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.  
 *    CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
 *    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetTxPowerLevel
@@ -1065,19 +1063,19 @@ cy_en_ble_api_result_t Cy_BLE_GetTxPowerLevel
 * Function Name: Cy_BLE_SetTxPowerLevel
 ***************************************************************************//**
 * 
-*  This function sets the transmit power of the BLE radio for the given BLE
-*  sub-system channel group.
+*  This function sets the transmit power for the advertising channel
+*  operations or data channel operations (per connection) 
 *  Successful operation is informed through 'CY_BLE_EVT_SET_TX_PWR_COMPLETE' event.
 *
 * \param param: Parameter is of type 'cy_stc_ble_tx_pwr_lvl_info_t' where,
-*                * blePwrLevel indicates Output Power level to be set by the function.
+*                * blePwrLevel indicates Output Power level to be set by the function. 
 *                * cy_stc_ble_tx_pwr_config_param_t -> bleSsChId indicates Channel group for which
-*                  power level is to be set. The value can be advertisement
-*                  channels (CY_BLE_LL_ADV_CH_TYPE) or data channels 
+*                  power level is to be set. The value can be Advertisement
+*                  channel (CY_BLE_LL_ADV_CH_TYPE) or Data channel 
 *                  (CY_BLE_LL_CONN_CH_TYPE).
 *                * cy_stc_ble_tx_pwr_config_param_t -> bdHandle indicates peer device handle. This
-*                  is not applicable for advertisement channels (CY_BLE_LL_ADV_CH_TYPE). Set bdHandle to 0xFFu 
-*                  to use 'blePwrLevel' as the default power level for all connections.
+*                  is not applicable for Advertisement channel (CY_BLE_LL_ADV_CH_TYPE). Set bdHandle to 0xFFu 
+*                  to set 'blePwrLevel' for ALL connections.
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
 *  failed. Following are the possible error codes.
@@ -1088,7 +1086,7 @@ cy_en_ble_api_result_t Cy_BLE_GetTxPowerLevel
 *    CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *    CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
 *    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetTxPowerLevel
@@ -1098,11 +1096,11 @@ cy_en_ble_api_result_t Cy_BLE_SetTxPowerLevel
 
 
 /******************************************************************************
-* Function Name: Cy_BLE_GetBleClockCfgParam
+* Function Name: Cy_BLE_GetBleClockCfgParam 
 ***************************************************************************//**
 * 
 *  This function reads the clock configuration parameter of the BLE sub-system. 
-*  This is not a blocking function. Clock config paramter is informed through 
+*  This is not a blocking function. Clock config parameter is informed through 
 *  the 'CY_BLE_EVT_GET_CLK_CONFIG_COMPLETE' event.
 * 
 *  The following parameters related to the BLE sub-system clock are read by this
@@ -1144,7 +1142,7 @@ cy_en_ble_api_result_t Cy_BLE_SetTxPowerLevel
 *    ------------                          | -----------
 *    CY_BLE_SUCCESS                        | On successful operation.
 *    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 
 ******************************************************************************/   
 cy_en_ble_api_result_t Cy_BLE_GetBleClockCfgParam
@@ -1205,7 +1203,7 @@ cy_en_ble_api_result_t Cy_BLE_GetBleClockCfgParam
 *    CY_BLE_SUCCESS                        | On successful operation.
 *    CY_BLE_ERROR_INVALID_PARAMETER        | If param pointer is NULL
 *    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 
 *   
 ******************************************************************************/ 
@@ -1213,231 +1211,6 @@ cy_en_ble_api_result_t Cy_BLE_SetBleClockCfgParam
 (
     cy_stc_ble_bless_clk_cfg_params_t  * param
 ); 
-
-/******************************************************************************
-* Function Name: Cy_BLE_GenerateRandomNumber
-***************************************************************************//**
-* 
-* This function sets the application-specific seed for DRBG (Deterministic Random number generator). 
-* This function generates 8-byte random number that complies with pseudo random
-*  number generation in accordance with [FIPS PUB 140-2]. Random number
-*  generation function is used during security procedures documented in Bluetooth
-*  4.1 core specification, Volume 3, Part H. 
-*  
-*  Generated random number is informed through event 'CY_BLE_EVT_RANDOM_NUM_GEN_COMPLETE'
-*
-* \param param: parameter is of type 'cy_stc_ble_stack_random_num_param_t'
-*  param->seed: Seed for DRBG. Setting the seed to zero is functionally 
-*               equivalent to not setting the application-specific seed.
-* 
-* \return
-*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*    Errors codes                          | Description
-*    ------------                          | -----------
-*    CY_BLE_SUCCESS                        | On successful operation.
-*    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-* 
-******************************************************************************/ 
-cy_en_ble_api_result_t Cy_BLE_GenerateRandomNumber
-(
-    cy_stc_ble_stack_random_num_param_t  * param
-);
-
-/******************************************************************************
-* Function Name: Cy_BLE_AesEncrypt
-***************************************************************************//**
-* 
-*  This function uses BLE sub-system AES engine to encrypt 128-bit of plain text
-*  using the given AES key. The output of AES processing is copied to 
-*  encryptedData buffer. Refer to Bluetooth 4.1 core specification, Volume 3,
-*  Part H, section 2.2 for more details on usage of AES key.
-* 
-*  Completion of the API is informed through  event 'CY_BLE_EVT_AES_ENCRYPT_COMPLETE'
-* 
-*  \param param: Parameter of type 'cy_stc_ble_aes_encrypt_info_t'.
-*   param->plainData: Pointer to the data containing plain text (128-bit) that is to be encrypted.
-* 
-*   param->aesKey: Pointer to the AES Key (128-bit) that is to be used for AES encryption.
-* 
-* \return
-*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-* 
-*    Errors codes                               | Description
-*    ------------                               | -----------
-*    CY_BLE_SUCCESS                             | On successful operation.
-*    CY_BLE_ERROR_INVALID_PARAMETER             | On specifying NULL as input parameter.
-*    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED      | If Memory allocation failed.
-*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES        | AES engine is being used internally or stack resources are unavailable.
-* 
-******************************************************************************/ 
-cy_en_ble_api_result_t Cy_BLE_AesEncrypt
-(   
-    cy_stc_ble_aes_encrypt_info_t  * param
-);   
-
-/******************************************************************************
-* Function Name: Cy_BLE_AesCcmEncrypt
-***************************************************************************//**
-* 
-*  This function encrypts the given data. 
-* 
-*  Encrypted data is informed through event 'CY_BLE_EVT_AES_CCM_ENCRYPT_COMPLETE'
-*
-* \param param: Parameter is of type 'cy_stc_ble_aes_ccm_encrypt_info_t ' 
-* 
-*  \return
-*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                          |   Description
-*   ------------                          |   -----------
-*   CY_BLE_SUCCESS                        |   On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER        |   One of the inputs is a null pointer. 
-*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED |   If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   |   If Stack resources are unavailable.
-* 
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_AesCcmEncrypt
-(
-    cy_stc_ble_aes_ccm_encrypt_info_t  * param
-);
-
-
-/******************************************************************************
-* Function Name: Cy_BLE_AesCcmDecrypt
-***************************************************************************//**
-* 
-*  This function decrypts the given data.
-* 
-*  Decrypted data is informed through event 'CY_BLE_EVT_AES_CCM_DECRYPT_COMPLETE'
-*
-* \param param: Parameter is of type 'cy_stc_ble_aes_ccm_decrypt_info_t ' 
-* 
-* \return
-*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*  Error codes                            | Description
-*  ------------                           | -----------
-*   CY_BLE_SUCCESS                        | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER        | One of the inputs is a NULL pointer.
-*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
-* 
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_AesCcmDecrypt
-(
-    cy_stc_ble_aes_ccm_decrypt_info_t  * param
-);
-
-/******************************************************************************
-* Function Name: Cy_BLE_GenerateAesCmac
-***************************************************************************//**
-* 
-*  This API enables the application to generate the AES CMAC of 16 bytes,
-*  for a given variable length message and CMAC Key.
-* 
-*  After this API call, if the return value is CY_BLE_SUCCESS,
-*  then CY_BLE_EVT_AES_CMAC_GEN_COMPLETE event indicates completion of cmac generation.
-*  Check the output parameter cmac to get the generated cmac value after completion of CMAC generation.
-*
-* \param cmacGenParam: Parameter is of type 'cy_stc_ble_aes_cmac_generate_param_t ' 
-* 
-* \return
-*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*  Error codes                     | Description
-*  ------------                    | -----------
-*   CY_BLE_SUCCESS                 | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER | One of the inputs is a NULL pointer, the 'buffer' can be NULL only if 'size' is zero.
-*   CY_BLE_ERROR_INVALID_OPERATION | Application has already initiated AES CMAC operation that is pending completion.
-* 
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_GenerateAesCmac
-(
-    cy_stc_ble_aes_cmac_generate_param_t *cmacGenParam
-);
-
-
-/******************************************************************************
-* Function Name: Cy_BLE_WriteAuthPayloadTimeout
-***************************************************************************//**
-* 
-*  This function sets the Authentication Payload timeout in the BLE Controller for
-*  LE_PING feature. Refer to Bluetooth 4.1 core specification, Volume 6, Part B,
-*  section 4.6.5 for LE Ping operation.
-*
-*  The 'CY_BLE_EVT_WRITE_AUTH_PAYLOAD_TO_COMPLETE' event is triggered on successful setting of the Authentication Payload timeout in BLE Controller for
-*  LE_PING feature.
-*  
-*  The 'CY_BLE_EVT_LE_PING_AUTH_TIMEOUT' event is triggered if the peer device has not responded
-*  with the valid MIC packet within the application configured ping authentication time.
-*     
-* \param param: Parameter is of type 'cy_stc_ble_auth_payload_info_t ' 
-*  param->bdHandle: Peer device handle.
-*  param->authPayloadTimeout: Variable containing authentication timeout value to be
-*                      written to the BLE Controller. Details on this parameter are
-*                      as given below:
-*                      - Value Range = 0x0001 to 0xFFFF
-*                      - Default Value (N) = 3000 (30 seconds)
-*                      - Time Calculation = N x 10 ms
-*                      - Time Range = 10 ms to 655,350 ms
-* 
-* \return
-*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                          | Description
-*   ------------                          | -----------
-*   CY_BLE_SUCCESS                        | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
-*   CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
-*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-* 
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_WriteAuthPayloadTimeout
-(
-    cy_stc_ble_auth_payload_info_t  * param
-);
-
-
-/******************************************************************************
-* Function Name: Cy_BLE_ReadAuthPayloadTimeout
-***************************************************************************//**
-* 
-*  This function reads the Authentication Payload timeout set in the BLE Controller
-*  for LE_PING feature. Refer to Bluetooth 4.1 core specification, Volume 6, Part B,
-*  section 4.6.5 for LE Ping operation.
-* 
-*  Timeout is informed through event 'CY_BLE_EVT_READ_AUTH_PAYLOAD_TO_COMPLETE'
-*
-* \param param: Parameter is of type 'cy_stc_ble_auth_payload_info_t ' 
-*  param->bdHandle: Peer device handle.
-*  param->authPayloadTimeout: to be ignored.
-* 
-* \return
-*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                          | Description
-*   ------------                          | -----------
-*   CY_BLE_SUCCESS                        | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
-*   CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
-*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-* 
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_ReadAuthPayloadTimeout
-(
-    cy_stc_ble_auth_payload_info_t  * param
-);
 
 
 /******************************************************************************
@@ -1476,7 +1249,7 @@ cy_en_ble_api_result_t Cy_BLE_ReadAuthPayloadTimeout
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetSlaveLatencyMode
@@ -1484,6 +1257,290 @@ cy_en_ble_api_result_t Cy_BLE_SetSlaveLatencyMode
     cy_stc_ble_slave_latency_info_t  * param
 );
 
+
+/******************************************************************************
+* Function Name: Cy_BLE_SetLeEventMask
+***************************************************************************//**
+*
+* This API is equivalent of the LE_Set_Event_Mask HCI command
+* and is used to control which LE events are generated by the HCI for the Host.
+* The host will process these events and will send appropriate events to the application.
+* If the bit in the hciLeEventMask is set to a one, then the event 
+* associated with that bit will be enabled. The Host must
+* deal with each event that is generated by an LE Controller. The event mask
+* allows the application to control which events will be generated for the host.
+*
+* This is not a blocking function. 
+* Successful operation will be informed through 'CY_BLE_EVT_LE_SET_EVENT_MASK_COMPLETE'.
+*
+* \param param: Pointer to the LE Mask of size 8 bytes.
+*         Refer Core Spec, Vol2, Part E, 7.8.1 for further information.
+*
+* \return
+* cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+* failed. Following are the possible error codes.
+*
+*  Errors codes                          | Description
+*  ------------                          | -----------
+*  CY_BLE_SUCCESS                        | On successful operation.
+*  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
+*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_SetLeEventMask
+(
+    const uint8_t * param
+);
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_GetChannelMap
+***************************************************************************//**
+* 
+* This function reads the Channel map for Data channels. This
+* classification persists until it is overwritten by a subsequent call to this
+* function or the controller is reset. If this command is used, updates should
+* be sent within 10 seconds of the BLE Host knowing that the channel
+* classification has changed. The interval between two successive commands sent
+* will be at least one second. This command will be used only when the local
+* device supports the Master role. 
+* *
+* This is not a blocking function. Successful operation is informed through 'CY_BLE_EVT_GET_CHANNEL_MAP_COMPLETE'
+*
+*  \param param: Pointer to security information of the device of type 
+*             cy_stc_ble_channel_map_info_t. 
+*   param->channelMap: To be ignored. 
+* \return
+* cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+* failed. Following are the possible error codes.
+*
+*  Errors codes                          | Description
+*  ------------                          | -----------
+*  CY_BLE_SUCCESS                        | On successful operation.
+*  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
+*  CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
+*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_GetChannelMap
+(
+    cy_stc_ble_channel_map_info_t  * param
+);
+
+/******************************************************************************
+* Function Name: Cy_BLE_SetHostChannelClassification
+***************************************************************************//**
+* 
+*  This function sets Channel Classification for the data channels. This
+*  classification persists until it is overwritten by a subsequent call to this
+*  function or the controller is reset. If this command is used, updates should
+*  be sent within 10 seconds of the BLE Host knowing that the channel
+*  classification has changed. The interval between two successive commands sent
+*  will be at least one second. This command will be used only when the local
+*  device supports the Master role. 
+*  
+*  For details, refer to Bluetooth core specification, Volume 6, part B,
+*  section 4.5.8.
+* 
+*  This is a non blocking function. Successful operation is informed through 
+*  event 'CY_BLE_EVT_SET_HOST_CHANNEL_COMPLETE'
+* 
+*  \param param: Pointer of type cy_stc_ble_channel_map_info_t. 
+*   param->bdHandle: To be ignored.
+*
+* \return
+*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*   Errors codes                          | Description
+*   ------------                          | -----------
+*   CY_BLE_SUCCESS                        | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_SetHostChannelClassification
+(
+    cy_stc_ble_channel_map_info_t  * param
+);
+
+/** \cond IGNORE */
+/******************************************************************************
+* Function Name: Cy_BLE_IsLlControlProcPending
+***************************************************************************//**
+*
+* This function checks the Link Layer state for any pending real time
+* control (LL_CHANNEL_MAP, LL_CONNECTION_UPDATE) procedure. When any such 
+* procedure is pending in Link layer busy state, it is indicated by the Link Layer.
+*
+*  Completion operation triggers 'CY_BLE_EVT_LL_CNTRL_PROC_PENDING_COMPLETE' event
+*
+* Applications using specific GAP APIs or L2CAP API that can result
+* in initiation of LL control procedures such as LL_CHANNEL_MAP or LL_CONNECTION_UPDATE
+* can check the state of the Link Layer to avoid rejection from the BLE Stack due to
+* LL control transaction collisions.
+*
+* \param param: Peer device handle.
+*
+* \return
+* cy_en_ble_api_result_t: Return value indicates the Link Layer status for any pending
+* real time procedure.
+*
+*  Errors codes                          | Description
+*  -------------                         | -----------
+*  CY_BLE_SUCCESS                        | On successful operation.
+*  CY_BLE_ERROR_NO_DEVICE_ENTITY         | Device identified by bdHandle is not present
+*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+*
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_IsLlControlProcPending
+(
+    uint8_t   param
+);
+
+/** \endcond */
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_GetTemperature
+***************************************************************************//**
+*
+* This API allows the application to read the current temperature from the temperature
+* sensor in the BLE radio.
+*
+* This is a non-blocking function. 
+* Temperature value is informed through 'CY_BLE_EVT_RADIO_TEMPERATURE' in degreeC units
+*
+*  \return
+*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*  Errors codes                          | Description
+*  ------------                          | -----------
+*  CY_BLE_SUCCESS                        | On successful operation.
+*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+*
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_GetTemperature
+(
+    void
+);
+
+/******************************************************************************
+* Function Name: Cy_BLE_GetBatteryLevel
+***************************************************************************//**
+*
+* This API allows the application to read the current supply voltage of the BLE radio.
+*
+* This is a non-blocking function. 
+* Voltage value is informed through 'CY_BLE_EVT_RADIO_VOLTAGE_LEVEL' in milliVolts.
+*
+*  \return
+*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*  Errors codes                          | Description
+*  ------------                          | -----------
+*  CY_BLE_SUCCESS                        | On successful operation.
+*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+*
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_GetBatteryLevel
+(
+    void
+);
+
+/** @} */
+
+/**
+ \addtogroup group_ble_common_LE_ping_api_functions
+ @{
+*/
+
+/******************************************************************************
+* Function Name: Cy_BLE_WriteAuthPayloadTimeout
+***************************************************************************//**
+* 
+*  This function sets the Authentication Payload timeout in the BLE Controller for
+*  LE_PING feature. Refer to Bluetooth 4.1 core specification, Volume 6, Part B,
+*  section 4.6.5 for LE Ping operation.
+*
+*  The 'CY_BLE_EVT_WRITE_AUTH_PAYLOAD_TO_COMPLETE' event is triggered on successful setting of the Authentication Payload timeout in BLE Controller for
+*  LE_PING feature.
+*  
+*  The 'CY_BLE_EVT_LE_PING_AUTH_TIMEOUT' event is triggered if the peer device has not responded
+*  with the valid MIC packet within the application configured ping authentication time.
+*     
+* \param param: Parameter is of type 'cy_stc_ble_auth_payload_info_t ' 
+*  param->bdHandle: Peer device handle.
+*  param->authPayloadTimeout: Variable containing authentication timeout value to be
+*                      written to the BLE Controller. Details on this parameter are
+*                      as given below:
+*                      - Value Range = 0x0001 to 0xFFFF
+*                      - Default Value (N) = 3000 (30 seconds)
+*                      - Time Calculation = N x 10 ms
+*                      - Time Range = 10 ms to 655,350 ms
+* 
+* \return
+*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*   Errors codes                          | Description
+*   ------------                          | -----------
+*   CY_BLE_SUCCESS                        | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+* 
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_WriteAuthPayloadTimeout
+(
+    cy_stc_ble_auth_payload_info_t  * param
+);
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_ReadAuthPayloadTimeout
+***************************************************************************//**
+* 
+*  This function reads the Authentication Payload timeout set in the BLE Controller
+*  for LE_PING feature. Refer to Bluetooth 4.1 core specification, Volume 6, Part B,
+*  section 4.6.5 for LE Ping operation.
+* 
+*  Timeout is informed through event 'CY_BLE_EVT_READ_AUTH_PAYLOAD_TO_COMPLETE'
+*
+* \param param: Parameter is of type 'cy_stc_ble_auth_payload_info_t ' 
+*  param->bdHandle: Peer device handle.
+*  param->authPayloadTimeout: to be ignored.
+* 
+* \return
+*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*   Errors codes                          | Description
+*   ------------                          | -----------
+*   CY_BLE_SUCCESS                        | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
+*   CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+* 
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_ReadAuthPayloadTimeout
+(
+    cy_stc_ble_auth_payload_info_t  * param
+);
+
+/** @} */
+
+/**
+ \addtogroup group_ble_common_Data_length_extension_api_functions
+ @{
+*/
 
 /******************************************************************************
 * Function Name: Cy_BLE_SetDataLength
@@ -1507,7 +1564,7 @@ cy_en_ble_api_result_t Cy_BLE_SetSlaveLatencyMode
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.                                    
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.                                    
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetDataLength
@@ -1539,7 +1596,7 @@ cy_en_ble_api_result_t Cy_BLE_SetDataLength
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable. 
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable. 
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetSuggestedDataLength
@@ -1567,7 +1624,7 @@ cy_en_ble_api_result_t Cy_BLE_SetSuggestedDataLength
 *  ------------                          | -----------
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable. 
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable. 
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetDataLength
@@ -1575,12 +1632,18 @@ cy_en_ble_api_result_t Cy_BLE_GetDataLength
     void
 );
 
+/** @} */
+
+/**
+ \addtogroup group_ble_common_Privacy_api_functions
+ @{
+*/
 
 /******************************************************************************
 * Function Name: Cy_BLE_AddDeviceToResolvingList
 ***************************************************************************//**
 *
-* This API is used to add a device to the resolving list in the controller for
+* This API is used to add a device to the Resolving list in the controller for
 * resolving Resolvable Private Address (RPA). This API can be used to update
 * local and/or peer IRKs for an existing Resolving List entry by passing the
 * same peer address type and peer address in the argument.
@@ -1599,7 +1662,7 @@ cy_en_ble_api_result_t Cy_BLE_GetDataLength
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AddDeviceToResolvingList
@@ -1630,7 +1693,7 @@ cy_en_ble_api_result_t Cy_BLE_AddDeviceToResolvingList
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | Input parameter is NULL.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetPeerResolvableAddress
@@ -1660,7 +1723,7 @@ cy_en_ble_api_result_t Cy_BLE_GetPeerResolvableAddress
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | Input parameter is NULL.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetLocalResolvableAddress
@@ -1673,15 +1736,15 @@ cy_en_ble_api_result_t Cy_BLE_GetLocalResolvableAddress
 * Function Name: Cy_BLE_RemoveDeviceFromResolvingList
 ***************************************************************************//**
 *
-* This API is used to remove one device from the list of address translations used to resolve Resolvable 
+* This API is used to remove one device from the Resolving list used to resolve Resolvable 
 * Private Addresses in the BLE Stack.
-* Passing all zero address as parameter clears the resolving list.
+* Passing all zero address as parameter clears the Resolving list.
 * 
 *  Completion of operation is informed through 'CY_BLE_EVT_REMOVE_DEVICE_FROM_RPA_LIST_COMPLETE' event.
 *  Successful operation triggers the 'CY_BLE_EVT_PENDING_FLASH_WRITE' event.
 *
 *  \param param: Buffer that contains the information of peer ID address and address type. 
-*               If all bytes of peer ID address as well as address type is zero, this API will clear resolving list.
+*               If all bytes of peer ID address as well as address type is zero, this API will clear Resolving list.
 *
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -1692,7 +1755,7 @@ cy_en_ble_api_result_t Cy_BLE_GetLocalResolvableAddress
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_RemoveDeviceFromResolvingList
@@ -1724,7 +1787,7 @@ cy_en_ble_api_result_t Cy_BLE_RemoveDeviceFromResolvingList
 *  ------------                          | -----------
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetResolvablePvtAddressTimeOut
 (
@@ -1737,7 +1800,7 @@ cy_en_ble_api_result_t Cy_BLE_SetResolvablePvtAddressTimeOut
 ***************************************************************************//**
 *
 * This API is used to enable resolution of Resolvable Private Addresses in the BLE Stack. This causes the
-* BLE Stack to use the resolving list whenever the Controller receives a local or peer Resolvable Private Address.
+* BLE Stack to use the Resolving list whenever the Controller receives a local or peer Resolvable Private Address.
 *
 * This is a non-blocking function. 
 * Request complete is informed through 'CY_BLE_EVT_SET_RPA_ENABLE_COMPLETE'
@@ -1754,7 +1817,7 @@ cy_en_ble_api_result_t Cy_BLE_SetResolvablePvtAddressTimeOut
 *  ------------                          | -----------
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetAddressResolutionEnable
@@ -1767,10 +1830,10 @@ cy_en_ble_api_result_t Cy_BLE_SetAddressResolutionEnable
 * Function Name: Cy_BLE_GetResolvingList
 ***************************************************************************//**
 *
-* This API is used to get resolving list. 
+* This API is used to get Resolving list. 
 * This API is a blocking call. Hence no event will be generated.
 *
-*  \param param: Pointer to store the base address of resolving list.
+*  \param param: Pointer to store the base address of Resolving list.
 *
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -1782,8 +1845,8 @@ cy_en_ble_api_result_t Cy_BLE_SetAddressResolutionEnable
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *  CY_BLE_ERROR_INVALID_OPERATION        | If privacy feature is not enabled.
 *
-* Note : The resolving list memory will be used by the stack. Hence the application 
-*        should not modify the contents using the pointer provided by the stack.
+* Note : The Resolving list memory will be used by the BLE Stack. Hence the application 
+*        should not modify the contents using the pointer provided by the BLE Stack.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetResolvingList(cy_stc_ble_resolving_list_retention_t const **param);
 
@@ -1816,7 +1879,7 @@ cy_en_ble_api_result_t Cy_BLE_GetResolvingList(cy_stc_ble_resolving_list_retenti
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 
@@ -1825,112 +1888,12 @@ cy_en_ble_api_result_t Cy_BLE_SetPrivacyMode
     cy_stc_ble_privacy_mode_info_t *privacyModeInfo
 );
 
+/** @} */
 
-/******************************************************************************
-* Function Name: Cy_BLE_SetLeEventMask
-***************************************************************************//**
-*
-* This API is equivalent of the LE_Set_Event_Mask HCI command
-* and is used to control which LE events are generated by the HCI for the Host.
-* The host will process these events and will send appropriate events to the application.
-* If the bit in the hciLeEventMask is set to a one, then the event 
-* associated with that bit will be enabled. The Host must
-* deal with each event that is generated by an LE Controller. The event mask
-* allows the application to control which events will be generated for the host.
-*
-* This is not a blocking function. 
-* Successful operation will be informed through 'CY_BLE_EVT_LE_SET_EVENT_MASK_COMPLETE'.
-*
-* \param param: Pointer to the LE Mask of size 8 bytes.
-*         Refer Core Spec, Vol2, Part E, 7.8.1 for further information.
-*
-* \return
-* cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-* failed. Following are the possible error codes.
-*
-*  Errors codes                          | Description
-*  ------------                          | -----------
-*  CY_BLE_SUCCESS                        | On successful operation.
-*  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
-*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_SetLeEventMask
-(
-    const uint8_t * param
-);
-
-
-/******************************************************************************
-* Function Name: Cy_BLE_GetChannelMap
-***************************************************************************//**
-* 
-* This function reads the channel map for data channels. This
-* classification persists until it is overwritten by a subsequent call to this
-* function or the controller is reset. If this command is used, updates should
-* be sent within 10 seconds of the BLE Host knowing that the channel
-* classification has changed. The interval between two successive commands sent
-* will be at least one second. This command will be used only when the local
-* device supports the Master role. 
-* *
-* This is not a blocking function. Successful operation is informed through 'CY_BLE_EVT_GET_CHANNEL_MAP_COMPLETE'
-*
-*  \param param: Pointer to security information of the device of type 
-*             cy_stc_ble_channel_map_info_t. 
-*   param->channelMap: To be ignored. 
-* \return
-* cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-* failed. Following are the possible error codes.
-*
-*  Errors codes                          | Description
-*  ------------                          | -----------
-*  CY_BLE_SUCCESS                        | On successful operation.
-*  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
-*  CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exists for corresponding 'bdHandle'.
-*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_GetChannelMap
-(
-    cy_stc_ble_channel_map_info_t  * param
-);
-
-/******************************************************************************
-* Function Name: Cy_BLE_SetHostChannelClassification
-***************************************************************************//**
-* 
-*  This function sets channel classification for data channels. This
-*  classification persists until it is overwritten by a subsequent call to this
-*  function or the controller is reset. If this command is used, updates should
-*  be sent within 10 seconds of the BLE Host knowing that the channel
-*  classification has changed. The interval between two successive commands sent
-*  will be at least one second. This command will be used only when the local
-*  device supports the Master role. 
-*  
-*  For details, refer to Bluetooth core specification 4.1, Volume 2, part E,
-*  section 7.8.19.
-* 
-*  This is a non blocking function. Successful operation is informed through 
-*  event 'CY_BLE_EVT_SET_HOST_CHANNEL_COMPLETE'
-* 
-*  \param param: Pointer of type cy_stc_ble_channel_map_info_t. 
-*   param->bdHandle: To be ignored.
-*
-* \return
-*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                          | Description
-*   ------------                          | -----------
-*   CY_BLE_SUCCESS                        | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
-*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_SetHostChannelClassification
-(
-    cy_stc_ble_channel_map_info_t  * param
-);
+/**
+ \addtogroup group_ble_common_Whitelist_api_functions
+ @{
+*/
 
 /******************************************************************************
 * Function Name: Cy_BLE_AddDeviceToWhiteList
@@ -1938,7 +1901,7 @@ cy_en_ble_api_result_t Cy_BLE_SetHostChannelClassification
 * 
 *  This function adds the device to the Whitelist. The maximum number of devices that
 *  can be added to the Whitelist is eight including CY_BLE_GAP_MAX_BONDED_DEVICE.
-*  Refer to Bluetooth 4.1 core specification, Volume 3, Part C, section 9.3.5 for more details on whitelist.
+*  Refer to Bluetooth core specification, Volume 3, Part C, section 9.3.5 for more details on Whitelist.
 * 
 *  Completion of operation is informed through 'CY_BLE_EVT_ADD_DEVICE_TO_WHITE_LIST_COMPLETE' event.
 *  Successful operation triggers 'CY_BLE_EVT_PENDING_FLASH_WRITE' event
@@ -1954,7 +1917,7 @@ cy_en_ble_api_result_t Cy_BLE_SetHostChannelClassification
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for 'param' or bdAddr 'type' has an invalid value.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_AddDeviceToWhiteList
@@ -1966,7 +1929,7 @@ cy_en_ble_api_result_t Cy_BLE_AddDeviceToWhiteList
 * Function Name: Cy_BLE_RemoveDeviceFromWhiteList
 ***************************************************************************//**
 * 
-*  This function removes the device from the Whitelist.
+*  This function removes the specified device from the Whitelist.
 * 
 *  Completion of operation is informed through the 'CY_BLE_EVT_REMOVE_DEVICE_FROM_WHITE_LIST_COMPLETE' event.
 *  Completion operation triggers the 'CY_BLE_EVT_PENDING_FLASH_WRITE' event.
@@ -1983,7 +1946,7 @@ cy_en_ble_api_result_t Cy_BLE_AddDeviceToWhiteList
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 * 
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_RemoveDeviceFromWhiteList
@@ -1999,7 +1962,7 @@ cy_en_ble_api_result_t Cy_BLE_RemoveDeviceFromWhiteList
 *  This function is used to get the Whitelist.
 *  This is a blocking call. Hence no event will be generated.
 * 
-*  \param param: Pointer to store the baseaddress of Whitelist.
+*  \param param: Pointer to store the base address of Whitelist.
 * 
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
@@ -2010,125 +1973,24 @@ cy_en_ble_api_result_t Cy_BLE_RemoveDeviceFromWhiteList
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter.
 *
-* Note : The Whitelist memory will be used by the stack. Hence the application 
-*        should not modify the contents using the pointer provided by the stack.
+* Note : The Whitelist memory will be used by the BLE Stack. Hence the application 
+*        should not modify the contents using the pointer provided by the BLE Stack.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetWhiteList(cy_stc_ble_white_list_retention_t const**param);
 
-
-/******************************************************************************
-* Function Name: Cy_BLE_isLLControlProcPending
-***************************************************************************//**
-*
-* This function checks the Link Layer state for any pending real time
-* control (LL_CHANNEL_MAP, LL_CONNECTION_UPDATE) procedure. When any such 
-* procedure is pending in Link layer busy state, it is indicated by the Link Layer.
-*
-*  Completion operation triggers 'CY_BLE_EVT_LL_CNTRL_PROC_PENDING_COMPLETE' event
-*
-* Applications using specific GAP APIs or L2CAP API that can result
-* in initiation of real-time procedures such as LL_CHANNEL_MAP or LL_CONNECTION_UPDATE
-* can check the state of the Link Layer to avoid any such rejection from the BLE Stack.
-*
-* The BLE Stack can reject the new request 
-*
-* \param param: Peer device handle.
-*
-* \return
-* cy_en_ble_api_result_t: Return value indicates the Link Layer status for any pending
-* real time procedure.
-*
-*  Errors codes                          | Description
-*  -------------                         | -----------
-*  CY_BLE_SUCCESS                        | On successful operation.
-*  CY_BLE_ERROR_NO_DEVICE_ENTITY         | Device identified by bdHandle is not present
-*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
-*
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_isLLControlProcPending
-(
-    uint8_t   param
-);
+/** @} */
 
 
-/******************************************************************************
-* Function Name: Cy_BLE_RegisterHciCb
-***************************************************************************//**
-* 
-*  This API will initialize the HCI layer of the BLE Host Stack and will register Rx callback for all hci events and data. 
-*  This API must be called before calling Cy_BLE_HciTransmit. 
-*  This API should not be called during normal stack operation. 
-*  If an application randomly uses hci APIs along with other APIs, behavior will be unpredictable.  
-*
-*  \param param: parameter is of type 'cy_ble_hci_rx_cb_t', callback function for Rx packets
-* 
-* \return
-*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                     | Description
-*   ------------                     | -----------
-*   CY_BLE_SUCCESS                   | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter.
-*
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_RegisterHciCb
-(
-    cy_ble_hci_rx_cb_t     param
-);
-
-
-/******************************************************************************
-* Function Name: Cy_BLE_HciShutdown
-***************************************************************************//**
-*  This function stops any ongoing operation on the BLE Stack and forces the BLE Host HCI and 
-*  the BLE controller to shut down. The only functions that can be called after calling this
-*  function is Cy_BLE_StackInit or Cy_BLE_RegisterHciCb. On calling one of these functions, the BLE Radio is turned 
-*  off.
-* 
-*  No event is generated on calling this function.
-* 
-* \return
-*  None
-* 
-******************************************************************************/
-void Cy_BLE_HciShutdown
-(
-    void
-);
-
-/******************************************************************************
-* Function Name: Cy_BLE_HciTransmit
-***************************************************************************//**
-* 
-*  The application must use this API for sending packets. This API
-*   must be called after calling 'Cy_BLE_RegisterHciCb'.
-* 
-*  \param param: parameter is of type 'cy_stc_ble_hci_tx_packet_info_t'
-*
-* \return
-*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
-*  failed. Following are the possible error codes.
-*
-*   Errors codes                     | Description
-*   ------------                     | -----------
-*   CY_BLE_SUCCESS                   | On successful operation.
-*   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter.
-*
-******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_HciTransmit
-(
-    cy_stc_ble_hci_tx_packet_info_t  * param
-);
-
-
+/**
+ \addtogroup group_ble_common_2MBPS_api_functions
+ @{
+*/
 /******************************************************************************
 * Function Name: Cy_BLE_SetPhy
 ***************************************************************************//**
 *
 * This API allows application to Sets the PHY for the current connection. 
-* This is a non-blocking function and successful set to controller operation is 
+* This is a non-blocking function and successful operation is 
 * informed through 'CY_BLE_EVT_SET_PHY_COMPLETE'.
 * Actual Phy used by controller will be informed through the 'CY_BLE_EVT_PHY_UPDATE_COMPLETE' event.
 *
@@ -2144,7 +2006,7 @@ cy_en_ble_api_result_t Cy_BLE_HciTransmit
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY         | Device identified by bdHandle is not present
 *  CY_BLE_ERROR_INVALID_PARAMETER        | Null pointer passed.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetPhy
@@ -2173,7 +2035,7 @@ cy_en_ble_api_result_t Cy_BLE_SetPhy
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_INVALID_PARAMETER        | Null pointer.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_SetDefaultPhy
@@ -2186,10 +2048,10 @@ cy_en_ble_api_result_t Cy_BLE_SetDefaultPhy
 * Function Name: Cy_BLE_GetPhy
 ***************************************************************************//**
 *
-* This API allows the application to read the current PHY for the current connection.
-*
+* This API allows the application to read the current PHY setting for 
+* the specified connection.
 * This is a non-blocking function. 
-* Current Phy for Tx and Rx is informed through 'CY_BLE_EVT_GET_PHY_COMPLETE'
+* Current Phy setting (TxPhy, RxPhy) is informed through 'CY_BLE_EVT_GET_PHY_COMPLETE'
 *
 *  \param param: Peer bdHandle
 *
@@ -2202,7 +2064,7 @@ cy_en_ble_api_result_t Cy_BLE_SetDefaultPhy
 *  CY_BLE_SUCCESS                        | On successful operation.
 *  CY_BLE_ERROR_NO_DEVICE_ENTITY         | Device identified by bdHandle is not present.
 *  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GetPhy
@@ -2210,61 +2072,245 @@ cy_en_ble_api_result_t Cy_BLE_GetPhy
     uint8_t       param
 );
 
+/** @} */
+
+/**
+ \addtogroup group_ble_common_Encryption_api_functions
+ @{
+*/
 /******************************************************************************
-* Function Name: Cy_BLE_GetTemperature
+* Function Name: Cy_BLE_GenerateRandomNumber
 ***************************************************************************//**
+* 
+* This function generates 8-byte random number that complies with pseudo random
+*  number generation in accordance with [FIPS PUB 140-2]. Random number
+*  generation function is used during security procedures documented in Bluetooth
+*  4.1 core specification, Volume 3, Part H. The function accepts an
+*  application-specific seed for the DRBG (Deterministic Random number generator)
+*  function.
+*  
+*  Generated random number is informed through event 'CY_BLE_EVT_RANDOM_NUM_GEN_COMPLETE'
 *
-* This API allows the application to read the current temperature from the temperature
-* sensor in the BLE radio.
-*
-* This is a non-blocking function. 
-* Temperature value is informed through 'CY_BLE_EVT_RADIO_TEMPERATURE' in degreeC units
-*
-*  \return
+* \param param: parameter is of type 'cy_stc_ble_stack_random_num_param_t'
+*  param->seed: Seed for DRBG. Setting the seed to zero is functionally 
+*               equivalent to not setting the application-specific seed.
+* 
+* \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
 *  failed. Following are the possible error codes.
 *
-*  Errors codes                          | Description
-*  ------------                          | -----------
-*  CY_BLE_SUCCESS                        | On successful operation.
-*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*    Errors codes                          | Description
+*    ------------                          | -----------
+*    CY_BLE_SUCCESS                        | On successful operation.
+*    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If BLE Stack resources are unavailable.
+* 
+******************************************************************************/ 
+cy_en_ble_api_result_t Cy_BLE_GenerateRandomNumber
+(
+    cy_stc_ble_stack_random_num_param_t  * param
+);
+
+/******************************************************************************
+* Function Name: Cy_BLE_AesEncrypt
+***************************************************************************//**
+* 
+*  This function uses BLE sub-system AES engine to encrypt 128-bit of plain text
+*  using the given AES key. The output of AES processing is copied to 
+*  encryptedData buffer. Refer to Bluetooth 4.1 core specification, Volume 3,
+*  Part H, section 2.2 for more details on usage of AES key.
+* 
+*  Completion of the API is informed through  event 'CY_BLE_EVT_AES_ENCRYPT_COMPLETE'
+* 
+*  \param param: Parameter of type 'cy_stc_ble_aes_encrypt_info_t'.
+*   param->plainData: Pointer to the data containing plain text (128-bit) that is to be encrypted.
+* 
+*   param->aesKey: Pointer to the AES Key (128-bit) that is to be used for AES encryption.
+* 
+* \return
+*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+* 
+*    Errors codes                               | Description
+*    ------------                               | -----------
+*    CY_BLE_SUCCESS                             | On successful operation.
+*    CY_BLE_ERROR_INVALID_PARAMETER             | On specifying NULL as input parameter.
+*    CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED      | If Memory allocation failed.
+*    CY_BLE_ERROR_INSUFFICIENT_RESOURCES        | AES engine is being used internally or BLE Stack resources are unavailable.
+* 
+******************************************************************************/ 
+cy_en_ble_api_result_t Cy_BLE_AesEncrypt
+(
+    cy_stc_ble_aes_encrypt_info_t  * param
+);
+
+/******************************************************************************
+* Function Name: Cy_BLE_AesCcmEncrypt
+***************************************************************************//**
+* 
+*  This function encrypts the given data. 
+* 
+*  Encrypted data is informed through event 'CY_BLE_EVT_AES_CCM_ENCRYPT_COMPLETE'
+*
+* \param param: Parameter is of type 'cy_stc_ble_aes_ccm_encrypt_info_t ' 
+* 
+*  \return
+*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*   Errors codes                          |   Description
+*   ------------                          |   -----------
+*   CY_BLE_SUCCESS                        |   On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER        |   One of the inputs is a null pointer. 
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED |   If Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   |   If BLE Stack resources are unavailable.
+* 
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_AesCcmEncrypt
+(
+    cy_stc_ble_aes_ccm_encrypt_info_t  * param
+);
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_AesCcmDecrypt
+***************************************************************************//**
+* 
+*  This function decrypts the given data.
+* 
+*  Decrypted data is informed through event 'CY_BLE_EVT_AES_CCM_DECRYPT_COMPLETE'
+*
+* \param param: Parameter is of type 'cy_stc_ble_aes_ccm_decrypt_info_t ' 
+* 
+* \return
+*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*  Error codes                            | Description
+*  ------------                           | -----------
+*   CY_BLE_SUCCESS                        | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER        | One of the inputs is a NULL pointer.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
+* 
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_AesCcmDecrypt
+(
+    cy_stc_ble_aes_ccm_decrypt_info_t  * param
+);
+
+/******************************************************************************
+* Function Name: Cy_BLE_GenerateAesCmac
+***************************************************************************//**
+* 
+*  This API enables the application to generate the AES CMAC of 16 bytes,
+*  for a given variable length message and CMAC Key.
+* 
+*  After this API call, if the return value is CY_BLE_SUCCESS,
+*  then CY_BLE_EVT_AES_CMAC_GEN_COMPLETE event indicates completion of cmac generation.
+*  Check the output parameter cmac to get the generated cmac value after completion of CMAC generation.
+*
+* \param cmacGenParam: Parameter is of type 'cy_stc_ble_aes_cmac_generate_param_t ' 
+* 
+* \return
+*  cy_en_ble_api_result_t: Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*  Error codes                     | Description
+*  ------------                    | -----------
+*   CY_BLE_SUCCESS                 | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER | One of the inputs is a NULL pointer, the 'buffer' can be NULL only if 'size' is zero.
+*   CY_BLE_ERROR_INVALID_OPERATION | Application has already initiated AES CMAC operation that is pending completion.
+* 
+******************************************************************************/
+cy_en_ble_api_result_t Cy_BLE_GenerateAesCmac
+(
+    cy_stc_ble_aes_cmac_generate_param_t *cmacGenParam
+);
+
+/** @} */
+
+/**
+ \addtogroup group_ble_common_HCI_api_functions
+ @{
+*/
+
+/******************************************************************************
+* Function Name: Cy_BLE_RegisterHciCb
+***************************************************************************//**
+* 
+*  This API will initialize the HCI layer of the BLE Host and will register Rx callback for all HCI events and data. 
+*  This API must be called before calling Cy_BLE_HciTransmit(). 
+*  This API should not be called during normal BLE Stack operation. 
+*  If an application randomly uses HCI APIs along with other APIs, behavior will be unpredictable. 
+*
+*  \param param: parameter is of type 'cy_ble_hci_rx_cb_t', callback function for Rx packets
+* 
+* \return
+*  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
+*  failed. Following are the possible error codes.
+*
+*   Errors codes                     | Description
+*   ------------                     | -----------
+*   CY_BLE_SUCCESS                   | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter.
 *
 ******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_GetTemperature
+cy_en_ble_api_result_t Cy_BLE_RegisterHciCb
+(
+    cy_ble_hci_rx_cb_t    param
+);
+
+
+/******************************************************************************
+* Function Name: Cy_BLE_HciShutdown
+***************************************************************************//**
+*  This function stops any ongoing operation on the BLE Stack and forces the BLE Host HCI and 
+*  the BLE controller to shut down. The only functions that can be called after calling this
+*  function is Cy_BLE_StackInit() or Cy_BLE_RegisterHciCb(). On calling one of these functions, the BLE Radio is turned 
+*  off.
+* 
+*  No event is generated on calling this function.
+* 
+* \return
+*  None
+* 
+******************************************************************************/
+void Cy_BLE_HciShutdown
 (
     void
 );
 
 /******************************************************************************
-* Function Name: Cy_BLE_GetBatteryLevel
+* Function Name: Cy_BLE_HciTransmit
 ***************************************************************************//**
+* 
+*  The application must use this API for sending packets. This API
+*    must be called after calling 'Cy_BLE_RegisterHciCb()'.
+* 
+*  \param param: parameter is of type 'cy_stc_ble_hci_tx_packet_info_t'
 *
-* This API allows the application to read the current supply voltage of the BLE radio.
-*
-* This is a non-blocking function. 
-* Voltage value is informed through 'CY_BLE_EVT_RADIO_VOLTAGE_LEVEL' in milliVolts.
-*
-*  \return
+* \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or
 *  failed. Following are the possible error codes.
 *
-*  Errors codes                          | Description
-*  ------------                          | -----------
-*  CY_BLE_SUCCESS                        | On successful operation.
-*  CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | If Memory allocation failed.
-*  CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | If Stack resources are unavailable.
+*   Errors codes                     | Description
+*   ------------                     | -----------
+*   CY_BLE_SUCCESS                   | On successful operation.
+*   CY_BLE_ERROR_INVALID_PARAMETER   | On specifying NULL as input parameter.
 *
 ******************************************************************************/
-cy_en_ble_api_result_t Cy_BLE_GetBatteryLevel
+cy_en_ble_api_result_t Cy_BLE_HciTransmit
 (
-    void
+    cy_stc_ble_hci_tx_packet_info_t  * param
 );
+
+/** @} */
+
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-/** @} */
 
 #endif /* CY_BLE_STACK_HOST_MAIN_H_ */
 

@@ -243,6 +243,12 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\drivers\peripheral\lvd\cy_lvd.h</File>
         </Files>
       </Folder>
+      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Generated_Source\PSoC6\pdl\drivers\peripheral\efuse">
+        <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn">
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\drivers\peripheral\efuse\cy_efuse.c</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\drivers\peripheral\efuse\cy_efuse.h</File>
+        </Files>
+      </Folder>
       <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Generated_Source\PSoC6\pdl\middleware\ble">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn">
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\middleware\ble\cy_ble_clk.c</File>
@@ -390,21 +396,22 @@
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\devices\psoc6\ip\cyip_i2s.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\devices\psoc6\ip\cyip_pdm.h</File>
           <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\devices\psoc6\ip\cyip_headers.h</File>
+          <File BuildType="BUILD" Toolchain="">Generated_Source\PSoC6\pdl\devices\psoc6\ip\cyip_efuse_data.h</File>
         </Files>
       </Folder>
-      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_GCC_Generic\CapSense_v1_0">
+      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_GCC_Generic\CapSense_v2_0">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn">
-          <File BuildType="BUILD" Toolchain="ARM GCC Generic">.\Export\ARM_GCC_Generic\CapSense_v1_0\CapSense_Library_GCC_M0p.a</File>
+          <File BuildType="BUILD" Toolchain="ARM GCC Generic">.\Export\ARM_GCC_Generic\CapSense_v2_0\CapSense_Library_GCC_M0p.a</File>
         </Files>
       </Folder>
-      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_MDK_Generic\CapSense_v1_0">
+      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_MDK_Generic\CapSense_v2_0">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn">
-          <File BuildType="BUILD" Toolchain="ARM MDK Generic">.\Export\ARM_MDK_Generic\CapSense_v1_0\CapSense_Library_MDK_M0p.a</File>
+          <File BuildType="BUILD" Toolchain="ARM MDK Generic">.\Export\ARM_MDK_Generic\CapSense_v2_0\CapSense_Library_MDK_M0p.a</File>
         </Files>
       </Folder>
-      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_IAR_Generic\CapSense_v1_0">
+      <Folder BuildType="STRICT" Path="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn\Export\ARM_IAR_Generic\CapSense_v2_0">
         <Files Root="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\BLE_To_RPi\BLE_To_RPi.cydsn">
-          <File BuildType="BUILD" Toolchain="ARM IAR Generic">.\Export\ARM_IAR_Generic\CapSense_v1_0\CapSense_Library_IAR_M0p.a</File>
+          <File BuildType="BUILD" Toolchain="ARM IAR Generic">.\Export\ARM_IAR_Generic\CapSense_v2_0\CapSense_Library_IAR_M0p.a</File>
         </Files>
       </Folder>
       <Folder BuildType="EXCLUDE" Path=".\codegentemp">

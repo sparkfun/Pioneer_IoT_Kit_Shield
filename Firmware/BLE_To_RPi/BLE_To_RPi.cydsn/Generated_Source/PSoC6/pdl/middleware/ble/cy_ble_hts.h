@@ -132,7 +132,7 @@ typedef struct
     /** Health Thermometer Service GATT DB handles structure */
     const cy_stc_ble_htss_t *htss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_hts_config_t;
 

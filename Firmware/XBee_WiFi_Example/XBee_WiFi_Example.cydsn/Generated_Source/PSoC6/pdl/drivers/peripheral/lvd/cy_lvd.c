@@ -24,9 +24,9 @@ extern "C" {
 ****************************************************************************//**
 *
 * When this function is registered by \ref Cy_SysPm_RegisterCallback - it
-* automatically enables the LVD after wake up from DeepSleep mode.
+* automatically enables the LVD after wake up from Deep-Sleep mode.
 *
-* \param callbackParams a pointer to the callback parameters structure, 
+* \param callbackParams The pointer to the callback parameters structure, 
 * see \ref cy_stc_syspm_callback_params_t.
 *
 * \return the SysPm callback status \ref cy_en_syspm_status_t.

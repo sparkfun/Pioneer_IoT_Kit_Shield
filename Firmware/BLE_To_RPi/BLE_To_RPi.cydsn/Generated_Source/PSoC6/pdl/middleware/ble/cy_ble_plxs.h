@@ -203,7 +203,7 @@ typedef struct
     /** The Pulse Oximeter Service. GATT DB handles structure */
     const cy_stc_ble_plxss_t *plxss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_plxs_config_t;
 

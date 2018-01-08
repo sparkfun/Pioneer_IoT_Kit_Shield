@@ -1,6 +1,6 @@
 -- ======================================================================
 -- XBee_WiFi_Example.ctl generated from XBee_WiFi_Example
--- 12/04/2017 at 10:38
+-- 01/08/2018 at 10:01
 -- This file is auto generated. ANY EDITS YOU MAKE MAY BE LOST WHEN THIS FILE IS REGENERATED!!!
 -- ======================================================================
 

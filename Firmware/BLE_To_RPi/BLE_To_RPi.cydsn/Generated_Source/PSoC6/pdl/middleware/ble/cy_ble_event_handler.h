@@ -4,7 +4,7 @@
 *
 * \brief
 *  Contains the prototypes and constants used in the Event Handler State Machine
-*  of the BLE Component.
+*  of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -209,19 +209,19 @@ typedef enum
 
     /** GATT Server - Indication for GATT Service's "Service Changed"
      *  Characteristic was enabled. The parameter of this event is a structure of
-     *  cy_stc_ble_gatts_write_cmd_req_param_t type.
+     *  \ref cy_stc_ble_gatts_write_cmd_req_param_t type.
      */
     CY_BLE_EVT_GATTS_INDICATION_ENABLED,
 
     /** GATT Server - Indication for GATT Service's "Service Changed"
      *  Characteristic was disabled. The parameter of this event is a structure of
-     *  cy_stc_ble_gatts_write_cmd_req_param_t type.
+     *  \ref cy_stc_ble_gatts_write_cmd_req_param_t type.
      */
     CY_BLE_EVT_GATTS_INDICATION_DISABLED,
 
     /** GATT Client - GATT Service's "Service Changed" Characteristic Indication
      *  was received. The parameter of this event is a structure
-     *  of the cy_stc_ble_gattc_handle_value_ind_param_t type.
+     *  of the \ref cy_stc_ble_gattc_handle_value_ind_param_t type.
      */
     CY_BLE_EVT_GATTC_INDICATION,
 
@@ -953,7 +953,7 @@ typedef enum
      *  the cy_stc_ble_cts_char_value_t type. When this event is received, the user is
      *  responsible for performing any kind of data verification and writing the
      *  data to the GATT database in case of successful verification or setting
-     *  the error using Cy_BLE_SetGattError() if data verification fails.
+     *  the error if data verification fails.
      */
     CY_BLE_EVT_CTSS_WRITE_CHAR,
 
@@ -1041,8 +1041,8 @@ typedef enum
     /** ESS Server - Write Request for Environmental Sensing Service
      *  Characteristic Descriptor was received. The parameter of this event is a structure of
      *  the cy_stc_ble_ess_descr_value_t type. This event is generated only when write for
-     *  CY_BLE_ESS_CHAR_USER_DESCRIPTION_DESCR, CY_BLE_ESS_ES_TRIGGER_SETTINGS_DESCR or
-     *  CY_BLE_ESS_ES_CONFIG_DESCR occurs.
+     *  #CY_BLE_ESS_ES_TRIGGER_SETTINGS_DESCR1, #CY_BLE_ESS_ES_TRIGGER_SETTINGS_DESCR2, 
+     *  #CY_BLE_ESS_ES_TRIGGER_SETTINGS_DESCR3 or CY_BLE_ESS_ES_CONFIG_DESCR occurs.
      */
     CY_BLE_EVT_ESSS_DESCR_WRITE,
 
@@ -2409,6 +2409,10 @@ void Cy_BLE_NextInclDiscovery(cy_stc_ble_conn_handle_t connHandle, uint8_t incre
 void Cy_BLE_NextCharDiscovery(cy_stc_ble_conn_handle_t connHandle, uint8_t incrementIndex);
 void Cy_BLE_NextCharDscrDiscovery(cy_stc_ble_conn_handle_t connHandle, uint8_t incrementIndex);
 
+#if (CY_BLE_GATT_ROLE_SERVER || CY_BLE_GATT_ROLE_CLIENT)
+uint8_t Cy_BLE_IsDeviceAddressValid(const cy_stc_ble_gap_bd_addr_t *deviceAddress);
+#endif /* (CY_BLE_GATT_ROLE_SERVER || CY_BLE_GATT_ROLE_CLIENT) */
+
 /***************************************
 * External data references
 ***************************************/
@@ -2438,15 +2442,15 @@ extern cy_stc_ble_disc_srvc_info_t cy_ble_serverInfo[CY_BLE_CONFIG_GATTC_COUNT][
 * Function Name: Cy_BLE_GATT_GetBusyStatus
 ***************************************************************************//**
 *
-*  This function returns a status of the BLE stack (busy or not busy).
-*  The status is changed after the CY_BLE_EVT_STACK_BUSY_STATUS event.
+*  This function returns a status of the BLE Stack (busy or not busy).
+*  The status is changed after the #CY_BLE_EVT_STACK_BUSY_STATUS event.
 *
 *  \param attId: Identifies the active ATT connection Instance.
 *
 * \return
 *  uint8_t: The busy status.
-*   * CY_BLE_STACK_STATE_BUSY - The BLE stack is busy.
-*   * CY_BLE_STACK_STATE_FREE - The BLE stack is not busy.
+*   * CY_BLE_STACK_STATE_BUSY - The BLE Stack is busy.
+*   * CY_BLE_STACK_STATE_FREE - The BLE Stack is not busy.
 *
 ******************************************************************************/
 #define Cy_BLE_GATT_GetBusyStatus(attId)    (cy_ble_busyStatus[attId])
@@ -2559,17 +2563,6 @@ __STATIC_INLINE uint32_t Cy_BLE_Get24ByPtr(const uint8_t ptr[])
 
 
 /** \endcond */
-
-
-/***************************************
-* Function Prototypes
-***************************************/
-
-#if (CY_BLE_GATT_ROLE_SERVER || CY_BLE_GATT_ROLE_CLIENT)
-
-uint8_t Cy_BLE_IsDeviceAddressValid(const cy_stc_ble_gap_bd_addr_t *deviceAddress);
-
-#endif /* (CY_BLE_GATT_ROLE_SERVER || CY_BLE_GATT_ROLE_CLIENT) */
 
 /** @} group_common_api_functions */
 

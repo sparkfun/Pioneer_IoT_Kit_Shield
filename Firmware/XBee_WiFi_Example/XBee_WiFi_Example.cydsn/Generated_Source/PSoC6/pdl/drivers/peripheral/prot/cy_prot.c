@@ -1,6 +1,6 @@
 /***************************************************************************//**
 * \file cy_prot.c
-* \version 1.0
+* \version 1.10
 *
 * \brief
 * Provides an API implementation of the Protection Unit driver
@@ -28,7 +28,7 @@ extern "C" {
 * and privilege level of the bus transaction created by the specified master. 
 *
 * \param busMaster
-* Indicates which master needs to be configured. Refer to the CY_PROT_MASTER_X
+* Indicates which master needs to be configured. Refer to the CPUSS_MS_ID_X
 * defines.
 * 
 * \param privileged
@@ -52,20 +52,60 @@ extern "C" {
 *   CY_PROT_SUCCESS      | The function completed successfully
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigBusMaster
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigBusMaster(en_prot_master_t busMaster, bool privileged, bool secure, uint32_t pcMask)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t regVal;
-    uint32_t * addrMsCtl = (uint32_t *)(PROT_BASE + (uint32_t)((uint32_t)busMaster << CY_PROT_MSX_CTL_SHIFT));
+    uint32_t * addrMsCtl;
 
-    if((uint32_t)(pcMask & CY_PROT_MPU_PC_LIMIT_MASK) != 0UL) 
+    CY_ASSERT_L1(CY_PROT_IS_BUS_MASTER_VALID(busMaster));
+        
+    addrMsCtl = (uint32_t *)(PROT_BASE + (uint32_t)((uint32_t)busMaster << CY_PROT_MSX_CTL_SHIFT));
+    
+    /* Check if PC mask is in supported range */
+    switch (busMaster)
     {
-        /* PC mask out of range - not supported in device */
-        status = CY_PROT_BAD_PARAM;
+        case (CPUSS_MS_ID_CM0):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS0_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_CRYPTO):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS1_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_DW0):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS2_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_DW1):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS3_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_CM4):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS14_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_TC):
+        {
+            status = ((uint32_t)(pcMask & CY_PROT_MS15_PC_LIMIT_MASK) != 0UL) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        default:
+            status = CY_PROT_BAD_PARAM;
+        break;
     }
-    else
+    
+    if(status != CY_PROT_BAD_PARAM) 
     {
         regVal = _VAL2FLD(PROT_SMPU_MS0_CTL_NS, !secure)
                 | _VAL2FLD(PROT_SMPU_MS0_CTL_P, privileged)
@@ -88,7 +128,7 @@ cy_en_prot_status_t Cy_Prot_ConfigBusMaster(en_prot_master_t busMaster, bool pri
 * master, the value set through this function is used.
 *
 * \param busMaster
-* The bus master to configure. Refer to the CY_PROT_MASTER_X defines.
+* The bus master to configure. Refer to the CPUSS_MS_ID_X defines.
 * 
 * \param pc
 * Active protection context of the specified master. Note that only those 
@@ -102,19 +142,59 @@ cy_en_prot_status_t Cy_Prot_ConfigBusMaster(en_prot_master_t busMaster, bool pri
 *   CY_PROT_SUCCESS      | The function completed successfully
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_SetActivePC
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_SetActivePC(en_prot_master_t busMaster, uint32_t pc)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
-    PROT_MPU_Type* addrMpu = (PROT_MPU_Type*)(&PROT->CYMPU[busMaster]);
+    cy_en_prot_status_t status;
+    PROT_MPU_Type* addrMpu;
     
-    if(pc >= (uint32_t)CY_PROT_MS_PC_NR_MAX) 
+    CY_ASSERT_L1(CY_PROT_IS_BUS_MASTER_VALID(busMaster));
+    
+    addrMpu = (PROT_MPU_Type*)(&PROT->CYMPU[busMaster]); 
+    
+    /* Check if PC value is in supported range */
+    switch (busMaster)
     {
-        /* Invalid PC value - not supported in device */
-        status = CY_PROT_BAD_PARAM;
+        case (CPUSS_MS_ID_CM0):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS0_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_CRYPTO):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS1_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_DW0):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS2_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_DW1):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS3_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_CM4):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS14_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        case (CPUSS_MS_ID_TC):
+        {
+            status = (pc > CPUSS_PROT_SMPU_MS15_PC_NR_MINUS1) ? CY_PROT_BAD_PARAM : CY_PROT_SUCCESS;
+            break;
+        }
+        default:
+            status = CY_PROT_BAD_PARAM;
+        break;
     }
-    else
+    
+    if(status != CY_PROT_BAD_PARAM) 
     {
         addrMpu->MS_CTL = _VAL2FLD(PROT_MPU_MS_CTL_PC, pc) | _VAL2FLD(PROT_MPU_MS_CTL_PC_SAVED, pc);
         status = (_FLD2VAL(PROT_MPU_MS_CTL_PC, addrMpu->MS_CTL) != pc) ? CY_PROT_FAILURE : CY_PROT_SUCCESS;
@@ -132,15 +212,22 @@ cy_en_prot_status_t Cy_Prot_SetActivePC(en_prot_master_t busMaster, uint32_t pc)
 *
 * \param busMaster
 * The bus master, whose protection context is being read. Refer to the 
-* CY_PROT_MASTER_X defines.
+* CPUSS_MS_ID_X defines.
 * 
 * \return
 * Active protection context of the master
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_SetActivePC
+*
 *******************************************************************************/
 uint32_t Cy_Prot_GetActivePC(en_prot_master_t busMaster)
 {
-    PROT_MPU_Type* addrMpu = (PROT_MPU_Type*)(&PROT->CYMPU[busMaster]);
+    PROT_MPU_Type* addrMpu;
+    
+    CY_ASSERT_L1(CY_PROT_IS_BUS_MASTER_VALID(busMaster));
+    
+    addrMpu = (PROT_MPU_Type*)(&PROT->CYMPU[busMaster]);
     
     return ((uint32_t)_FLD2VAL(PROT_MPU_MS_CTL_PC, addrMpu->MS_CTL));
 }
@@ -169,14 +256,22 @@ uint32_t Cy_Prot_GetActivePC(en_prot_master_t busMaster)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The MPU struct was configured
 *   CY_PROT_FAILURE      | Configuration failed due to a protection violation
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigMpuStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigMpuStruct(PROT_MPU_MPU_STRUCT_Type* base, const cy_stc_mpu_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t addrReg;
     uint32_t attReg;
-    
+
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_MPU_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_MPU_PERM_VALID(config->privPermission));
+    CY_ASSERT_L3(CY_PROT_IS_REGION_SIZE_VALID(config->regionSize));
+
     addrReg = _VAL2FLD(PROT_MPU_MPU_STRUCT_ADDR_SUBREGION_DISABLE, config->subregions)
               | _VAL2FLD(PROT_MPU_MPU_STRUCT_ADDR_ADDR24, (uint32_t)((uint32_t)config->address >> CY_PROT_ADDR_SHIFT));
     attReg  = ((uint32_t)config->userPermission & CY_PROT_ATT_PERMISSION_MASK)
@@ -208,12 +303,15 @@ cy_en_prot_status_t Cy_Prot_ConfigMpuStruct(PROT_MPU_MPU_STRUCT_Type* base, cons
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The MPU struct was enabled
 *   CY_PROT_FAILURE      | The MPU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnableMpuStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnableMpuStruct(PROT_MPU_MPU_STRUCT_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
-    
+    cy_en_prot_status_t status;
+
     base->ATT |= _VAL2FLD(PROT_MPU_MPU_STRUCT_ATT_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_MPU_MPU_STRUCT_ATT_ENABLED, base->ATT) != CY_PROT_STRUCT_ENABLE) ?
                 CY_PROT_FAILURE : CY_PROT_SUCCESS;
@@ -239,11 +337,14 @@ cy_en_prot_status_t Cy_Prot_EnableMpuStruct(PROT_MPU_MPU_STRUCT_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The MPU struct was disabled
 *   CY_PROT_FAILURE      | The MPU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisableMpuStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisableMpuStruct(PROT_MPU_MPU_STRUCT_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT &= ~_VAL2FLD(PROT_MPU_MPU_STRUCT_ATT_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_MPU_MPU_STRUCT_ATT_ENABLED, base->ATT) == CY_PROT_STRUCT_ENABLE) ?
@@ -282,12 +383,19 @@ cy_en_prot_status_t Cy_Prot_DisableMpuStruct(PROT_MPU_MPU_STRUCT_Type* base)
 *   CY_PROT_SUCCESS      | SMPU master struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigSmpuMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* base, const cy_stc_smpu_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_SMPU_MS_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_SMPU_MS_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_SMPU_PC_LIMIT_MASK) != 0UL) 
     {
@@ -342,14 +450,22 @@ cy_en_prot_status_t Cy_Prot_ConfigSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* b
 *   CY_PROT_SUCCESS      | SMPU slave struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigSmpuSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* base, const cy_stc_smpu_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t addrReg;
     uint32_t attReg;
     
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_SMPU_SL_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_SMPU_SL_PERM_VALID(config->privPermission));
+    CY_ASSERT_L3(CY_PROT_IS_REGION_SIZE_VALID(config->regionSize));
+
     if(((uint32_t)config->pcMask & CY_PROT_SMPU_PC_LIMIT_MASK) != 0UL) 
     {
         /* PC mask out of range - not supported in device */
@@ -394,11 +510,14 @@ cy_en_prot_status_t Cy_Prot_ConfigSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* ba
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was enabled
 *   CY_PROT_FAILURE      | The Master PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnableSmpuMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnableSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 |= _VAL2FLD(PROT_SMPU_SMPU_STRUCT_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_SMPU_SMPU_STRUCT_ATT1_ENABLED, base->ATT1) != CY_PROT_STRUCT_ENABLE) ?
@@ -427,11 +546,14 @@ cy_en_prot_status_t Cy_Prot_EnableSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* b
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was disabled
 *   CY_PROT_FAILURE      | The Master PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisableSmpuMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisableSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 &= ~_VAL2FLD(PROT_SMPU_SMPU_STRUCT_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_SMPU_SMPU_STRUCT_ATT1_ENABLED, base->ATT1) == CY_PROT_STRUCT_ENABLE) ?
@@ -460,11 +582,14 @@ cy_en_prot_status_t Cy_Prot_DisableSmpuMasterStruct(PROT_SMPU_SMPU_STRUCT_Type* 
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was enabled
 *   CY_PROT_FAILURE      | The Slave PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnableSmpuSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnableSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* base)
 {   
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 |= _VAL2FLD(PROT_SMPU_SMPU_STRUCT_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_SMPU_SMPU_STRUCT_ATT0_ENABLED, base->ATT0) != CY_PROT_STRUCT_ENABLE) ?
@@ -493,11 +618,14 @@ cy_en_prot_status_t Cy_Prot_EnableSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* ba
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was disabled
 *   CY_PROT_FAILURE      | The Slave PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisableSmpuSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisableSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 &= ~_VAL2FLD(PROT_SMPU_SMPU_STRUCT_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PROT_SMPU_SMPU_STRUCT_ATT0_ENABLED, base->ATT0) == CY_PROT_STRUCT_ENABLE) ?
@@ -536,12 +664,19 @@ cy_en_prot_status_t Cy_Prot_DisableSmpuSlaveStruct(PROT_SMPU_SMPU_STRUCT_Type* b
 *   CY_PROT_SUCCESS      | PPU PROG master struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuProgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuProgMasterStruct(PERI_PPU_PR_Type* base, const cy_stc_ppu_prog_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_PROG_MS_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_PROG_MS_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_PROG_PC_LIMIT_MASK) != 0UL) 
     {
@@ -600,14 +735,22 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuProgMasterStruct(PERI_PPU_PR_Type* base, co
 *   CY_PROT_SUCCESS      | PPU PROG slave struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuProgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveStruct(PERI_PPU_PR_Type* base, const cy_stc_ppu_prog_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t addrReg;
     uint32_t attReg;
     
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_PROG_SL_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_PROG_SL_PERM_VALID(config->privPermission));
+    CY_ASSERT_L3(CY_PROT_IS_REGION_SIZE_VALID(config->regionSize));
+
     if(((uint32_t)config->pcMask & CY_PROT_PPU_PROG_PC_LIMIT_MASK) != 0UL) 
     {
         /* PC mask out of range - not supported in device */
@@ -660,11 +803,14 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuProgSlaveStruct(PERI_PPU_PR_Type* base, con
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was enabled
 *   CY_PROT_FAILURE      | The Master PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuProgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuProgMasterStruct(PERI_PPU_PR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 |= _VAL2FLD(PERI_PPU_PR_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_PR_ATT1_ENABLED, base->ATT1) != CY_PROT_STRUCT_ENABLE) ?
@@ -694,11 +840,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuProgMasterStruct(PERI_PPU_PR_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was disabled
 *   CY_PROT_FAILURE      | The Master PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuProgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuProgMasterStruct(PERI_PPU_PR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 &= ~_VAL2FLD(PERI_PPU_PR_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_PR_ATT1_ENABLED, base->ATT1) == CY_PROT_STRUCT_ENABLE) ?
@@ -727,11 +876,14 @@ cy_en_prot_status_t Cy_Prot_DisablePpuProgMasterStruct(PERI_PPU_PR_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was enabled
 *   CY_PROT_FAILURE      | The Slave PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuProgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuProgSlaveStruct(PERI_PPU_PR_Type* base)
 {   
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 |= _VAL2FLD(PERI_PPU_PR_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_PR_ATT0_ENABLED, base->ATT0) != CY_PROT_STRUCT_ENABLE) ?
@@ -761,11 +913,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuProgSlaveStruct(PERI_PPU_PR_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was disabled
 *   CY_PROT_FAILURE      | The Slave PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuProgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuProgSlaveStruct(PERI_PPU_PR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 &= ~_VAL2FLD(PERI_PPU_PR_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_PR_ATT0_ENABLED, base->ATT0) == CY_PROT_STRUCT_ENABLE) ?
@@ -804,12 +959,19 @@ cy_en_prot_status_t Cy_Prot_DisablePpuProgSlaveStruct(PERI_PPU_PR_Type* base)
 *   CY_PROT_SUCCESS      | PPU GR master struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedGrMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedGrMasterStruct(PERI_PPU_GR_Type* base, const cy_stc_ppu_gr_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -873,12 +1035,19 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedGrMasterStruct(PERI_PPU_GR_Type* base,
 *   CY_PROT_SUCCESS      | PPU GR slave struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedGrSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base, const cy_stc_ppu_gr_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -928,11 +1097,14 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base, 
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was enabled
 *   CY_PROT_FAILURE      | The Master PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedGrMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedGrMasterStruct(PERI_PPU_GR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 |= _VAL2FLD(PERI_PPU_GR_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_GR_ATT1_ENABLED, base->ATT1) != CY_PROT_STRUCT_ENABLE) ?
@@ -962,11 +1134,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedGrMasterStruct(PERI_PPU_GR_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was disabled
 *   CY_PROT_FAILURE      | The Master PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedGrMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedGrMasterStruct(PERI_PPU_GR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 &= ~_VAL2FLD(PERI_PPU_GR_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_GR_ATT1_ENABLED, base->ATT1) == CY_PROT_STRUCT_ENABLE) ?
@@ -995,11 +1170,14 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedGrMasterStruct(PERI_PPU_GR_Type* base
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was enabled
 *   CY_PROT_FAILURE      | The Slave PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedGrSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base)
 {   
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 |= _VAL2FLD(PERI_PPU_GR_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_GR_ATT0_ENABLED, base->ATT0) != CY_PROT_STRUCT_ENABLE) ?
@@ -1029,11 +1207,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base)
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was disabled
 *   CY_PROT_FAILURE      | The Slave PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedGrSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 &= ~_VAL2FLD(PERI_PPU_GR_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_PPU_GR_ATT0_ENABLED, base->ATT0) == CY_PROT_STRUCT_ENABLE) ?
@@ -1072,12 +1253,19 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedGrSlaveStruct(PERI_PPU_GR_Type* base)
 *   CY_PROT_SUCCESS      | PPU SL master struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedSlMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* base, const cy_stc_ppu_sl_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -1140,12 +1328,19 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* ba
 *   CY_PROT_SUCCESS      | PPU SL slave struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedSlSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* base, const cy_stc_ppu_sl_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -1196,11 +1391,14 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* bas
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was enabled
 *   CY_PROT_FAILURE      | The Master PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedSlMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 |= _VAL2FLD(PERI_GR_PPU_SL_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_SL_ATT1_ENABLED, base->ATT1) != CY_PROT_STRUCT_ENABLE) ?
@@ -1230,11 +1428,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* ba
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was disabled
 *   CY_PROT_FAILURE      | The Master PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedSlMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 &= ~_VAL2FLD(PERI_GR_PPU_SL_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_SL_ATT1_ENABLED, base->ATT1) == CY_PROT_STRUCT_ENABLE) ?
@@ -1263,11 +1464,14 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedSlMasterStruct(PERI_GR_PPU_SL_Type* b
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was enabled
 *   CY_PROT_FAILURE      | The Slave PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedSlSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* base)
 {   
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 |= _VAL2FLD(PERI_GR_PPU_SL_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_SL_ATT0_ENABLED, base->ATT0) != CY_PROT_STRUCT_ENABLE) ?
@@ -1297,11 +1501,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* bas
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was disabled
 *   CY_PROT_FAILURE      | The Slave PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedSlSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 &= ~_VAL2FLD(PERI_GR_PPU_SL_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_SL_ATT0_ENABLED, base->ATT0) == CY_PROT_STRUCT_ENABLE) ?
@@ -1340,12 +1547,19 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedSlSlaveStruct(PERI_GR_PPU_SL_Type* ba
 *   CY_PROT_SUCCESS      | PPU RG master struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedRgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* base, const cy_stc_ppu_rg_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_MS_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -1408,12 +1622,19 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* ba
 *   CY_PROT_SUCCESS      | PPU RG slave struct was successfully configured
 *   CY_PROT_FAILURE      | The resource is locked
 *   CY_PROT_BAD_PARAM    | An incorrect/invalid parameter was passed
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_ConfigPpuFixedRgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_ConfigPpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* base, const cy_stc_ppu_rg_cfg_t* config)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     uint32_t attReg;
+    
+    CY_ASSERT_L1(NULL != base);
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->userPermission));
+    CY_ASSERT_L3(CY_PROT_IS_FIXED_SL_PERM_VALID(config->privPermission));
     
     if(((uint32_t)config->pcMask & CY_PROT_PPU_FIXED_PC_LIMIT_MASK) != 0UL) 
     {
@@ -1464,12 +1685,15 @@ cy_en_prot_status_t Cy_Prot_ConfigPpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* bas
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was enabled
 *   CY_PROT_FAILURE      | The Master PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedRgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
-    
+    cy_en_prot_status_t status;
+
     base->ATT1 |= _VAL2FLD(PERI_GR_PPU_RG_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_RG_ATT1_ENABLED, base->ATT1) != CY_PROT_STRUCT_ENABLE) ?
                 CY_PROT_FAILURE : CY_PROT_SUCCESS;
@@ -1498,11 +1722,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* ba
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Master PU struct was disabled
 *   CY_PROT_FAILURE      | The Master PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedRgMasterStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT1 &= ~_VAL2FLD(PERI_GR_PPU_RG_ATT1_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_RG_ATT1_ENABLED, base->ATT1) == CY_PROT_STRUCT_ENABLE) ?
@@ -1531,11 +1758,14 @@ cy_en_prot_status_t Cy_Prot_DisablePpuFixedRgMasterStruct(PERI_GR_PPU_RG_Type* b
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was enabled
 *   CY_PROT_FAILURE      | The Slave PU struct is disabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_EnablePpuFixedRgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_EnablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* base)
 {   
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 |= _VAL2FLD(PERI_GR_PPU_RG_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_RG_ATT0_ENABLED, base->ATT0) != CY_PROT_STRUCT_ENABLE) ?
@@ -1565,11 +1795,14 @@ cy_en_prot_status_t Cy_Prot_EnablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* bas
 *   ------------         | -----------
 *   CY_PROT_SUCCESS      | The Slave PU struct was disabled
 *   CY_PROT_FAILURE      | The Slave PU struct is enabled and possibly locked
-*  
+*
+* \funcusage
+* \snippet prot/prot_v1_10_sut_01.cydsn/main_cm4.c snippet_Cy_Prot_DisablePpuFixedRgSlaveStruct
+*
 *******************************************************************************/
 cy_en_prot_status_t Cy_Prot_DisablePpuFixedRgSlaveStruct(PERI_GR_PPU_RG_Type* base)
 {
-    cy_en_prot_status_t status = CY_PROT_SUCCESS;
+    cy_en_prot_status_t status;
     
     base->ATT0 &= ~_VAL2FLD(PERI_GR_PPU_RG_ATT0_ENABLED, CY_PROT_STRUCT_ENABLE);
     status = (_FLD2VAL(PERI_GR_PPU_RG_ATT0_ENABLED, base->ATT0) == CY_PROT_STRUCT_ENABLE) ?

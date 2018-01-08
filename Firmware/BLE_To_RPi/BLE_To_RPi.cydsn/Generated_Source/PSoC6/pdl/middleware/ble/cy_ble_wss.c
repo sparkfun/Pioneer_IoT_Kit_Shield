@@ -136,7 +136,7 @@ cy_en_ble_api_result_t Cy_BLE_WSS_Init(cy_stc_ble_wss_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                 events from the BLE Component. The definition of
+*                 events from the BLE Middleware. The definition of
 *                 cy_ble_callback_t is: \n
 *                 typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                    void *eventParam)
@@ -186,7 +186,7 @@ cy_en_ble_api_result_t Cy_BLE_WSS_RegisterAttrCallback(cy_ble_callback_t callbac
 *  \param eventParam: The pointer to the data structure specified by the event.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *   * CY_BLE_GATT_ERR_NONE - Write is successful.
 *   * CY_BLE_GATT_ERR_REQUEST_NOT_SUPPORTED - The request is not supported.
 *   * CY_BLE_GATT_ERR_INVALID_HANDLE - 'handleValuePair.attrHandle' is not valid.
@@ -232,15 +232,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_WSSS_WriteEventHandler(const cy_stc_ble_
                 Cy_BLE_WSS_ApplCallback(event, &wrReqParam);
             }
 
-        #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-            (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-            /* Set flag to store bonding data to flash */
-            if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-            {
-                cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-            }
-        #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
-
             /* Clear callback flag indicating that request was handled */
             cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
         }
@@ -254,7 +245,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_WSSS_WriteEventHandler(const cy_stc_ble_
 * Function Name: Cy_BLE_WSSS_ConfirmationEventHandler
 ***************************************************************************//**
 *
-*  Handles a Value Confirmation request event from the BLE stack.
+*  Handles a Value Confirmation request event from the BLE Stack.
 *
 *  \param eventParam: The pointer to a structure of type cy_stc_ble_conn_handle_t.
 *
@@ -293,13 +284,13 @@ static void Cy_BLE_WSSS_ConfirmationEventHandler(const cy_stc_ble_conn_handle_t 
 *
 *  Sets the User ID List to the advertisement packet. To be able to set the
 *  User ID List with this function, the advertisement packet should be
-*  configured in the component GUI to include Weight Scale Service UUID in the
+*  configured in the Component GUI to include Weight Scale Service UUID in the
 *  Service Data field. The Service Data should have enough room to fit the
 *  User ID List that is planned to be advertised. To reserve the room for the
 *  User ID List, the Service Data for WSS should be filled with Unknown User
 *  ID - 0xFF. The amount of 0xFF's should be equal to User List Size that is
 *  planned to be advertised.
-*  This function must be called when Cy_BLE_GetBleSsState() returns
+*  This function must be called when Cy_BLE_StackGetBleSsState() returns
 *  CY_BLE_BLESS_STATE_EVENT_CLOSE state.
 *
 *  \param listSize: The size of the User List.
@@ -310,8 +301,8 @@ static void Cy_BLE_WSSS_ConfirmationEventHandler(const cy_stc_ble_conn_handle_t 
 *  * CY_BLE_BROADCASTER_CONFIGURATION_0_INDEX    0x01
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - On NULL pointer, Data length in input
 *                parameter exceeds maximum advertisement packet length.
 *  * CY_BLE_ERROR_INVALID_OPERATION - The advertisement packet doesn't contain
@@ -494,7 +485,7 @@ uint8_t Cy_BLE_WSS_GetAdUserIdListSize(uint8_t advertisingParamIndex)
 *                    stored to the GATT database.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was written successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *
@@ -551,7 +542,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSS_SetCharacteristicValue(cy_en_ble_wss_char_ind
 *                     should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was read successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *
@@ -608,8 +599,8 @@ cy_en_ble_api_result_t Cy_BLE_WSSS_GetCharacteristicValue(cy_en_ble_wss_char_ind
 *                       database.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *
 ******************************************************************************/
@@ -659,8 +650,8 @@ cy_en_ble_api_result_t Cy_BLE_WSSS_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *                     data should be stored.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *
 ******************************************************************************/
@@ -718,7 +709,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSS_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 *                     sent to the client's device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was handled successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted.
@@ -728,7 +719,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSS_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the WSS service-specific callback is registered
 *      (with Cy_BLE_WSS_RegisterAttrCallback):
 *  * CY_BLE_EVT_WSSS_INDICATION_CONFIRMED - If the indication is
@@ -1114,7 +1105,7 @@ static void Cy_BLE_WSSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *  \param charIndex:  The index of the service characteristic. Starts with zero.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -1126,11 +1117,11 @@ static void Cy_BLE_WSSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the WSS service-specific callback is registered
 *      (with Cy_BLE_WSS_RegisterAttrCallback):
 *  * CY_BLE_EVT_WSSC_READ_CHAR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with an event parameter structure
 *                                of type cy_stc_ble_wss_char_value_t.
@@ -1141,7 +1132,7 @@ static void Cy_BLE_WSSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *                                the details (handle, value, etc.) are
 *                                provided with an event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - If there is trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1193,7 +1184,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *  which is identified by charIndex and descrIndex.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_WSSS_INDICATION_ENABLED
 *  * CY_BLE_EVT_WSSS_INDICATION_DISABLED
@@ -1206,7 +1197,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *                       should be sent to the server device.
 *
 * \return
-*  A return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
@@ -1216,7 +1207,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the WSS service-specific callback is registered
 *      (with Cy_BLE_WSS_RegisterAttrCallback):
 *  * CY_BLE_EVT_WSSC_WRITE_DESCR_RESPONSE - If the requested attribute is
@@ -1228,7 +1219,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *   Otherwise (if the WSS service-specific callback is not registered):
 *  * CY_BLE_EVT_GATTC_WRITE_RSP - If the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - If there is trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1303,11 +1294,11 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the WSS service-specific callback is registered
 *      (with Cy_BLE_WSS_RegisterAttrCallback):
 *  * CY_BLE_EVT_WSSC_READ_DESCR_RESPONSE - If the requested attribute is
-*                                successfully written on the peer device,
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with an event parameter structure
 *                                of type cy_stc_ble_wss_descr_value_t.
@@ -1318,7 +1309,7 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *                                the details (handle, value, etc.) are
 *                                provided with an event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - If there is trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1371,13 +1362,13 @@ cy_en_ble_api_result_t Cy_BLE_WSSC_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 * Function Name: Cy_BLE_WSS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Weight Scale Service.
+*  Handles the events from the BLE Stack for the Weight Scale Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_WSS_EventHandler(uint32_t eventCode,

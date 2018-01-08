@@ -14,15 +14,11 @@
 * the software package with which this file was provided.
 *******************************************************************************/
 
-#include "flash/cy_flash.h"
 #include "ipc/cy_ipc_drv.h"
 #include "ipc/cy_ipc_pipe.h"
 #include "ipc/cy_ipc_sema.h"
-#include "sysint/cy_sysint.h"
 
 #include "cy_ipc_config.h"
-
-static void Cy_Flash_NotifyHandler(uint32_t * msgPtr);
 
 /* Create an array of endpoint structures */
 static cy_stc_ipc_pipe_ep_t        cy_ipc_pipe_sysEpArray[CY_IPC_MAX_ENDPOINTS];
@@ -52,7 +48,15 @@ static cy_stc_ipc_pipe_ep_t        cy_ipc_pipe_sysEpArray[CY_IPC_MAX_ENDPOINTS];
 * Function Name: Cy_IPC_SystemSemaInit
 ****************************************************************************//**
 *
-* Initializes the system semaphores.
+* Initializes the system semaphores. The system semaphores are used by Flash.
+*
+* This function is called in the SystemInit() function. If the default startup
+* file is not used, or SystemInit() is not called in your project,
+* call the following three functions prior to executing any flash or EmEEPROM
+* write or erase operation:
+*  -# Cy_IPC_SystemSemaInit()
+*  -# Cy_IPC_SystemPipeInit()
+*  -# Cy_Flash_Init()
 *
 *******************************************************************************/
 void Cy_IPC_SystemSemaInit(void)
@@ -70,8 +74,18 @@ void Cy_IPC_SystemSemaInit(void)
 * Function Name: Cy_IPC_SystemPipeInit
 ****************************************************************************//**
 *
-* Initializes the system pipes. The system pipes are used by BLE.
+* Initializes the system pipes. The system pipes are used by BLE and Flash.
 * \note The function should be called on all CPUs.
+*
+* This function is called in the SystemInit() function. If the default startup
+* file is not used, or SystemInit() is not called in your project,
+* call the following three functions prior to executing any flash or EmEEPROM
+* write or erase operation:
+*  -# Cy_IPC_SystemSemaInit()
+*  -# Cy_IPC_SystemPipeInit()
+*  -# Cy_Flash_Init()
+*
+* Also this function is called to support BLE host/controller communication.
 *
 *******************************************************************************/
 void Cy_IPC_SystemPipeInit(void)
@@ -88,8 +102,6 @@ void Cy_IPC_SystemPipeInit(void)
 
     Cy_IPC_Pipe_Init(&systemPipeConfig);
 
-    (void)Cy_IPC_Pipe_RegisterCallback(CY_IPC_EP_CYPIPE_ADDR, &Cy_Flash_NotifyHandler, (uint32_t)CY_FLASH_IPC_CLIENT_ID);
-
     Cy_SysLib_ExitCriticalSection(intr);
 }
 
@@ -105,39 +117,6 @@ void Cy_IPC_SystemPipeIsr(void)
     Cy_IPC_Pipe_ExecCallback(&cy_ipc_pipe_sysEpArray[CY_IPC_EP_CYPIPE_ADDR]);
 }
 
-/*******************************************************************************
-* Function Name: Cy_Flash_NotifyHandler
-****************************************************************************//**
-*
-* This is the interrupt service routine for the pipe notifications.
-*
-*******************************************************************************/
-#if defined (__ICCARM__)
-    __ramfunc 
-#else
-    CY_SECTION(".cy_ramfunc")
-#endif
-static void Cy_Flash_NotifyHandler(uint32_t * msgPtr)
-{
-    uint32_t intr;
-
-    IPC_MSG *ipcMsgPtr = (IPC_MSG *)msgPtr;
-
-    if (CY_FLASH_ENTER_WAIT_LOOP == ipcMsgPtr->pktType)
-    {
-        intr = Cy_SysLib_EnterCriticalSection();
-
-        /* Notification to the Flash driver to start the current operation */
-        (void) Cy_IPC_Sema_Set(CY_FLASH_WAIT_SEMA, true);
-
-        /* Notification to me about the end of the operation */
-        while (CY_IPC_SEMA_STATUS_LOCKED == Cy_IPC_Sema_Status(CY_FLASH_WAIT_SEMA))
-        {
-        }
-
-        Cy_SysLib_ExitCriticalSection(intr);
-    }
-}
 
 /* [] END OF FILE */
 

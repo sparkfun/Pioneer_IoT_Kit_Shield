@@ -51,12 +51,6 @@
    This will allow 128 (4*32) semaphores */
 #define CY_IPC_SEMA_COUNT               (uint32_t)(128u)
 
-/* System IPC Notify Masks */
-#define CY_IPC_SEMA_NOTIFY_MASK         (uint32_t)(0x0001ul << CY_IPC_CHAN_SEMA)
-
-/* System IPC channel release Masks */
-#define CY_IPC_SEM_RELEASE_MASK         (uint32_t)(0x0001ul << CY_IPC_CHAN_SEMA)
-
 /* IPC Pipe definitions */
 #define CY_IPC_MAX_ENDPOINTS            (uint32_t)(8u)
 
@@ -72,7 +66,7 @@
     #define CY_IPC_EP_CYPIPE_ADDR       CY_IPC_EP_CYPIPE_CM4_ADDR
 #endif  /* (CY_CPU_CORTEX_M0P) */
 
-#define CY_IPC_INTR_CYPIPE_MUX_EP0      (uint32_t)(1u)  /* IPC CYPRESS PIPE */
+#define CY_IPC_INTR_CYPIPE_MUX_EP0      (uint32_t)(1u)   /* IPC CYPRESS PIPE */
 #define CY_IPC_INTR_CYPIPE_EP0          (uint32_t)(3u)   /* Notifier EP0 */
 #define CY_IPC_INTR_CYPIPE_PRIOR_EP0    (uint32_t)(1u)   /* Notifier Priority */
 
@@ -123,8 +117,21 @@
 extern "C" {
 #endif
 
+
+/*
+* \addtogroup group_ipc_configuration_sema
+* \{
+*/
 void Cy_IPC_SystemSemaInit(void);
+/* \} group_ipc_configuration_sema */
+
+/*
+* \addtogroup group_ipc_configuration_cypipe
+* \{
+*/
 void Cy_IPC_SystemPipeInit(void);
+/* \} group_ipc_configuration_cypipe */
+
 void Cy_IPC_SystemPipeIsr(void);
 
 #ifdef __cplusplus

@@ -292,6 +292,8 @@ extern "C" {
 /** HW init failure */
 #define CY_BLE_HW_ERR_HW_INIT_FAILURE             0x0C
 
+/** HCI_ERR_HW_PILO_CALIB_FAILURE PILO(LFCLK) Calibration failed */
+#define CY_BLE_HW_ERR_PILO_CALIB_FAILURE          0x0D
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

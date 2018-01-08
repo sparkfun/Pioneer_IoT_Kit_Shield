@@ -15,7 +15,7 @@
 /**
 * \addtogroup group_scb_ezi2c
 * \{
-* Driver API for EZI2C slave Peripheral
+* Driver API for EZI2C Slave Peripheral
 *
 * I2C - The Inter-Integrated Circuit (I2C) bus is an industry-standard.
 * The two-wire hardware interface was developed by Philips Semiconductors
@@ -25,7 +25,7 @@
 * device based on the SCB hardware block. This slave device emulates a common
 * I2C EEPROM interface that acts like dual-port memory between the external
 * master and your code. I2C devices based on the SCB hardware are compatible
-* with the I2C Standard mode, Fast mode, and Fast mode Plus specifications as
+* with the I2C Standard mode, Fast mode, and Fast mode Plus specifications, as
 * defined in the I2C bus specification.
 *
 * Features:
@@ -36,66 +36,141 @@
 * * Supports Hardware Address Match
 * * Supports two hardware addresses with separate buffers
 * * Supports Wake from Deep Sleep on address match
-* * Simple to set up and use, does not require calling EZI2C API
+* * Simple to set up and use; does not require calling EZI2C API
 *   at run time.
 *
 * \section group_scb_ezi2c_configuration Configuration Considerations
+* The EZI2C slave driver configuration can be divided to number of sequential 
+* steps listed below: 
+* * \ref group_scb_ezi2c_config
+* * \ref group_scb_ezi2c_pins
+* * \ref group_scb_ezi2c_clock
+* * \ref group_scb_ezi2c_data_rate
+* * \ref group_scb_ezi2c_intr
+* * \ref group_scb_ezi2c_enable
+* 
+* \note 
+* EZI2C slave driver is built on top of the SCB hardware block. The SCB3 
+* instance is used as an example for all code snippets. Modify the code to 
+* match your design.
 *
-* To set up the EZI2C slave driver, provide the configuration parameters in the
-* \ref cy_stc_scb_ezi2c_config_t structure. For the slave, the primary slave
-* address slaveAddress1 must be provided. The other parameters are optional
-* for operation.
-* To get EZI2C slave operate with desired data rate the SCB clock frequency
-* must be configured. Use the SysClk driver API to do that. Refer to the
-* technical reference manual (TRM) to get information how to select SCB
-* frequency in I2C mode to support desired data rate.
-* To initialize the driver, call the \ref Cy_SCB_EZI2C_Init function providing
-* a pointer to the filled \ref cy_stc_scb_ezi2c_config_t structure and
-* allocated \ref cy_stc_scb_ezi2c_context_t. The \ref Cy_SCB_EZI2C_Interrupt
-* function must be called in the interrupt handler for the selected
-* SCB instance and this interrupt must be enabled in the NVIC. Set up the
-* EZI2C slave buffers before calling \ref Cy_SCB_EZI2C_Enable using
-* \ref Cy_SCB_EZI2C_SetBuffer1 for the primary slave address and
-* \ref Cy_SCB_EZI2C_SetBuffer2 for the secondary if it is enabled. Finally,
-* enable the EZI2C slave operation calling \ref Cy_SCB_EZI2C_Enable.
+* \subsection group_scb_ezi2c_config Configure EZI2C slave
+* To set up the EZI2C slave driver, provide the configuration parameters in the 
+* \ref cy_stc_scb_ezi2c_config_t structure. The primary slave address 
+* slaveAddress1 must be provided. The other parameters are optional for 
+* operation. To initialize the driver, call \ref Cy_SCB_EZI2C_Init 
+* function providing a pointer to the filled \ref cy_stc_scb_ezi2c_config_t 
+* structure and allocated \ref cy_stc_scb_ezi2c_context_t.
 *
-* The following operation might not require calling any EZI2C slave function
-* because the I2C master is able to access the slave buffer and the application
-* can directly access it as well. Note that this is an application level task
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_CFG
+*
+* Set up the EZI2C slave buffer before enabling its 
+* operation by using \ref Cy_SCB_EZI2C_SetBuffer1 for the primary slave address  
+* and \ref Cy_SCB_EZI2C_SetBuffer2 for the secondary (if the secondary is enabled).
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_CFG_BUFFER
+*
+* \subsection group_scb_ezi2c_pins Assign and Configure Pins
+* Only dedicated SCB pins can be used for I2C operation. The HSIOM 
+* register must be configured to connect the block to the pins. Also the I2C pins 
+* must be configured in Open-Drain, Drives Low mode (this pin configuration 
+* implies usage of external pull-up resistors):
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_CFG_PINS
+*
+* \note
+* The alternative pins configuration is Resistive Pull-ups which implies usage 
+* internal pull-up resistors. This configuration is not recommended because 
+* resistor value is fixed and cannot be used for all supported data rates. 
+* Refer to device datasheet parameter RPULLUP for resistor value specifications.
+*
+* \subsection group_scb_ezi2c_clock Assign Clock Divider
+* The clock source must be connected to the SCB block to oversample input and 
+* output signals. You must use one of the 8-bit or 16-bit dividers <em><b>(the  
+* source clock of this divider must be Clk_Peri)</b></em>. Use the  
+* \ref group_sysclk driver API to do that.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_CFG_ASSIGN_CLOCK
+*
+* \subsection group_scb_ezi2c_data_rate Configure Data Rate
+* To get EZI2C slave to operate at the desired data rate, the source clock must be 
+* fast enough to provide sufficient oversampling. Therefore, the clock divider 
+* must be configured to provide desired clock frequency. Use the 
+* \ref group_sysclk driver API to do that. 
+* Refer to the technical reference manual (TRM) section I2C sub-section 
+* Oversampling and Bit Rate to get information about how to configure the I2C to run 
+* at the desired data rate.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_CFG_DATA_RATE
+*
+* \subsection group_scb_ezi2c_intr Configure Interrupt
+* The interrupt is mandatory for the EZI2C slave operation. 
+* The \ref Cy_SCB_EZI2C_Interrupt function must be called in the interrupt 
+* handler for the selected SCB instance. Also, this interrupt must be enabled 
+* in the NVIC or it will not work.
+*
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_INTR_A
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_INTR_B
+*
+* \subsection group_scb_ezi2c_enable Enable EZI2C slave
+* Finally, enable the EZI2C slave operation by calling \ref Cy_SCB_EZI2C_Enable. 
+* Now the I2C device responds to the assigned address.
+* \snippet SCB_CompDatasheet_sut_01_revA.cydsn\ezi2c_snippets.c EZI2C_ENABLE
+*
+* \section group_scb_ezi2c_use_cases Common Use Cases 
+* The EZI2C slave operation might not require calling any EZI2C slave function
+* because the I2C master is able to access the slave buffer. The application
+* can directly access it as well. Note that this is an application-level task
 * to ensure the buffer content integrity.
+* 
+* \subsection group_scb_ezi2c_master_wr Master Write operation
+* This operation starts with sending a base address that is one
+* or two bytes, depending on the sub-address size configuration. This base
+* address is retained and will be used for later read operations. Following
+* the base address, there is a sequence of bytes written into the buffer
+* starting from the base address location. The buffer index is incremented
+* for each written byte, but this does not affect the base address that is
+* retained. The length of a write operation is limited by the maximum buffer
+* read/write region size.\n
+* When a master attempts to write outside the read/write region or past the
+* end of the buffer, the last byte is NACKed.
+* 
+* \image html scb_ezi2c_write.png
+* 
+* \subsection group_scb_ezi2c_master_rd Master Read operation
+* This operation always starts from the base address set by the most
+* recent write operation. The buffer index is incremented for each read byte.
+* Two sequential read operations start from the same base address no matter
+* how many bytes are read. The length of a read operation is not limited by
+* the maximum size of the data buffer. The EZI2C slave returns 0xFF bytes
+* if the read operation passes the end of the buffer.\n
+* Typically, a read operation requires the base address to be updated before
+* starting the read. In this case, the write and read operations must be
+* combined together.
 *
-* The master can access the buffer:
-* * Master Write operation starts with sending a base address which is 1
-*   or 2 bytes depending on the sub-address size configuration. This base
-*   address is retained and will be used for later read operations. Following
-*   the base address, there is a sequence of bytes written into the buffer
-*   starting from the base address location. The buffer index is incremented
-*   for each written byte, but this does not affect the base address which is
-*   retained. The length of a write operation is limited by the maximum buffer
-*   read/write region size.\n
-*   When a master attempts to write outside the read/write region or past the
-*   end of the buffer, the last byte is NACKed.
-* * Master Read operation always starts from the base address set by the most
-*   recent Write operation. The buffer index is incremented for each read byte.
-*   Two sequential read operations start from the same base address no matter
-*   how many bytes were read. The length of a read operation is not limited by
-*   the maximum size of the data buffer. The EZI2C slave returns 0xFF bytes
-*   if the read operation passes the end of the buffer.\n
-*   Typically, a read operation requires the base address to be updated before
-*   starting the read. In this case, the write and read operations must be
-*   combined together. The I2C master may use the ReStart or Stop/Start
-*   conditions to combine the operations. The write operation sets only the
-*   base address and the following read operation will start from the new base
-*   address. In cases where the base address remains the same, there is no need
-*   for a write operation.
+* \image html scb_ezi2c_read.png
 *
-* The EZI2C driver provides the callback functions to facilitate the low-power
-* mode transition. The callback \ref Cy_SCB_EZI2C_DeepSleepCallback can be called
-* during execution of \ref Cy_SysPm_DeepSleep; \ref Cy_SCB_EZI2C_HibernateCallback
-* can be called during execution of \ref Cy_SysPm_Hibernate. To trigger the
-* callback execution, the callback must be registered before calling the
-* mode transition function. Refer to SysPm driver for more information about
-* low-power mode transitions.
+* The I2C master may use the ReStart or Stop/Start conditions to combine the 
+* operations. The write operation sets only the base address and the following
+* read operation will start from the new base address. In cases where the base
+* address remains the same, there is no need for a write operation.
+* \image html scb_ezi2c_set_ba_read.png
+*
+* \section group_scb_ezi2c_lp Low Power Support
+* The EZI2C slave provides the callback functions to handle power mode 
+* transition. The callback \ref Cy_SCB_EZI2C_DeepSleepCallback must be called 
+* during execution of \ref Cy_SysPm_DeepSleep; 
+* \ref Cy_SCB_EZI2C_HibernateCallback must be called during execution of 
+* \ref Cy_SysPm_Hibernate. To trigger the callback execution, the callback must 
+* be registered before calling the power mode transition function. Refer to 
+* \ref group_syspm driver for more information about power mode transitions and 
+* callback registration.
+*
+* \note
+* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
+* For proper operation, when the EZI2C slave is configured to be a wakeup 
+* source from Deep Sleep mode, the \ref Cy_SCB_EZI2C_DeepSleepCallback must 
+* be copied and modified. Refer to the function description to get the details.
 *
 * \section group_scb_ezi2c_more_information More Information
 *
@@ -106,7 +181,7 @@
 * <table class="doxtable">
 *   <tr>
 *     <th>MISRA Rule</th>
-*     <th>Rule Class (Required / Advisory)</th>
+*     <th>Rule Class (Required/Advisory)</th>
 *     <th>Rule Description</th>
 *     <th>Description of Deviation(s)</th>
 *   </tr>
@@ -125,7 +200,7 @@
 *     <td>14.1</td>
 *     <td>R</td>
 *     <td>There shall be no unreachable code.</td>
-*     <td>The SCB block parameters can be a constant false or true depends on
+*     <td>The SCB block parameters can be a constant false or true depending on
 *         the selected device and cause code to be unreachable.</td>
 *   </tr>
 *   <tr>
@@ -142,8 +217,8 @@
 *     <td>A function shall have a single point of exit at the end of the
 *         function.</td>
 *     <td>The functions can return from several points. This is done to improve
-*         code clarity when returning error status code if input parameters
-*         validation is failed.</td>
+*         code clarity when returning error status code if input parameter
+*         validation fails.</td>
 *   </tr>
 * </table>
 *
@@ -156,7 +231,7 @@
 *     <td></td>
 *   </tr>
 *   <tr>
-*     <td>Replaced variables which have limited range of values with enumerated
+*     <td>Replaced variables that have limited range of values with enumerated
 *         types.</td>
 *     <td></td>
 *   </tr>
@@ -225,6 +300,7 @@ typedef enum
 typedef enum
 {
     CY_SCB_EZI2C_STATE_IDLE,
+    CY_SCB_EZI2C_STATE_ADDR,
     CY_SCB_EZI2C_STATE_RX_OFFSET_MSB,
     CY_SCB_EZI2C_STATE_RX_OFFSET_LSB,
     CY_SCB_EZI2C_STATE_RX_DATA0,
@@ -260,7 +336,7 @@ typedef struct cy_stc_scb_ezi2c_config
     cy_en_scb_ezi2c_sub_addr_size_t subAddressSize;
 
     /**
-    * When set, the slave will wake the device from deep sleep on an address
+    * When set, the slave will wake the device from Deep Sleep on an address
     * match (The device datasheet must be consulted to determine which SCBs
     * support this mode)
     */
@@ -406,14 +482,14 @@ cy_en_syspm_status_t Cy_SCB_EZI2C_HibernateCallback(cy_stc_syspm_callback_params
 * slave address. The sources of the error are: a misplaced Start or Stop
 * condition or lost arbitration while the slave drives SDA.
 * When CY_SCB_EZI2C_STATUS_ERR is set, the slave buffer may contain an
-* invalid byte. It is recommended to discard the buffer content in this case.
+* invalid byte. Discard the buffer content in this case.
 */
 #define CY_SCB_EZI2C_STATUS_ERR         (0x20UL)
 /** \} group_scb_ezi2c_macros_get_activity */
 
 /**
 * This value is returned by the slave when the buffer is not configured or
-* the master requests more bytes than available in the buffer.
+* the master requests more bytes than are available in the buffer.
 */
 #define CY_SCB_EZI2C_DEFAULT_TX  (0xFFUL)
 

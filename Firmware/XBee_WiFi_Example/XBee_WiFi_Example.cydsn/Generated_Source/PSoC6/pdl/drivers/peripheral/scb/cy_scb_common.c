@@ -70,7 +70,7 @@ void Cy_SCB_ReadArrayNoCheck(CySCB_Type const *base, void *buffer, uint32_t size
 ****************************************************************************//**
 *
 * Reads an array of data out of the SCB receive FIFO.
-* This function does not block, it returns how many data elements were
+* This function does not block; it returns how many data elements are
 * read from the receive FIFO.
 *
 * \param base
@@ -78,7 +78,7 @@ void Cy_SCB_ReadArrayNoCheck(CySCB_Type const *base, void *buffer, uint32_t size
 *
 * \param buffer
 * The pointer to location to place data read from receive FIFO.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -93,7 +93,7 @@ uint32_t Cy_SCB_ReadArray(CySCB_Type const *base, void *buffer, uint32_t size)
     /* Get available items in RX FIFO */
     uint32_t numToCopy = Cy_SCB_GetNumInRxFifo(base);
 
-    /* Adjust items which will be read */
+    /* Adjust items that will be read */
     if (numToCopy > size)
     {
         numToCopy = size;
@@ -118,8 +118,8 @@ uint32_t Cy_SCB_ReadArray(CySCB_Type const *base, void *buffer, uint32_t size)
 * The pointer to the SCB instance.
 *
 * \param buffer
-* The pointer to location to place data read from receive FIFO.
-* The item size is defined by the data type which depends on the configured
+* The pointer to the location to place data read from the receive FIFO.
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -148,7 +148,7 @@ void Cy_SCB_ReadArrayBlocking(CySCB_Type const *base, void *buffer, uint32_t siz
 ****************************************************************************//**
 *
 * Places a single data element in the SCB transmit FIFO.
-* This function does not block and returns how many data elements were placed
+* This function does not block. It returns how many data elements are placed
 * in the transmit FIFO.
 *
 * \param base
@@ -156,7 +156,7 @@ void Cy_SCB_ReadArrayBlocking(CySCB_Type const *base, void *buffer, uint32_t siz
 *
 * \param data
 * Data to put in the transmit FIFO.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \return
@@ -182,7 +182,7 @@ uint32_t Cy_SCB_Write(CySCB_Type *base, uint32_t data)
 * Function Name: Cy_SCB_WriteArrayNoCheck
 ****************************************************************************//**
 *
-* Places an array of data in the SCB transmit FIFO without checking if the
+* Places an array of data in the SCB transmit FIFO without checking whether the
 * transmit FIFO has enough space.
 * Before calling this function, make sure that the transmit FIFO has enough
 * space to put all requested data elements.
@@ -192,7 +192,7 @@ uint32_t Cy_SCB_Write(CySCB_Type *base, uint32_t data)
 *
 * \param buffer
 * The pointer to data to place in the transmit FIFO.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * TX data width.
 *
 * \param size
@@ -234,7 +234,7 @@ void Cy_SCB_WriteArrayNoCheck(CySCB_Type *base, void *buffer, uint32_t size)
 ****************************************************************************//**
 *
 * Places an array of data in the SCB transmit FIFO.
-* This function does not block and it returns how many data elements were
+* This function does not block. It returns how many data elements were
 * placed in the transmit FIFO.
 *
 * \param base
@@ -282,7 +282,7 @@ uint32_t Cy_SCB_WriteArray(CySCB_Type *base, void *buffer, uint32_t size)
 *
 * \param buffer
 * The pointer to data to place in transmit FIFO.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -344,9 +344,9 @@ void Cy_SCB_WriteString(CySCB_Type *base, char_t const string[])
 ****************************************************************************//**
 *
 * Places a number of the same data elements in the SCB transmit FIFO without
-* checking if the transmit FIFO has enough space. The data elements is equal
+* checking whether the transmit FIFO has enough space. The data elements is equal
 * to txData parameter.
-* Before calling this function make sure that transmit FIFO has enough space
+* Before calling this function, make sure that transmit FIFO has enough space
 * to put all requested data elements.
 *
 * \param base

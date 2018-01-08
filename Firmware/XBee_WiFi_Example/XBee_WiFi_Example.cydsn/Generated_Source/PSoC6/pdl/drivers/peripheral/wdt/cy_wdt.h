@@ -24,6 +24,8 @@
 * A timeout period is set up in the Watchdog timer, and if a timeout occurs, the
 * device is reset (WRES). <br>
 * The <b>Second use case</b> is to generate periodic interrupts.
+* It is strongly recommended not to use the WDT for periodic interrupt
+* generation. However, if absolutely required, see information below.
 *
 * A "reset cause" register exists, and the firmware should check this register 
 * at a start-up. An appropriate action can be taken if a WRES reset is detected.
@@ -162,6 +164,11 @@
 * \section group_wdt_changelog Changelog
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.0.1</td>
+*     <td>General documentation updates</td>
+*     <td>Added info about periodic interrupt generation use case</td>
+*   </tr>
 *   <tr>
 *     <td>1.0</td>
 *     <td>Initial version</td>

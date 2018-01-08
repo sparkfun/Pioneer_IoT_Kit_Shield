@@ -23,7 +23,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_gap.h"
@@ -189,13 +189,13 @@ typedef struct
 
 }cy_stc_ble_l2cap_cbfc_conn_req_info_t;
 
-/** L2cap flow contol state */
+/** L2cap flow control state */
 typedef struct
 {
     /**
     * States indicated by flowState variable
     *
-    * CY_BLE_STACK_STATE_BUSY (0x01) = CY_BLE_STACK_STATE_BUSY indicates to the application that the BLE stack's internal buffers
+    * CY_BLE_STACK_STATE_BUSY (0x01) = CY_BLE_STACK_STATE_BUSY indicates to the application that the BLE Stack's internal buffers
     *                    are about to be filled, and the remaining buffers are required to respond to the peer BLE device.
     *                    After this event, the application shall not initiate GATT, GAP Security, or L2CAP data transactions.
     *                    However the application shall respond to peer initiated transactions to prevent BLE protocol timeouts
@@ -459,9 +459,8 @@ typedef struct
 * Function Name: Cy_BLE_L2CAP_CbfcRegisterPsm
 ***************************************************************************//**
 * 
-*  This function registers a new upper-layer protocol or PSM to the L2CAP, along 
-*  with the set of callbacks for the L2CAP Credit Based Flow Control mode. This
-*  is a blocking function. No event is generated on calling this function.
+*  This function registers a new PSM to the L2CAP, along with callback for the L2CAP Credit Based Flow Control mode.
+*  This is a blocking function. No event is generated on calling this function.
 * 
 *  Refer to Bluetooth 4.1 core specification, Volume 3, Part A, section 3.4 
 *  for more details about credit based flow control mode of operation.
@@ -490,7 +489,7 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_CbfcRegisterPsm
 * Function Name: Cy_BLE_L2CAP_CbfcUnregisterPsm
 ***************************************************************************//**
 * 
-*  This function de-registers an upper-layer protocol or LE_PSM from the L2CAP for 
+*  This function deregister previously registered PSM from the L2CAP for 
 *  the L2CAP Credit Based Flow Control mode. This is a blocking function. No 
 *  event is generated on calling this function.
 * 
@@ -521,14 +520,13 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_CbfcUnregisterPsm
 * 
 *  This L2CAP function initiates the L2CAP channel establishment procedure in Credit
 *  Based Flow Control (CBFC) mode. Connection establishment is initiated to the
-*  specified remote Bluetooth device, for the specified PSM representing an 
-*  upper-layer protocol above L2CAP. This is a non-blocking function.
+*  specified remote Bluetooth device, with specific remote PSM. This is a non-blocking function.
 * 
 *  At the receiver's end, a CY_BLE_EVT_L2CAP_CBFC_CONN_IND event is generated.
-*  In response to this call, a CY_BLE_EVT_L2CAP_CBFC_CONN_CNF event is generated
+*  Once receivers responds to the request, 'CY_BLE_EVT_L2CAP_CBFC_CONN_CNF' event is generated
 *  at the sender's end.
 *
-*  At the sender's end, the CY_BLE_EVT_L2CAP_COMMAND_REJ event is generated if the receiver
+*  At the sender's end, the 'CY_BLE_EVT_L2CAP_COMMAND_REJ' event is generated if the receiver
 *  rejects the connection request.
 * 
 *  Refer to Bluetooth 4.1 core specification, Volume 3, Part A, section 4.22 for
@@ -558,18 +556,11 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_CbfcConnectReq
 * Function Name: Cy_BLE_L2CAP_CbfcConnectRsp
 ***************************************************************************//**
 * 
-*  This L2CAP function enables an upper-layer protocol to respond to the L2CAP 
+*  This L2CAP function enables application to respond to the L2CAP 
 *  connection request for LE Credit Based Flow Control mode of the specified PSM
 *  from the specified remote Bluetooth device. This is a non-blocking function. 
-*  The upper-layer PSM must always respond by calling this
-*  function upon receiving the CBFC Connection Request 
+*  Application must respond by calling this function upon receiving the CBFC Connection Request 
 *  (CY_BLE_EVT_L2CAP_CBFC_CONN_IND) event.
-* 
-*  The channel is established (opened) only when the PSM concerned responds 
-*  with an event indicating success (CY_BLE_EVT_L2CAP_CBFC_CONN_CNF, at the peer
-*  device's end). Otherwise, the channel establishment request from the peer 
-*  will be rejected by the L2CAP with an appropriate result and status as received 
-*  from the upper-layer PSM.
 * 
 *  Refer to Bluetooth 4.1 core specification, Volume 3, Part A, section 4.23
 *  for more details about this operation.
@@ -596,7 +587,7 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_CbfcConnectRsp
 * Function Name: Cy_BLE_L2CAP_CbfcSendFlowControlCredit
 ***************************************************************************//**
 * 
-*  This L2CAP function enables an upper-layer protocol to send an LE Flow Control 
+*  This L2CAP function enables an application to send an LE Flow Control 
 *  Credit packet to the peer Bluetooth device when it is capable of receiving
 *  additional LE-frames. This is a non-blocking function.
 * 
@@ -672,7 +663,7 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_ChannelDataWrite
 * Function Name: Cy_BLE_L2CAP_DisconnectReq
 ***************************************************************************//**
 * 
-*  This function initiates the sending of an L2CAP Disconnect Request 
+*  This function initiates L2CAP Disconnect Request 
 *  (CY_BLE_EVT_L2CAP_CBFC_DISCONN_IND event received by the peer device) command 
 *  to the remote L2CAP entity to initiate disconnection of the referred L2CAP 
 *  channel. This is a non-blocking function.
@@ -736,7 +727,7 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_DisconnectReq
 *   CY_BLE_ERROR_NO_CONNECTION            | No Link Layer connection is  present.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY         | 'bdHandle' does not represent known device entity.
 *
-*   Note: Please refer the API documentation of Cy_BLE_GAPC_InitConnection for recommended
+*   Note: Please refer the API documentation of Cy_BLE_GAPC_InitConnection() for recommended
 *   Connection Interval values.
 *
 ******************************************************************************/
@@ -790,10 +781,10 @@ cy_en_ble_api_result_t Cy_BLE_L2CAP_LeConnectionParamUpdateResponse
 *  receives a CY_BLE_EVT_STACK_BUSY_STATUS event with free status.
 * 
 *  \param param: Parameter is of type 'cy_stc_ble_l2cap_queue_flow_control_info_t'.
-*   Min Highwater mark: 1    Max HighWater mark: L2cap queue depth
+*   Min HighWater mark: 1    Max HighWater mark: L2cap queue depth
 *   Min LowWater mark: 0     Max LowWater mark: (HighWaterMark -1)
 *
-*   Default values set by stack for better throughput is: LowWaterMark 3, HighWaterMark
+*   Default values set by BLE Stack for better throughput is: LowWaterMark 3, HighWaterMark
 *   (L2CAP queue depth - 1).
 *
 *   Note: If the LowWaterMark is set to less than 3, then do not initiate GATT data 

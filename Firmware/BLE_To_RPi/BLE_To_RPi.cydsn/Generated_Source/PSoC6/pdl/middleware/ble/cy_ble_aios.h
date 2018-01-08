@@ -46,7 +46,7 @@ typedef enum
 {
     CY_BLE_AIOS_DIGITAL,                          /**< AIOS Digital characteristic*/
     CY_BLE_AIOS_ANALOG,                           /**< AIOS Analog characteristic*/
-    CY_BLE_AIOS_AGGREGATE,                        /**< AIOS Agrigate characteristic*/
+    CY_BLE_AIOS_AGGREGATE,                        /**< AIOS Aggregate characteristic*/
     CY_BLE_AIOS_CHAR_COUNT                        /**< Total count of AIOS characteristics */
 }cy_en_ble_aios_char_index_t;
 
@@ -157,7 +157,7 @@ typedef struct
     /** Number of AIOS characteristics instances for client */
     const uint8_t            *aioscCharInstances;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_aios_config_t;
 
@@ -197,6 +197,7 @@ typedef struct
 /** \addtogroup group_ble_service_api_AIOS_server_client
  * @{
  */
+cy_en_ble_api_result_t Cy_BLE_AIOS_Init(cy_stc_ble_aios_config_t *config);
 cy_en_ble_api_result_t Cy_BLE_AIOS_RegisterAttrCallback(cy_ble_callback_t callbackFunc);
 /** @} */
 
@@ -262,16 +263,6 @@ cy_en_ble_api_result_t Cy_BLE_AIOSC_GetCharacteristicDescriptor(cy_stc_ble_conn_
 
 /** @} */
 #endif /* CY_BLE_AIOS_CLIENT */
-
-
-/***************************************
-* Private Function Prototypes
-***************************************/
-
-/** \cond IGNORE */
-cy_en_ble_api_result_t Cy_BLE_AIOS_Init(cy_stc_ble_aios_config_t *config);
-
-/** \endcond */
 
 
 

@@ -1,12 +1,12 @@
 /***************************************************************************//**
 * \file CapSense_Structure.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file provides the top level declarations of the component data structure.
 *   Also, the file declares the high-level and low-level APIs for data access.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -37,8 +37,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_STRUCTURE_H)
-#define CY_CAPSENSE_CapSense_STRUCTURE_H
+#if !defined(CY_SENSE_CapSense_STRUCTURE_H)
+#define CY_SENSE_CapSense_STRUCTURE_H
 
 #include "syslib/cy_syslib.h"
 #include "cyfitter.h"
@@ -49,6 +49,19 @@
 
 #if (CapSense_ENABLE == CapSense_ALP_FILTER_EN)
     #include "CapSense_AlpFilter_LL.h"
+#endif
+
+#if ((CapSense_ENABLE == CapSense_GES_GLOBAL_EN) ||\
+     (CapSense_ENABLE == CapSense_BALLISTIC_MULTIPLIER_EN))
+    #include "CapSense_TMG.h"
+#endif
+
+#if (CapSense_ENABLE == CapSense_CENTROID_5X5_CSD_EN)
+    #include "CapSense_AdvancedCentroid_LL.h"
+#endif
+
+#if (CapSense_ENABLE == CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+    #include "CapSense_AdaptiveFilter_LL.h"
 #endif
 
 /*******************************************************************************
@@ -112,19 +125,17 @@ typedef enum
     CapSense_ELTD_TYPE_MUT_RX_E = 0x03u
 } CapSense_ELTD_TYPE_ENUM;
 
-
 /**
-* \if SECTION_STRUCTURES
+* \cond SECTION_STRUCTURES
 * \addtogroup group_structures
 * \{
 */
-
 /*******************************************************************************
 * Declares RAM structures for all used widgets
 *******************************************************************************/
 
 /***************************************************************************//**
-* \brief Declare common widget RAM parameters
+* \brief Declares common widget RAM parameters
 *******************************************************************************/
 typedef struct
 {
@@ -161,20 +172,24 @@ typedef struct
 
     /**
      *  The widget low baseline reset count.
-     *  Specifies the number of samples the sensor has to be below the Negative Noise Threshold to trigger a baseline reset.
+     *  Specifies the number of samples the sensor signal must be below the Negative 
+     *  Noise Threshold to trigger a baseline reset.
      */
     CapSense_LOW_BSLN_RST_TYPE lowBslnRst;
 
     /**
      *  Sets the current of the modulation IDAC for the CSD widgets. 
-     *  For the CSD Touchpad and Matrix Button widgets sets the current of the modulation IDAC for the column sensors.
+     *  For the CSD Touchpad and Matrix Button widgets sets the current of the 
+     *  modulation IDAC for the column sensors.
      *  Not used for the CSX widgets.
      */
     uint8  idacMod [CapSense_NUM_SCAN_FREQS];
 
     /**
-     *  Specifies the sense clock divider. Present only if individual clock dividers are enabled.
-     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons and Touchpad widgets.
+     *  Specifies the sense clock divider. Present only if individual clock 
+     *  dividers are enabled.
+     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons
+     *  and Touchpad widgets.
      *  Sets Tx clock divider for the CSX Widgets.
      */
     uint16 snsClk;
@@ -185,7 +200,8 @@ typedef struct
     uint8  snsClkSource;
 
     /**
-     *  Widget Finger capacitance parameter. Available only if the SmartSense is enabled.
+     *  Widget Finger capacitance parameter. Available only if the 
+     *  SmartSense is enabled.
      *  Not used for the CSX Widgets.
      */
     uint16 fingerCap;
@@ -197,7 +213,7 @@ typedef struct
 } CapSense_RAM_WD_BASE_STRUCT;
 
 /***************************************************************************//**
-* \brief Declare RAM parameters for the CSD Button
+* \brief Declares RAM parameters for the CSD Button
 *******************************************************************************/
 typedef struct
 {
@@ -234,20 +250,24 @@ typedef struct
 
     /**
      *  The widget low baseline reset count.
-     *  Specifies the number of samples the sensor has to be below the Negative Noise Threshold to trigger a baseline reset.
+     *  Specifies the number of samples the sensor signal must be below the Negative 
+     *  Noise Threshold to trigger a baseline reset.
      */
     CapSense_LOW_BSLN_RST_TYPE lowBslnRst;
 
     /**
      *  Sets the current of the modulation IDAC for the CSD widgets. 
-     *  For the CSD Touchpad and Matrix Button widgets sets the current of the modulation IDAC for the column sensors.
+     *  For the CSD Touchpad and Matrix Button widgets sets the current of the 
+     *  modulation IDAC for the column sensors.
      *  Not used for the CSX widgets.
      */
     uint8  idacMod [CapSense_NUM_SCAN_FREQS];
 
     /**
-     *  Specifies the sense clock divider. Present only if individual clock dividers are enabled.
-     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons and Touchpad widgets.
+     *  Specifies the sense clock divider. Present only if individual clock 
+     *  dividers are enabled.
+     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons
+     *  and Touchpad widgets.
      *  Sets Tx clock divider for the CSX Widgets.
      */
     uint16 snsClk;
@@ -258,7 +278,8 @@ typedef struct
     uint8  snsClkSource;
 
     /**
-     *  Widget Finger capacitance parameter. Available only if the SmartSense is enabled.
+     *  Widget Finger capacitance parameter. Available only if the 
+     *  SmartSense is enabled.
      *  Not used for the CSX Widgets.
      */
     uint16 fingerCap;
@@ -270,7 +291,7 @@ typedef struct
 } CapSense_RAM_WD_BUTTON_STRUCT;
 
 /***************************************************************************//**
-* \brief Declare RAM parameters for the Slider
+* \brief Declares RAM parameters for the Slider
 *******************************************************************************/
 typedef struct
 {
@@ -307,20 +328,24 @@ typedef struct
 
     /**
      *  The widget low baseline reset count.
-     *  Specifies the number of samples the sensor has to be below the Negative Noise Threshold to trigger a baseline reset.
+     *  Specifies the number of samples the sensor signal must be below the Negative 
+     *  Noise Threshold to trigger a baseline reset.
      */
     CapSense_LOW_BSLN_RST_TYPE lowBslnRst;
 
     /**
      *  Sets the current of the modulation IDAC for the CSD widgets. 
-     *  For the CSD Touchpad and Matrix Button widgets sets the current of the modulation IDAC for the column sensors.
+     *  For the CSD Touchpad and Matrix Button widgets sets the current of the 
+     *  modulation IDAC for the column sensors.
      *  Not used for the CSX widgets.
      */
     uint8  idacMod [CapSense_NUM_SCAN_FREQS];
 
     /**
-     *  Specifies the sense clock divider. Present only if individual clock dividers are enabled.
-     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons and Touchpad widgets.
+     *  Specifies the sense clock divider. Present only if individual clock 
+     *  dividers are enabled.
+     *  Specifies the sense clock divider for the Column sensors for the Matrix Buttons
+     *  and Touchpad widgets.
      *  Sets Tx clock divider for the CSX Widgets.
      */
     uint16 snsClk;
@@ -331,7 +356,8 @@ typedef struct
     uint8  snsClkSource;
 
     /**
-     *  Widget Finger capacitance parameter. Available only if the SmartSense is enabled.
+     *  Widget Finger capacitance parameter. Available only if the 
+     *  SmartSense is enabled.
      *  Not used for the CSX Widgets.
      */
     uint16 fingerCap;
@@ -430,14 +456,17 @@ typedef struct
     CapSense_RAM_SNS_STRUCT linearslider0 [CapSense_LINEARSLIDER0_NUM_SENSORS];
 } CapSense_RAM_SNS_LIST_STRUCT;
 
+
 /***************************************************************************//**
 * \brief Declares the top-level RAM Data Structure
 *******************************************************************************/
 typedef struct
 {
     /**
-     *  16-bit CRC calculated by the customizer for the component configuration. 
-     *  Used by the Tuner application to identify if the FW corresponds to the specific user configuration.
+     *  16-bit CRC calculated by the customizer for the component 
+     *  configuration. 
+     *  Used by the Tuner application to identify if the FW corresponds to the 
+     *  specific user configuration.
      */
     uint16 configId;
 
@@ -445,6 +474,11 @@ typedef struct
      *  Used by the Tuner application to identify device-specific configuration.
      */
     uint16 deviceId;
+
+    /**
+     *  Used by the Tuner application to identify the system clock frequency.
+     */
+    uint16 hwClock;
 
     /**
      *  Tuner Command Register. 
@@ -460,29 +494,35 @@ typedef struct
     /**
      *  Status information: Current Widget, Scan active, Error code.
      */
-    uint32 status;
+    volatile uint32 status;
 
     /**
-     *  The bitmask that sets which Widgets are enabled and scanned, each bit corresponds to one widget.
+     *  The bitmask that sets which Widgets are enabled and scanned, 
+     *  each bit corresponds to one widget.
      */
     uint32 wdgtEnable [CapSense_WDGT_STATUS_WORDS];
 
     /**
-     *  The bitmask that reports activated Widgets (widgets that detect a touch signal above the threshold), each bit corresponds to one widget.
+     *  The bitmask that reports activated Widgets (widgets that detect 
+     *  a touch signal above the threshold), each bit corresponds to one widget.
      */
     uint32 wdgtStatus [CapSense_WDGT_STATUS_WORDS];
 
     /**
-     *  For Buttons, Sliders, Matrix Buttons and CSD Touchpad each bit reports status of the individual sensor of the widget:
+     *  For Buttons, Sliders, Matrix Buttons and CSD Touchpad each bit 
+     *  reports status of the individual sensor of the widget:
      *  1 - active (above the finger threshold);
      *  0 - inactive;
-     *  For the CSD Touchpad and CSD Matrix Buttons, the column sensors occupy the least significant bits.
+     *  For the CSD Touchpad and CSD Matrix Buttons, the column sensors occupy the 
+     *  least significant bits.
      *  For the Proximity widget, each sensor uses two bits with the following meaning:
      *  00 - Not active;
      *  01 - Proximity detected (signal above finger threshold);
      *  11 - A finger touch detected (signal above the touch threshold);
-     *  For the CSX Touchpad Widget, this register provides a number of the detected touches.
-     *  The array size is equal to the total number of widgets. The size of the array element depends on the max number of sensors per widget used in the current design. It could be 1, 2 or 4 bytes.
+     *  For the CSX Touchpad Widget, this register provides a number of the detected 
+     *  touches. The array size is equal to the total number of widgets. The size of the array 
+     *  element depends on the max number of sensors per widget used in the current design. 
+     *  It could be 1, 2 or 4 bytes.
      */
     CapSense_SNS_STS_TYPE snsStatus [CapSense_TOTAL_WIDGETS];
 
@@ -582,6 +622,8 @@ typedef struct
 } CapSense_FLASH_SNS_LIST_STRUCT;
 
 
+
+
 /***************************************************************************//**
 * \brief Declares Flash widget object
 *******************************************************************************/
@@ -597,7 +639,8 @@ typedef struct
     void const * ptr2SnsFlash;
 
     /**
-     *  Points to the Widget Object in RAM. Sensing block uses it to access scan parameters.
+     *  Points to the Widget Object in RAM. Sensing block uses it to 
+     *  access scan parameters.
      *  Processing uses it to access threshold and widget specific data.
      */
     void * ptr2WdgtRam;
@@ -609,7 +652,7 @@ typedef struct
     CapSense_RAM_SNS_STRUCT * ptr2SnsRam;
 
     /**
-     *  Points to the array of the Filter History Objects in RAM that belongs to this widget.
+     *  Points to the array of the Filter History Objects in RAM
      */
     void * ptr2FltrHistory;
 
@@ -623,12 +666,12 @@ typedef struct
     /**
      *  Miscellaneous configuration flags.
      */
-    uint16 staticConfig;
+    uint32 staticConfig;
 
     /**
      *  The total number of sensors. 
-     *  For CSD widgets: WD_NUM_ROWS + WD_NUM_COLS
-     *  For CSX widgets: WD_NUM_ROWS * WD_NUM_COLS
+     *  For CSD widgets: WD_NUM_ROWS + WD_NUM_COLS. 
+     *  For CSX widgets: WD_NUM_ROWS * WD_NUM_COLS.
      */
     uint16 totalNumSns;
 
@@ -658,26 +701,32 @@ typedef struct
     uint16 xResolution;
 
     /**
-     *  The pre-calculated X resolution centroid multiplier used for the X-axis position calculation.
+     *  The pre-calculated X resolution centroid multiplier used for 
+     *  the X-axis position calculation.
      *  Calculated as follows:
      *  RADIAL: (WD_X_RESOLUTION * 256) / WD_NUM_COLS;
-     *  LINEAR: (WD_X_RESOLUTION * 256) / (WD_NUM_COLS - 1);
-     *  TOUCHPAD: the same as LINEAR
+     *  LINEAR and TOUCHPAD: (WD_X_RESOLUTION * 256) / (WD_NUM_COLS - CONFIG);
+     *  where CONFIG is 0 or 1 depends on CentroidMultiplerMethod parameter
      */
     uint32 xCentroidMultiplier;
 
     /**
      *  The pointer to the array with the sensor noise envelope data.
      *  Set to the valid value only for the CSD widgets.
-     *  For the CSX widgets this pointer is set to NULL.
+     *  For the CSX widgets, this pointer is set to NULL.
      *  The pointed array is not part of the data structure.
      */
     SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT * ptr2NoiseEnvlp;
 
     /**
-     *  The pointer to the RAM position history object. This parameter is used for the Sliders and CSD touchpads that have enabled the median position filter.
+     *  The pointer to the RAM position history object. This
      */
     void * ptr2PosHistory;
+
+    /**
+     *  The position IIR filter coefficient.
+     */
+    uint8  iirFilterCoeff;
 } CapSense_FLASH_WD_STRUCT;
 
 
@@ -691,10 +740,6 @@ typedef struct
      */
     CapSense_FLASH_WD_STRUCT wdgtArray[CapSense_TOTAL_WIDGETS];
 } CapSense_FLASH_STRUCT;
-
-/** \}
-* \endif */
-
 
 
 #if (CapSense_ENABLE == CapSense_TST_BSLN_RAW_OUT_RANGE_EN)
@@ -724,6 +769,9 @@ typedef struct
     } CapSense_BSLN_RAW_RANGE_STRUCT;
 #endif /* (CapSense_ENABLE == CapSense_TST_BSLN_RAW_OUT_RANGE_EN) */
 
+/** \}
+* \endcond */
+
 
 /***************************************************************************//**
 * Declares Dual-channel scan structure
@@ -742,7 +790,7 @@ typedef struct
 *******************************************************************************/
 
 /***************************************************************************//**
-* \brief Declare filter channel structure for regular sensors
+* \brief Declares filter channel structure for regular sensors
 *******************************************************************************/
 typedef struct
 {
@@ -753,7 +801,7 @@ typedef struct
 } CapSense_REGULAR_FLTR_CHANNEL_STRUCT;
 
 /***************************************************************************//**
-* \brief Declare filter structure for regular sensors
+* \brief Declares filter structure for regular sensors
 *******************************************************************************/
 typedef struct
 {
@@ -764,7 +812,7 @@ typedef struct
 } CapSense_REGULAR_FLTR_STRUCT;
 
 /***************************************************************************//**
-* \brief Declare union for filter structure variants
+* \brief Declares union for filter structure variants
 *******************************************************************************/
 typedef union
 {
@@ -780,10 +828,33 @@ typedef union
 } CapSense_PTR_FILTER_VARIANT;
 
 
+#if (0u != CapSense_POSITION_FILTER_EN)
 typedef struct
 {
-    uint16 posMedianZ1;
-    uint16 posMedianZ2;
+    #if (0u != CapSense_POS_MEDIAN_FILTER_EN)
+        uint16 posMedianZ1;
+        uint16 posMedianZ2;
+    #endif /* #if (0u != CapSense_POS_MEDIAN_FILTER_EN) */
+
+    #if (0u != CapSense_POS_IIR_FILTER_EN)
+        uint16 posIIR;
+    #endif /* #if (0u != CapSense_POS_IIR_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        uint16 posAIIR;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
+
+    #if (0u != CapSense_POS_AVERAGE_FILTER_EN)
+        uint16 posAverage;
+    #endif /* #if (0u != CapSense_POS_AVERAGE_FILTER_EN) */
+
+    #if (0u != CapSense_POS_JITTER_FILTER_EN)
+        uint16 posJitter;
+    #endif /* #if (0u != CapSense_POS_JITTER_FILTER_EN) */
+
+    #if (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN)
+        uint8 posAIIRCoeff;
+    #endif /* (0u != CapSense_POS_ADAPTIVE_IIR_FILTER_EN) */
 } CapSense_SLIDER_POS_HISTORY_STRUCT;
 
 typedef struct
@@ -791,6 +862,7 @@ typedef struct
     CapSense_SLIDER_POS_HISTORY_STRUCT xPos;
     CapSense_SLIDER_POS_HISTORY_STRUCT yPos;
 } CapSense_TOUCHPAD_POS_HISTORY_STRUCT;
+#endif /* (0u != CapSense_POSITION_FILTER_EN) */
 
 /*******************************************************************************
 * API Constants
@@ -919,6 +991,36 @@ typedef struct
 #define CapSense_MULTIPHASE_TX_SHIFT      (8u)
 #define CapSense_MULTIPHASE_TX_MASK       (CapSense_MULTIPHASE_TX_SIZE << CapSense_MULTIPHASE_TX_SHIFT)
 
+/* Bit 9: The centroid position adaptive IIR filter Enable/Disable. */
+#define CapSense_AIIR_FILTER_SIZE         (0x00000001Lu)
+#define CapSense_AIIR_FILTER_SHIFT        (9u)
+#define CapSense_AIIR_FILTER_MASK         (CapSense_AIIR_FILTER_SIZE << CapSense_AIIR_FILTER_SHIFT)
+
+/* Bit 10: Ballistic multiplier Enable/Disable. */
+#define CapSense_BALLISTIC_SIZE           (0x00000001Lu)
+#define CapSense_BALLISTIC_SHIFT          (10u)
+#define CapSense_BALLISTIC_MASK           (CapSense_BALLISTIC_SIZE << CapSense_BALLISTIC_SHIFT)
+
+/* Bit 11: 3x3 centroid Enable/Disable. */
+#define CapSense_CENTROID_3X3_SIZE        (0x00000001Lu)
+#define CapSense_CENTROID_3X3_SHIFT       (11u)
+#define CapSense_CENTROID_3X3_MASK        (CapSense_CENTROID_3X3_SIZE << CapSense_CENTROID_3X3_SHIFT)
+
+/* Bit 12: 5x5 centroid Enable/Disable. */
+#define CapSense_CENTROID_5X5_SIZE        (0x00000001Lu)
+#define CapSense_CENTROID_5X5_SHIFT       (12u)
+#define CapSense_CENTROID_5X5_MASK        (CapSense_CENTROID_5X5_SIZE << CapSense_CENTROID_5X5_SHIFT)
+
+/* Bit 13: Edge correction Enable/Disable. */
+#define CapSense_EDGE_CORRECTION_SIZE     (0x00000001Lu)
+#define CapSense_EDGE_CORRECTION_SHIFT    (13u)
+#define CapSense_EDGE_CORRECTION_MASK     (CapSense_EDGE_CORRECTION_SIZE << CapSense_EDGE_CORRECTION_SHIFT)
+
+/* Bit 14: Two finger detection Enable/Disable. */
+#define CapSense_TWO_FINGER_DETECTION_SIZE (0x00000001Lu)
+#define CapSense_TWO_FINGER_DETECTION_SHIFT (14u)
+#define CapSense_TWO_FINGER_DETECTION_MASK (CapSense_TWO_FINGER_DETECTION_SIZE << CapSense_TWO_FINGER_DETECTION_SHIFT)
+
 
 /*******************************************************************************
 * Defines Data Structure Macro helpers
@@ -960,33 +1062,34 @@ typedef struct
 #define CapSense_GET_SENSOR_COUNT(widgetId)         CapSense_dsFlash.wdgtArray[(widgetId)].totalNumSns
 #define CapSense_GET_SNS_CNT_BY_PTR(ptrFlashWidget) (ptrFlashWidget)->totalNumSns
 
-
 /*******************************************************************************
 * Increments the pointer to the Regular Filter History Object
 *******************************************************************************/
-#if ((0u != CapSense_REGULAR_RC_FILTER_EN) &&                                               \
-     ((0u != CapSense_BUTTON_WIDGET_EN) || (0u != CapSense_SLIDER_WIDGET_EN)  ||    \
-      (0u != CapSense_MATRIX_WIDGET_EN) || (0u != CapSense_TOUCHPAD_WIDGET_EN)))
-
+#if (0u != CapSense_REGULAR_RC_ALP_FILTER_EN)
     #define CapSense_INC_REG_FLTR_OBJ(fltrVariant)      \
-    do {                                                        \
-        (fltrVariant).ptrRegular++;                             \
-    } while(0)
-
+        do {                                                    \
+            (fltrVariant).ptrAlp++;                             \
+        } while(0)
+#elif (0u != CapSense_REGULAR_RC_FILTER_EN)
+    #define CapSense_INC_REG_FLTR_OBJ(fltrVariant)      \
+        do {                                                    \
+            (fltrVariant).ptrRegular++;                         \
+        } while(0)
 #else
     #define CapSense_INC_REG_FLTR_OBJ(fltrVariant)      \
         do {                                                    \
         } while(0)
-
-#endif /* #if ((0u != CapSense_REGULAR_RC_FILTER_EN) &&
-               ((0u != CapSense_BUTTON_WIDGET_EN) || (0u != CapSense_SLIDER_WIDGET_EN)  ||
-                (0u != CapSense_MATRIX_WIDGET_EN) || (0u != CapSense_TOUCHPAD_WIDGET_EN))) */
-
+#endif
 
 /*******************************************************************************
 * Increments the pointer to the Proximity Filter History Object
 *******************************************************************************/
-#if ((0u != CapSense_PROX_RC_FILTER_EN) && (0u != CapSense_PROXIMITY_WIDGET_EN))
+#if (0u != CapSense_PROX_RC_ALP_FILTER_EN)
+    #define CapSense_INC_PROX_FLTR_OBJ(fltrVariant)     \
+        do {                                                    \
+            (fltrVariant).ptrAlp++;                             \
+        } while(0)
+#elif (0u != CapSense_PROX_RC_FILTER_EN)
     #define CapSense_INC_PROX_FLTR_OBJ(fltrVariant)     \
         do {                                                    \
             (fltrVariant).ptrProx++;                            \
@@ -995,8 +1098,7 @@ typedef struct
     #define CapSense_INC_PROX_FLTR_OBJ(fltrVariant)     \
         do {                                                    \
         } while(0)
-#endif /* #if ((0u != CapSense_PROX_RC_FILTER_EN) && (0u != CapSense_PROXIMITY_WIDGET_EN)) */
-
+#endif
 
 /*******************************************************************************
 * Increments the pointer to the Filter History Object Variant
@@ -1043,6 +1145,8 @@ extern const CapSense_FLASH_IO_STRUCT CapSense_ioList[CapSense_TOTAL_ELECTRODES]
 extern const CapSense_RAM_WD_LIST_STRUCT CapSense_ramWidgetInit;
 extern const uint8 CapSense_ramIdacInit[CapSense_TOTAL_SENSORS];
 
+
+
 extern const CapSense_FLASH_IO_STRUCT
     CapSense_shieldIoList[CapSense_CSD_TOTAL_SHIELD_COUNT];
 
@@ -1057,8 +1161,8 @@ extern const CapSense_FLASH_IO_STRUCT
 *******************************************************************************/
 
 /**
-* \if SECTION_CAPSENSE_HIGH_LEVEL
-* \addtogroup group_capsense_high_level
+* \cond SECTION_CYSENSE_HIGH_LEVEL
+* \addtogroup group_cysense_high_level
 * \{
 */
 
@@ -1083,15 +1187,15 @@ uint32 CapSense_IsSensorActive(uint32 widgetId, uint32 sensorId);
 #endif /* #if (0u != CapSense_TOUCHPAD_WIDGET_EN) */
 
 /** \}
-* \endif */
+* \endcond */
 
 /*******************************************************************************
 * Low level API
 *******************************************************************************/
 
 /**
-* \if SECTION_CAPSENSE_LOW_LEVEL
-* \addtogroup group_capsense_low_level
+* \cond SECTION_CYSENSE_LOW_LEVEL
+* \addtogroup group_cysense_low_level
 * \{
 */
 
@@ -1099,15 +1203,14 @@ cy_status CapSense_GetParam(uint32 paramId, uint32 *value);
 cy_status CapSense_SetParam(uint32 paramId, uint32 value);
 
 /** \}
-* \endif
-*/
+* \endcond */
 
 /*******************************************************************************
 * Function Prototypes - internal functions
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -1119,8 +1222,8 @@ void CapSense_DsInitialize(void);
 #endif /* (0u != CapSense_ADC_EN) */
 
 /** \}
-* \endif */
+* \endcond */
 
-#endif /* End CY_CAPSENSE_CapSense_STRUCTURE_H */
+#endif /* End CY_SENSE_CapSense_STRUCTURE_H */
 
 /* [] END OF FILE */

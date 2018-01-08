@@ -3,8 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the Link Loss Service of the BLE
-*  Component.
+*  This file contains the source code for the Link Loss Service.
 *
 ********************************************************************************
 * \copyright
@@ -125,7 +124,7 @@ cy_en_ble_api_result_t Cy_BLE_LLS_Init(cy_stc_ble_lls_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc: An application layer event callback function to receive
-*                    events from the BLE Component. The definition of
+*                    events from the BLE Middleware. The definition of
 *                    cy_ble_callback_t for Link Loss Service is: \n
 *                    typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                       void *eventParam)
@@ -283,7 +282,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_LLSS_WriteEventHandler(cy_stc_ble_gatts_
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *
@@ -368,7 +367,7 @@ static void Cy_BLE_LLSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 
     if(cy_ble_discovery[discIdx].servCount == (uint32_t)CY_BLE_SRVI_LLS)
     {
-        /* LLS does not have any discriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE */
+        /* LLS does not have any descriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE */
         charRangeInfo->range.startHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
         charRangeInfo->range.endHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
 
@@ -465,8 +464,8 @@ static void Cy_BLE_LLSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *  Sets the Alert Level characteristic value of the Link Loss Service, which is
 *  identified by charIndex. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_LLSS_WRITE_CHAR_REQ event is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_LLSS_WRITE_CHAR_REQ event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  \param connHandle: The connection handle.
@@ -476,25 +475,25 @@ static void Cy_BLE_LLSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *               should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was sent successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the LLS service-specific callback is registered
 *      (with Cy_BLE_LLS_RegisterAttrCallback):
-*  * CY_BLE_EVT_LLSC_WRITE_CHAR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_LLSC_WRITE_CHAR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_lls_char_value_t.
 *  .
 *   Otherwise (if the LLS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -546,7 +545,7 @@ cy_en_ble_api_result_t Cy_BLE_LLSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *  \param charIndex: The index of the Link Loss Service characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was sent successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
@@ -556,22 +555,22 @@ cy_en_ble_api_result_t Cy_BLE_LLSC_SetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the LLS service-specific callback is registered
 *      (with Cy_BLE_LLS_RegisterAttrCallback):
-*  * CY_BLE_EVT_LLSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_LLSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_lls_char_value_t.
 *  .
 *   Otherwise (if the LLS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -614,13 +613,13 @@ cy_en_ble_api_result_t Cy_BLE_LLSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 * Function Name: Cy_BLE_LLS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Link Loss Service.
+*  Handles the events from the BLE Stack for the Link Loss Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_LLS_EventHandler(uint32_t eventCode,

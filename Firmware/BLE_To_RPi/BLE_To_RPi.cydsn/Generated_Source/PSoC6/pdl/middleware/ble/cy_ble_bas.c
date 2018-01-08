@@ -64,7 +64,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_BAS_EventHandler(uint32_t eventCode, voi
 *  \param config: The configuration structure for the BAS Service.
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                             | Description
@@ -132,23 +132,19 @@ cy_en_ble_api_result_t Cy_BLE_BAS_Init(cy_stc_ble_bas_config_t *config)
 *  an unregistered callback function.
 *
 *  \param callbackFunc: An application layer event callback function to receive
-*                    Battery Service events from the BLE Component. The
-*                    definition of cy_ble_callback_t for Battery Service is,\n
-*                    typedef void (* cy_ble_callback_t) (uint32_t eventCode,
-*                                                         void *eventParam)
-*                    * eventCode indicates the event that triggered this
-*                       callback (e.g. CY_BLE_EVT_BASS_NOTIFICATION_ENABLED)
-*                    * eventParam contains the parameters corresponding to the
-*                       current event (e.g., the pointer to the cy_stc_ble_bas_char_value_t
-*                       structure that contains details of the characteristic
-*                       for which a notification enabled event was triggered)
-*
-* \sideeffect The *eventParams in the callback function should not be used
-*                by the application when the callback function execution is
-*                finished. Otherwise, this data may become corrupted.
+*  events from the BLE Middleware. The definition of \ref cy_ble_callback_t 
+*  for BAS Service is:<br>
+*  typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam),
+*  where:
+*       * eventCode:  Indicates the event that triggered this callback
+*         (e.g. #CY_BLE_EVT_BASS_NOTIFICATION_ENABLED).
+*       * eventParam: Contains the parameters corresponding to the
+*         current event. (e.g. Pointer to \ref cy_stc_ble_bas_char_value_t
+*         structure that contains details of the characteristic
+*         for which the notification enabled event was triggered).
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes:
 *
 *   Error Codes                             | Description
@@ -182,20 +178,24 @@ cy_en_ble_api_result_t Cy_BLE_BAS_RegisterAttrCallback(cy_ble_callback_t callbac
 * Function Name: Cy_BLE_BASS_SetCharacteristicValue
 ***************************************************************************//**
 *
-*  Sets a characteristic value of the service in the local database.
+*  Sets a characteristic value of the service, which is a value
+*  identified by charIndex, to the local database.
 *
 *  \param serviceIndex: The index of the service instance.
-*  \param charIndex: The index of the service characteristic of type
-*              cy_en_ble_bas_char_index_t.
-*  \param attrSize: The size of the characteristic value attribute. A battery level
-*             characteristic has a 1-byte length.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*               stored to the GATT database.
+*  \param charIndex:    The index of the service characteristic of type
+*                       #cy_en_ble_bas_char_index_t.
+*  \param attrSize:     The size of the characteristic value attribute.
+*                       A battery level characteristic has a 1-byte length.
+*  \param attrValue:    The pointer to the characteristic value data that 
+*                       should be stored to the GATT database.
 *
-* \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
+*  \return
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                             | Description
+*   ------------                            | -----------
+*   CY_BLE_SUCCESS                          | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER          | Validation of the input parameter failed.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASS_SetCharacteristicValue(uint8_t serviceIndex,
@@ -238,20 +238,24 @@ cy_en_ble_api_result_t Cy_BLE_BASS_SetCharacteristicValue(uint8_t serviceIndex,
 *
 *  Gets a characteristic value of the Battery Service, identified by charIndex.
 *
-*  \param serviceIndex: The index of the service instance. e.g. if two Battery Services
-*                 are supported in your design, then the first service will be
-*                 identified by serviceIndex of 0 and the second service - by serviceIndex
-*                 of 1.
-*  \param charIndex: The index of a service characteristic of type cy_en_ble_bas_char_index_t.
-*  \param attrSize: The size of the characteristic value attribute. A battery level
-*             characteristic has a 1-byte length.
-*  \param attrValue: The pointer to the location where characteristic value data
-*               should be stored.
+*  \param serviceIndex: The index of the service instance. e.g. if two Battery 
+*                       Services are supported in your design, then the first 
+*                       service will be identified by serviceIndex of 0 and the 
+*                       second service - by serviceIndex of 1.
+*  \param charIndex:    The index of a service characteristic of type 
+*                       \ref cy_en_ble_bas_char_index_t.
+*  \param attrSize:     The size of the characteristic value attribute. A 
+*                       battery level characteristic has a 1-byte length.
+*  \param attrValue:    The pointer to the location where characteristic value
+*                       data should be stored.
 *
-* \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
+*  \return
+*   A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The characteristic value was read successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASS_GetCharacteristicValue(uint8_t serviceIndex,
@@ -292,25 +296,28 @@ cy_en_ble_api_result_t Cy_BLE_BASS_GetCharacteristicValue(uint8_t serviceIndex,
 ***************************************************************************//**
 *
 *  Gets a characteristic descriptor of a specified characteristic of the
-*   Battery Service from the local GATT database.
+*  Battery Service from the local GATT database.
 *
-*  \param connHandle: The BLE peer device connection handle.
-*  \param serviceIndex: The index of the service instance. e.g. If two Battery Services
-*                 are supported in your design, then the first service will be
-*                 identified by serviceIndex of 0 and the second service - by serviceIndex
-*                 of 1.
-*  \param charIndex: The index of a service characteristic of type
-*              cy_en_ble_bas_char_index_t.
-*  \param descrIndex: The index of a service characteristic descriptor of type
-*               cy_en_ble_bas_descr_index_t.
-*  \param attrSize: The size of the characteristic descriptor attribute.
-*  \param attrValue: The pointer to the location where the characteristic descriptor
-*               value data should be stored.
+*  \param connHandle:   The BLE peer device connection handle.
+*  \param serviceIndex: The index of the service instance. e.g. If two Battery
+*                       Services are supported in your design, then the first 
+*                       service will be identified by serviceIndex of 0 and the 
+*                       second service - by serviceIndex of 1.
+*  \param charIndex:    The index of a service characteristic of type
+*                       \ref cy_en_ble_bas_char_index_t.
+*  \param descrIndex:   The index of a service characteristic descriptor of type
+*                       \ref cy_en_ble_bas_descr_index_t.
+*  \param attrSize:     The size of the characteristic descriptor attribute.
+*  \param attrValue:    The pointer to the location where the characteristic 
+*                       descriptor value data should be stored.
 *
-* \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
+*  \return
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The Characteristic Descriptor value was read successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASS_GetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -365,12 +372,13 @@ cy_en_ble_api_result_t Cy_BLE_BASS_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 *  \param void *eventParam: The pointer to the data structure specified by the event.
 *
-* \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
-*   * CY_BLE_GATT_ERR_NONE - A Write request is handled successfully.
-*   * CY_BLE_GATT_ERR_REQUEST_NOT_SUPPORTED - Notification isn't supported.
-*   * CY_BLE_GATT_ERR_UNLIKELY_ERROR - An internal error while writing attribute
-*                                      value.
+*  \return
+*  A return value of type \ref cy_en_ble_gatt_err_code_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_GATT_ERR_NONE                     | A Write request is handled successfully.
+*   CY_BLE_GATT_ERR_REQUEST_NOT_SUPPORTED    | Notification isn't supported.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_BASS_WriteEventHandler(const cy_stc_ble_gatts_write_cmd_req_param_t *eventParam)
@@ -412,15 +420,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_BASS_WriteEventHandler(const cy_stc_ble_
                         {
                             Cy_BLE_BAS_ApplCallback((uint32_t)CY_BLE_EVT_BASS_NOTIFICATION_DISABLED, &locCharIndex);
                         }
-                    #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                        (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-
-                        /* Sets a flag to store bonding data to flash */
-                        if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                        {
-                            cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                        }
-                    #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
                     }
                 }
                 else
@@ -448,30 +447,33 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_BASS_WriteEventHandler(const cy_stc_ble_
 *  Level characteristic, the function additionally sends this value using a
 *  GATT Notification message.
 *
-*  On enabling notification successfully for a service characteristic it sends out a
-*  Handle Value notification which results in CY_BLE_EVT_BASC_NOTIFICATION event
-*  at the GATT Client's end.
+*  On enabling notification successfully for a service characteristic it sends out
+*  a Handle Value notification which results in \ref CY_BLE_EVT_BASC_NOTIFICATION 
+*  event at the GATT Client's end.
 *
-*  \param connHandle: The BLE peer device connection handle
-*  \param serviceIndex: The index of the service instance. e.g. If two Battery Services
-*                 are supported in your design, then the first service will be
-*                 identified by serviceIndex of 0 and the second service - by
-*                 serviceIndex of 1.
-*  \param charIndex: The index of a service characteristic of type
-*              cy_en_ble_bas_char_index_t.
-*  \param attrSize: The size of the characteristic value attribute. A battery level
-*             characteristic has a 1-byte length.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*               sent to the Client device.
+*  \param connHandle:   The BLE peer device connection handle
+*  \param serviceIndex: The index of the service instance. e.g. If two Battery 
+*                       Services are supported in your design, then the first 
+*                       service will be identified by serviceIndex of 0 and the 
+*                       second service - by serviceIndex of 1.
+*  \param charIndex:    The index of a service characteristic of type
+*                       \ref cy_en_ble_bas_char_index_t.
+*  \param attrSize:     The size of the characteristic value attribute. A battery
+*                       level characteristic has a 1-byte length.
+*  \param attrValue:    The pointer to the characteristic value data that should
+*                       be sent to the Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully.
-*   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
-*   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted.
-*   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established.
-*   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*   * CY_BLE_ERROR_NTF_DISABLED - Notification is not enabled by the Client.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Client is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*   CY_BLE_ERROR_NTF_DISABLED                | Notification is not enabled by the Client.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASS_SendNotification(cy_stc_ble_conn_handle_t connHandle,
@@ -644,47 +646,48 @@ static void Cy_BLE_BASC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInfo
 *
 *  This function call can result in generation of the following events based on
 *  a response from the Server device:
-*  * CY_BLE_EVT_BASC_READ_CHAR_RESPONSE
-*  * CY_BLE_EVT_GATTC_ERROR_RSP
+*  * \ref CY_BLE_EVT_BASC_READ_CHAR_RESPONSE
+*  * \ref CY_BLE_EVT_GATTC_ERROR_RSP
 *
-*  \param connHandle: The BLE peer device connection handle.
-*  \param serviceIndex: The index of the service instance. e.g. If two Battery Services are
-*                 supported in your design, then the first service will be identified
-*                 by serviceIndex of 0 and the second service - by serviceIndex of 1.
-*  \param charIndex: The index of a service characteristic of type cy_en_ble_bas_char_index_t.
+*  \param connHandle:   The BLE peer device connection handle.
+*  \param serviceIndex: The index of the service instance. e.g. If two Battery 
+*                       Services are supported in your design, then the first 
+*                       service will be identified by serviceIndex of 0 and the 
+*                       second service - by serviceIndex of 1.
+*  \param charIndex:    The index of a service characteristic of type 
+*                       \ref cy_en_ble_bas_char_index_t.
 *
-* \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The Read request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
-*                                              the particular characteristic.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_STATE - Connection with the Server is not established.
-*  * CY_BLE_ERROR_INVALID_OPERATION - The operation is invalid for this
-*                                    characteristic.
+*  \return
+*  A return value of type \ref cy_en_ble_api_result_t.
 *
-* \events
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The Read request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular characteristic.
+*
+*  \events
 *  If execution is successful (return value = CY_BLE_SUCCESS)
 *  these events can appear: \n
-*   If the BAS service-specific callback is registered
+*  If the BAS service-specific callback is registered
 *      (with Cy_BLE_BAS_RegisterAttrCallback):
-*  * CY_BLE_EVT_BASC_READ_CHAR_RESPONSE - if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index , value, etc.) are
-*                                provided with an event parameter structure
-*                                of type cy_stc_ble_bas_char_value_t.
-*  .
-*   Otherwise (if a BAS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - if the requested attribute is
-*                                successfully read on the peer device,
-*                                the details (handle, value, etc.) are
-*                                provided with the event parameters
-*                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - if there is trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with the event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*  * \ref CY_BLE_EVT_BASC_READ_CHAR_RESPONSE - if the requested attribute is
+*    successfully read on the peer device, the details (char index,
+*    value, etc.) are provided with an event parameter structure
+*    of type \ref cy_stc_ble_bas_char_value_t.
+*  
+*  Otherwise (if a BAS service-specific callback is not registered):
+*  * \ref CY_BLE_EVT_GATTC_READ_RSP - if the requested attribute is
+*    successfully read on the peer device, the details (handle,
+*    value, etc.) are provided with the event parameters structure 
+*    \ref cy_stc_ble_gattc_read_rsp_param_t.
+*
+*  * \ref CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
+*    requested attribute on the peer device, the details are provided
+*    with the event parameters structure \ref cy_stc_ble_gatt_err_param_t.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASC_GetCharacteristicValue(cy_stc_ble_conn_handle_t connHandle,
@@ -735,51 +738,54 @@ cy_en_ble_api_result_t Cy_BLE_BASC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *  characteristic on the server device.
 *
 *  Internally, a Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server's side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
-*  * CY_BLE_EVT_BASS_NOTIFICATION_ENABLED
-*  * CY_BLE_EVT_BASS_NOTIFICATION_DISABLED
+*  * \ref CY_BLE_EVT_BASS_NOTIFICATION_ENABLED
+*  * \ref CY_BLE_EVT_BASS_NOTIFICATION_DISABLED
 *
-*  \param connHandle: The BLE peer device connection handle.
+*  \param connHandle:   The BLE peer device connection handle.
 *  \param serviceIndex: The index of the service instance. e.g. If two Battery Services
 *                       are supported in your design, then the first service will be
 *                       identified by serviceIndex of 0 and the second service - by
 *                       serviceIndex of 1.
-*  \param charIndex: The index of a service characteristic of type
-*                    cy_en_ble_bas_char_index_t.
-*  \param descrIndex: The index of a service characteristic descriptor of type
-*                     cy_en_ble_bas_descr_index_t.
-*  \param attrSize: The size of the characteristic descriptor attribute.
-*  \param attrValue: The pointer to the characteristic descriptor value data that should
-*                    be sent to the Server device.
-*
+*  \param charIndex:    The index of a service characteristic of type
+*                       \ref cy_en_ble_bas_char_index_t.
+*  \param descrIndex:   The index of a service characteristic descriptor of type
+*                       \ref cy_en_ble_bas_descr_index_t.
+*  \param attrSize:     The size of the characteristic descriptor attribute.
+*  \param attrValue:    The pointer to the characteristic descriptor value data that should
+*                       be sent to the Server device.
+
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted on
-*                                     the specified attribute.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE | The peer device doesn't have the particular characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*
 *
 * \events
-*  If execution is successful (return value = CY_BLE_SUCCESS),
+*  If execution is successful (return value = #CY_BLE_SUCCESS),
 *  these events can appear: \n
 *   If a BAS service-specific callback is registered
-*      (with Cy_BLE_BAS_RegisterAttrCallback):
-*  * CY_BLE_EVT_BASC_WRITE_DESCR_RESPONSE - if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index, descr index etc.) are
-*                                provided with an event parameter structure
-*                                of type cy_stc_ble_bas_descr_value_t.
-*  .
+*      with Cy_BLE_BAS_RegisterAttrCallback():
+*   * #CY_BLE_EVT_BASC_WRITE_DESCR_RESPONSE - if the requested attribute is
+*     successfully written on the peer device, the details (char index, 
+*     descr index etc.) are provided with an event parameter structure
+*     of type \ref cy_stc_ble_bas_descr_value_t.
+*   .
 *   Otherwise (if a BAS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - if the requested attribute is
-*                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - if there is trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with the event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*   * #CY_BLE_EVT_GATTC_WRITE_RSP - If the requested attribute is successfully 
+*     written on the peer device.
+*
+*   * #CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the requested 
+*     attribute on the peer device, the details are provided with an event
+*     parameter structure \ref cy_stc_ble_gatt_err_param_t.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASC_SetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -840,45 +846,46 @@ cy_en_ble_api_result_t Cy_BLE_BASC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *  device:
 *  * CY_BLE_EVT_BASC_READ_DESCR_RESPONSE
 *  * CY_BLE_EVT_GATTC_ERROR_RSP
+
+*  \param connHandle:   The BLE peer device connection handle.
+*  \param serviceIndex: The index of the service instance. e.g. If two Battery Services
+*                       are supported in your design, then the first service will be
+*                       identified by serviceIndex of 0 and the second service - by
+*                       serviceIndex of 1.
+*  \param charIndex:    The index of a service characteristic of type
+*                       \ref cy_en_ble_bas_char_index_t.
+*  \param descrIndex:   The index of a service characteristic descriptor of type
+*                       \ref cy_en_ble_bas_descr_index_t.
 *
-*  \param connHandle: The BLE peer device connection handle.
-*  \param serviceIndex: The index of the service instance. e.g. If two Battery Services are
-*                 supported in your design, then the first service will be identified
-*                 by serviceIndex of 0 and the second - by serviceIndex of 1.
-*  \param charIndex: The index of a Battery Service characteristic of type
-*              cy_en_ble_bas_char_index_t.
-*  \param descrIndex: The index of a Battery Service characteristic descriptor of type
-*               cy_en_ble_bas_descr_index_t.
+*  \return
+*  A return value of type \ref cy_en_ble_api_result_t.
+*    
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was sent successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Server is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
 *
-* \return
-*  * CY_BLE_SUCCESS - The request was sent successfully.
-*  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*  * CY_BLE_ERROR_INVALID_STATE - The state is not valid.
-*  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*  * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted on
-*                                     the specified attribute.
-*
-* \events
+*  \events
 *  If execution is successful (return value = CY_BLE_SUCCESS),
 *  these events can appear: \n
 *  If a BAS service-specific callback is registered
-*      (with Cy_BLE_BAS_RegisterAttrCallback):
-*  * CY_BLE_EVT_BASC_READ_DESCR_RESPONSE - if the requested attribute is
-*                                successfully written on the peer device,
-*                                the details (char index, descr index, value, etc.)
-*                                are provided with an event parameter structure
-*                                of type cy_stc_ble_bas_descr_value_t.
-*  .
+*  (with Cy_BLE_BAS_RegisterAttrCallback):
+*  * \ref CY_BLE_EVT_BASC_READ_DESCR_RESPONSE - if the requested attribute is
+*    successfully read on the peer device, the details (char index, 
+*    descr index, value, etc.) are provided with an event parameter structure
+*    of type \ref cy_stc_ble_bas_descr_value_t.
+*  
 *  Otherwise (if a BAS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - if the requested attribute is
-*                                successfully read on the peer device,
-*                                the details (handle, value, etc.) are
-*                                provided with the event parameters
-*                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - if there is trouble with the
-*                                requested attribute on the peer device,
-*                                the details are provided with the event parameters
-*                                structure (cy_stc_ble_gatt_err_param_t).
+*  * \ref CY_BLE_EVT_GATTC_READ_RSP - if the requested attribute is
+*    successfully read on the peer device, the details (handle, 
+*    value, etc.) are provided with the event parameters structure 
+*    \ref cy_stc_ble_gattc_read_rsp_param_t.
+*  * \ref CY_BLE_EVT_GATTC_ERROR_RSP - If an error occurred with the
+*    requested attribute on the peer device, the details are provided 
+*    with the event parameters structure \ref cy_stc_ble_gatt_err_param_t.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BASC_GetCharacteristicDescriptor(cy_stc_ble_conn_handle_t connHandle,
@@ -1090,13 +1097,13 @@ static void Cy_BLE_BASC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 * Function Name: Cy_BLE_BAS_EventHandler
 ***************************************************************************//**
 *
-*  Handles events from the BLE stack for the Battery Service.
+*  Handles events from the BLE Stack for the Battery Service.
 *
 *  \param eventCode:  The event code.
 *  \param eventParam:  The event parameters.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_BAS_EventHandler(uint32_t eventCode,

@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Location And Navigation Service of the BLE Component.
+*  the Location And Navigation Service.
 *
 ********************************************************************************
 * \copyright
@@ -118,7 +118,7 @@ typedef struct
     /** Location and Navigation GATT DB handles structure */
     const cy_stc_ble_lnss_t *lnss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_lns_config_t;
 

@@ -20,20 +20,20 @@
 *
 * Devices support the following power modes (in the order of
 * high-to-low power consumption): Active, Sleep, Low Power (LP) Active,
-* LP Sleep, DeepSleep, and Hibernate.
+* LP Sleep, Deep Sleep, and Hibernate.
 * Active and Sleep are the standard ARM-defined power modes, supported by the
 * ARM CPUs.
-* DeepSleep is a lower-power mode where high-frequency clocks are disabled.
+* Deep Sleep is a lower-power mode where high-frequency clocks are disabled.
 * Most of the register state is retained and the platform supports saving a
 * configurable amount of the SRAM state.
 * Hibernate is an even lower power mode that is entered from firmware,
-* just like DeepSleep. However, on a wakeup the CPU and all peripherals go
+* just like Deep Sleep. However, on a wakeup the CPU and all peripherals go
 * through a full reset.
 *
 * The SysPm driver is used to enter low-power states to reduce system
 * power consumption in power sensitive designs. For multi-core devices this 
 * library allows the user to individually power down each CPU into Sleep or
-* DeepSleep.
+* Deep Sleep.
 *
 * <table class="doxtable">
 *   <tr><th>CM0+ Mode</th><th>CM4 Mode</th><th>Power Mode (SRSS)</th>
@@ -55,7 +55,7 @@
 *         active power mode(*1).</td>
 *   </tr>
 *   <tr>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Active</td>
 *     <td>Normal</td>
 *     <td>All Clocks and peripherals may operate or optionally can
@@ -70,7 +70,7 @@
 *         limitation is set as for active power mode(*1).</td>
 *   </tr>
 *   <tr>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Sleep</td>
 *     <td>Normal</td>
 *     <td>All Clocks and peripherals may operate, CPUs Off. Current load
@@ -86,7 +86,7 @@
 *   </tr>
 *   <tr>
 *     <td>Active</td>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Normal</td>
 *     <td>All Clocks and peripherals may operate or optionally can
 *         be disabled. Current load limitation is set as for
@@ -94,18 +94,10 @@
 *   </tr>
 *   <tr>
 *     <td>Sleep</td>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Normal</td>
 *     <td>All Clocks and peripherals may operate, CPUs Off. Current load
 *         limitation is set as for active power mode(*1).</td>
-*   </tr>
-*   <tr>
-*     <td>DeepSleep</td>
-*     <td>DeepSleep</td>
-*     <td>DeepSleep</td>
-*     <td>All the MHz clocks are off, but so is the DSI routing, and most Analog
-*         and voltage references are off by default. Only ILO/WCO may operate,
-*         limited peripherals.</td>
 *   </tr>
 *   <tr>
 *     <td>Active (LPActive)</td>
@@ -126,7 +118,7 @@
 *         in LPActive power mode.</td>
 *   </tr>
 *   <tr>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Active (LPActive)</td>
 *     <td>Low power</td>
 *     <td>All the MHz clocks frequencies should be decreased, if needed, to meet
@@ -153,7 +145,7 @@
 *         in LPActive mode. The CPUs are off.</td>
 *   </tr>
 *   <tr>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Sleep (LPSleep)</td>
 *     <td>Low power</td>
 *     <td>All the MHz clocks frequencies should be decreased, if needed, to meet
@@ -163,7 +155,7 @@
 *   </tr>
 *   <tr>
 *     <td>Active (LPActive)</td>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Low power</td>
 *     <td>All the MHz clocks frequencies should be decreased, if needed, to meet
 *         current load limitations (*1). Peripherals should be slowed,
@@ -172,7 +164,7 @@
 *   </tr>
 *   <tr>
 *     <td>Sleep (LPSleep)</td>
-*     <td>DeepSleep</td>
+*     <td>Deep Sleep</td>
 *     <td>Low power</td>
 *     <td>All the MHz clocks frequencies should be decreased, if needed, to meet
 *         current load limitations (*1). Peripherals should be slowed,
@@ -180,10 +172,10 @@
 *         in LPActive power mode. The CPUs are off</td>
 *   </tr>
 *   <tr>
-*     <td>DeepSleep</td>
-*     <td>DeepSleep</td>
-*     <td>DeepSleep</td>
-*     <td>The entire chip is in a DeepSleep, since it forces the MHz
+*     <td>Deep Sleep</td>
+*     <td>Deep Sleep</td>
+*     <td>Deep Sleep</td>
+*     <td>The entire chip is in a Deep Sleep, since it forces the MHz
 *         clocks, DSI, UDBs, most peripherals, analog, etc., to be shut down.
 *         Only ILO/WCO may operate, limited peripherals.</td>
 *   </tr>
@@ -203,6 +195,10 @@
 * mode. For more details about power modes and current load limitations refer to
 * the device Technical Reference Manual (TRM).
 *
+* \note The syspm driver supports both multi-core and single core devices. 
+* For single-core devices, SysPm functions that return the status of the 
+* unsupported core always return CY_SYSPM_STATUS_<CORE>_DEEPSLEEP.
+*
 * Power modes:
 * * Active - In this mode the CPU executes code, and all logic and memories
 * are powered. Firmware may decide to disable clocks for specific peripherals
@@ -219,20 +215,20 @@
 * * LPSleep - Low-Power Sleep mode operates the same as Sleep mode
 * with the clocking limitations of LPActive mode to further reduce system power.
 *
-* * DeepSleep - In DeepSleep mode the main system clock is off for CPU, 
+* * Deep Sleep - In Deep Sleep mode the main system clock is off for CPU, 
 * Flash, and high-speed logic. Optionally, the low frequency (32.768 kHz) clock
 * remains on, and low-frequency peripherals continue operating.
 * Peripherals that do not need a clock or receive a clock from their external
 * interface (e.g., I2C/SPI) continue operating, and all circuits that draw
 * current from the Vccdpslp supply are subject to the current sourcing
-* limitations of the DeepSleep Regulator (if the core is supplied by the
+* limitations of the Deep Sleep Regulator (if the core is supplied by the
 * Linear core regulator). If the core is supplied by the SIMO Buck regulator all
 * deep sleep peripherals are supplied by Vbuck1.
 * A normal wakeup from deep sleep returns to either LPActive, LPSleep, 
 * Active, or Sleep, depending on the previous state and programmed behavior for
 * the configured wakeup interrupt.
 * Likewise, a debug wakeup from deep sleep returns to LPSleep or Sleep, 
-* depending on which mode was used to enter the deep sleep power mode.
+* depending on which mode was used to enter the Deep Sleep power mode.
 *
 * * Hibernate - Is the lowest power mode available when external supplies are
 * present. It is intended for applications in a dormant state.
@@ -322,19 +318,19 @@
 * the PMIC is unlocked. See Cy_SysPm_UnlockPmic() for more details. Use 
 * Cy_SysPm_IsPmicLocked() to read the current PMIC lock status.
 * 
-* To enable the PMIC, use these functions in this order:
-* 1 Cy_SysPm_UnlockPmic();
-* 2 Cy_SysPm_EnablePmic();
-* 3 CY_SysPm_LockPmic();
+* To enable the PMIC, use these functions in this order:<br>
+* 1 Cy_SysPm_UnlockPmic();<br>
+* 2 Cy_SysPm_EnablePmic();<br>
+* 3 Cy_SysPm_LockPmic();
 * 
 * After this sequence the PMIC will be enabled regardless to its lock state.
 *
 * To disable the PMIC block, call Cy_SysPm_DisablePmic() with the inverted 
 * value of the current active state of the pmic_wakeup_in pin. 
 * For example, assume the current state of the pmic_wakeup_in pin is active low.
-* To disable the PMIC call these functions in this order:
-* 1 Cy_SysPm_UnlockPmic();
-* 2 Cy_SysPm_DisablePmic(CY_SYSPM_PMIC_POLARITY_HIGH);
+* To disable the PMIC call these functions in this order:<br>
+* 1 Cy_SysPm_UnlockPmic();<br>
+* 2 Cy_SysPm_DisablePmic(CY_SYSPM_PMIC_POLARITY_HIGH);<br>
 * Do not call Cy_SysPm_LockPmic() (which automatically enables the PMIC).
 * 
 * While disabled, the PMIC block is automatically enabled when the 
@@ -347,6 +343,10 @@
 * 
 * When disabled, the PMIC output is enabled when the PMIC is locked, or by 
 * calling Cy_SysPm_EnablePmicOutput().
+*
+* Also the SysPm driver provide functions to: configure supercapacitor charge,
+* select power supply (Vbackup or Vddd) for the Vddbackup, measure Vddbackup 
+* by ADC.
 *
 * \section group_syspm_callbacks SysPm Callbacks
 * The SysPm driver implements a callback mechanism. Using a SysPm callback,
@@ -389,7 +389,7 @@
 * local variable in the main() function.
 *
 * See the SysPM Callbacks Example section for pseudocode that handles 
-configuration.
+* configuration.
 *  
 * Also refer to Cy_SysPm_Sleep(), Cy_SysPm_DeepSleep(), Cy_SysPm_EnterLpMode(),
 * Cy_SysPm_ExitLpMode(), and Cy_SysPm_Hibernate() for more details.
@@ -459,15 +459,11 @@ configuration.
 * \subsection group__syspm_callback_example SysPm Callbacks Example
 *
 * The following pseudo code example demonstrates how use the SysPm callbacks
-* mechanism. It also shows a prototype for an application Deep Sleep 
-* callback function. This code assumes:<br>
-* * This is a dual-core device: CM0+ and CM4 cores <br>
-* * The CM0+ core is already in Deep Sleep <br>
-* * The code is executed on the CM4 <br>
+* mechanism. It also shows a prototype for an application Sleep 
+* callback function.
 *
-* The main.c file of CM4 core would look like this:
-*
-* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c SysPm Callback Example
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Callback
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_RegisterCallback
 *
 * \section group_syspm_section_more_information More Information
 * For more information on the Power Modes (SysPm) driver,
@@ -480,11 +476,6 @@ configuration.
 * <table class="doxtable">
 *   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
 *   <tr>
-*     <td>1.0</td>
-*     <td>Initial version</td>
-*     <td></td>
-*   </tr>
-*   <tr>
 *     <td>2.0</td>
 *     <td>Enhancement and defect fixes: <br> 
 *         * Added input parameter(s) validation to all public functions. <br>
@@ -492,26 +483,49 @@ configuration.
 *         * Changed the type of elements with limited set of values, from 
 *           uint32_t to enumeration.
 *         * Enhanced syspm callback mechanism.
+*         * Added functions to control: <br>
+*           * Power supply for the Vddbackup <br>
+*           * Supercapacitor charge <br>
+*           * Vddbackup measurement by ADC <br>
 *     </td>
+*     <td></td>
+*   </tr>
+*   <tr>
+*     <td>1.0</td>
+*     <td>Initial version</td>
 *     <td></td>
 *   </tr>
 * </table>
 *
 * \defgroup group_syspm_macros Macros
 * \defgroup group_syspm_functions Functions
+* \{
+*   \defgroup group_syspm_functions_power      Power Mode Functions
+*   \{
+*     \defgroup group_syspm_functions_iofreeze   IO Freeze Functions
+*     \defgroup group_syspm_functions_callback   Callback Management Functions
+*   \}
+*   \defgroup group_syspm_functions_voltage    Core Voltage Regulation Functions
+*   \{
+*     \defgroup group_syspm_functions_ldo        LDO Functions
+*     \defgroup group_syspm_functions_simo_buck  SIMO Buck Functions
+*   \}
+*   \defgroup group_syspm_functions_backup     Backup Domain Functions
+*   \{
+*     \defgroup group_syspm_functions_pmic       PMIC Functions
+*   \}
+* \}
 * \defgroup group_syspm_data_structures Data Structures
-* \defgroup group_syspm_data_enumerates Enumerated types
+* \defgroup group_syspm_data_enumerates Enumerated Types
 */
 
-#ifndef _CY_SYSPM_H_
-#define _CY_SYSPM_H_
+#if !defined (CY_SYSPM_H)
+#define CY_SYSPM_H
 
 #include <stdbool.h>
 #include <stddef.h>
 #include "cy_device_headers.h"
 #include "syslib/cy_syslib.h"
-#include "ipc/cy_ipc_sema.h"
-#include "ipc/cy_ipc_drv.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -532,40 +546,70 @@ extern "C" {
 /** Driver minor version */
 #define CY_SYSPM_DRV_VERSION_MINOR       0
 
+/** syspm driver identifier */
+#define CY_SYSPM_ID                      (CY_PDL_DRV_ID(0x10U))
+
 /** \cond INTERNAL */
 
-/** The internal define for clock divider */
-#define CY_SYSPM_CLK_DIVIDER                             (9U)
+/* Internal redefine for sflash */
+#define CY_SYSPM_SFLASH                         SFLASH
 
-/** The internal define of the unlock value for the PMIC functions */
-#define CY_SYSPM_PMIC_UNLOCK_KEY                         (0x3AU)
+/* Define for the IPC strucure used by syspm driver */
+#define CY_SYSPM_IPC_STC                        IPC_STRUCT7
 
-/** The internal define of the tries number in the Cy_SysPm_ExitLpMode() 
-* function
-*/
-#define CY_SYSPM_WAIT_DELAY_TRYES                        (100U)
+/** Define to indicate that 10 uS delay is needed */
+#define CY_SYSPM_NEED_DELAY                     (0x0U)
 
+/** Define to set the IMO to count 10uS delay after the deep sleep */
+#define CY_SYSPM_TST_DDFT_SLOW_CTL_MASK         (0x40001F1EU)
+
+/** Slow output register */
+#define CY_SYSPM_CLK_OUTPUT_SLOW_MASK           (0x06U)
+
+/** Slow control register */
+#define CY_SYSPM_TST_DDFT_FAST_CTL_MASK         (62U)
+
+/** Load value for the timer to count delay after the deep sleep */
+#define CY_SYSPM_IMO_10US_DELAY                 (68U)
+
+/** Define to indicate that clock is finished counting */
+#define CY_SYSPM_CLK_CAL_CNT1_DONE              ((uint32_t) ((uint32_t) 1U << CY_SYSPM_CLK_CAL_CNT1_DONE_POS))
+
+/** Define to indicate that clock is finished counting */
+#define CY_SYSPM_CLK_CAL_CNT1_DONE_POS          (31U)
+
+/** Define to indicate that 10 uS delay was done after the deep sleep */
+#define CY_SYSPM_DELAY_DONE                     (0xAAAAAAAAU)
+
+/** \endcond */
+
+
+/*******************************************************************************
+*       Internal Defines
+*******************************************************************************/
+
+/** \cond INTERNAL */
 /** The internal define of the first wakeup pin bit used in the
 * Cy_SysPm_SetHibWakeupSource() function
 */
-#define CY_SYSPM_WAKEUP_PIN0_BIT                          (1UL)
+#define CY_SYSPM_WAKEUP_PIN0_BIT                         (1UL)
 
 /** The internal define of the second wakeup pin bit 
 * used in the Cy_SysPm_SetHibWakeupSource() function
 */
-#define CY_SYSPM_WAKEUP_PIN1_BIT                          (2UL)
+#define CY_SYSPM_WAKEUP_PIN1_BIT                         (2UL)
 
 /**
 * The internal define of the first LPComparator bit 
 * used in the Cy_SysPm_SetHibWakeupSource() function
 */
-#define CY_SYSPM_WAKEUP_LPCOMP0_BIT                       (4UL)
+#define CY_SYSPM_WAKEUP_LPCOMP0_BIT                      (4UL)
 
 /**
 * The internal define for the second LPComparator bit 
 * used in the Cy_SysPm_SetHibWakeupSource() function
 */
-#define CY_SYSPM_WAKEUP_LPCOMP1_BIT                       (8UL)
+#define CY_SYSPM_WAKEUP_LPCOMP1_BIT                      (8UL)
 
 /**
 * The internal define of the first LPComparator value 
@@ -611,32 +655,75 @@ extern "C" {
 #define CY_SYSPM_WAKEUP_PIN1_POLARITY_HIGH      ((uint32_t) CY_SYSPM_WAKEUP_PIN1_BIT << \
                                                              SRSS_PWR_HIBERNATE_POLARITY_HIBPIN_Pos)
 
-/* Mask for the fast clock divider value */
-#define CY_SYSPM_FAST_CLK_DIV_Msk            (0xFF000000UL)
+/* Internal macro of all possible wakeup sources from hibernate power mode */
+#define CY_SYSPM_HIB_WAKEUP_SOURSE_MASK        (CY_SYSPM_LPCOMP0_HIGH | CY_SYSPM_LPCOMP1_HIGH | \
+                                                CY_SYSPM_HIBALARM     | CY_SYSPM_HIBWDT | \
+                                                CY_SYSPM_HIBPIN0_HIGH | CY_SYSPM_HIBPIN1_HIGH)
+                                                
+/** The internal define of the unlock value for the PMIC functions */
+#define CY_SYSPM_PMIC_UNLOCK_KEY                         (0x3AU)
 
-/* Position for the fast clock divider value */
-#define CY_SYSPM_FAST_CLK_DIV_Pos            (24UL)
+/** The internal define of the tries number in the Cy_SysPm_ExitLpMode() 
+* function
+*/
+#define CY_SYSPM_WAIT_DELAY_TRYES                        (100U)
 
-#define CY_SYSPM_IPC_STC                     IPC_STRUCT7
+/* Macro to validate parameters in Cy_SysPm_SetHibWakeupSource() and for Cy_SysPm_ClearHibWakeupSource() function */
+#define CY_SYSPM_IS_WAKE_UP_SOURCE_VALID(wakeupSource)   (0UL == ((wakeupSource) & \
+                                                         ((uint32_t) ~(CY_SYSPM_HIB_WAKEUP_SOURSE_MASK))))
 
-/* Mask for the slow clock divider value */
-#define CY_SYSPM_SLOW_CLK_DIV_Msk            (0x00FF0000UL)
+/* Macro to validate parameters in Cy_SysPm_DisablePmic() function */
+#define CY_SYSPM_IS_POLARITY_VALID(polarity)            (((polarity) == CY_SYSPM_PMIC_POLARITY_LOW) || \
+                                                         ((polarity) == CY_SYSPM_PMIC_POLARITY_HIGH))
 
-/* Position for the slow clock divider value */
-#define CY_SYSPM_SLOW_CLK_DIV_Pos            (16UL)
+/* Macro to validate parameters in Cy_SysPm_SimoBuckSetVoltage1() function */
+#define CY_SYSPM_IS_SIMO_BUCK_VOLTAGE1_VALID(voltage)   (((voltage) == CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_0_9V) || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_1_1V))
 
-#if(0u != CY_CPU_CORTEX_M4)
-    #define CY_SYSPM_CUR_CORE_DP_MASK          (0x01UL)
-    #define CY_SYSPM_OTHER_CORE_DP_MASK        (0x02UL)
-#else
-    #define CY_SYSPM_CUR_CORE_DP_MASK          (0x02UL)
-    #define CY_SYSPM_OTHER_CORE_DP_MASK        (0x01UL)
-#endif
+/* Macro to validate parameters in Cy_SysPm_SimoBuckSetVoltage2() function */
+#define CY_SYSPM_IS_SIMO_BUCK_VOLTAGE2_VALID(voltage)   (((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_15V) || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_2V)  || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_25V) || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_3V)  || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_35V) || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_4V)  || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_45V) || \
+                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_5V))
+
+/* Macro to validate parameters in Cy_SysPm_SimoBuckOutputIsEnabled() function */
+#define CY_SYSPM_IS_SIMO_BUCK_OUTPUT_VALID(output)      (((output) == CY_SYSPM_BUCK_VBUCK_1) || \
+                                                         ((output) == CY_SYSPM_BUCK_VRF))
+
+/* Macro to validate parameters in Cy_SysPm_LdoSetVoltage() function */
+#define CY_SYSPM_IS_LDO_VOLTAGE_VALID(voltage)          (((voltage) == CY_SYSPM_LDO_VOLTAGE_0_9V) || \
+                                                         ((voltage) == CY_SYSPM_LDO_VOLTAGE_1_1V))
+
+/* Macro to validate parameters in Cy_SysPm_ExecuteCallback() function */
+#define CY_SYSPM_IS_CALLBACK_TYPE_VALID(type)           (((type) == CY_SYSPM_SLEEP) || \
+                                                         ((type) == CY_SYSPM_DEEPSLEEP) || \
+                                                         ((type) == CY_SYSPM_HIBERNATE) || \
+                                                         ((type) == CY_SYSPM_ENTER_LP_MODE) || \
+                                                         ((type) == CY_SYSPM_EXIT_LP_MODE))
+
+/* Macro to validate parameters in Cy_SysPm_ExecuteCallback() function */
+#define CY_SYSPM_IS_CALLBACK_MODE_VALID(mode)           (((mode) == CY_SYSPM_CHECK_READY) || \
+                                                         ((mode) == CY_SYSPM_CHECK_FAIL) || \
+                                                         ((mode) == CY_SYSPM_BEFORE_TRANSITION) || \
+                                                         ((mode) == CY_SYSPM_AFTER_TRANSITION))
+
+/* Macro to validate parameters in Cy_SysPm_Sleep() and for Cy_SysPm_DeepSleep() function */
+#define CY_SYSPM_IS_WAIT_FOR_VALID(waitFor)             (((waitFor) == CY_SYSPM_WAIT_FOR_INTERRUPT) || \
+                                                         ((waitFor) == CY_SYSPM_WAIT_FOR_EVENT))
+
+/* Macro to validate parameters in Cy_SysPm_SetBackupSupply() function */
+#define CY_SYSPM_IS_VDDBACKUP_VALID(vddBackControl)      (((vddBackControl) == CY_SYSPM_VDDBACKUP_DEFAULT) || \
+                                                          ((vddBackControl) == CY_SYSPM_VDDBACKUP_VBACKUP))
+                                                          
+/* Macro to validate parameters in Cy_SysPm_BackupSuperCapCharge() function */
+#define CY_SYSPM_IS_SC_CHARGE_KEY_VALID(key)            (((key) == CY_SYSPM_SC_CHARGE_ENABLE) || \
+                                                         ((key) == CY_SYSPM_SC_CHARGE_DISABLE))
 
 /** \endcond */
-
-/** syspm driver identifier */
-#define CY_SYSPM_ID                             (CY_PDL_DRV_ID(0x10U))
 
 /**
 * \defgroup group_syspm_return_status The Power Mode Status Defines
@@ -651,7 +738,7 @@ extern "C" {
     /** The CM4 is in Sleep */
     #define CY_SYSPM_STATUS_CM4_SLEEP        (0x02U)
 
-    /** The CM4 is in DeepSleep */
+    /** The CM4 is in Deep Sleep */
     #define CY_SYSPM_STATUS_CM4_DEEPSLEEP    (0x04U)
 
     /** The CM4 is Low Power mode */
@@ -668,7 +755,7 @@ extern "C" {
 /** The CM0 is in Sleep */
 #define CY_SYSPM_STATUS_CM0_SLEEP        ((uint32_t) ((uint32_t)0x02U << 8U))
 
-/** The CM0 is in DeepSleep */
+/** The CM0 is in Deep Sleep */
 #define CY_SYSPM_STATUS_CM0_DEEPSLEEP    ((uint32_t) ((uint32_t)0x04U << 8U))
 
 /** The CM0 is in low power mode */
@@ -704,10 +791,10 @@ extern "C" {
 * This delay is used in transition the device from Active into the LPActive 
 * low-power mode 
 */
-#define CY_SYSPM_LP_TO_ACTIVE_WAIT_AFTER_US    (1U)
+#define CY_SYSPM_LP_TO_ACTIVE_WAIT_AFTER_US     (1U)
 
 /** The maximum callbacks number */
-#define CY_SYSPM_CALLBACKS_NUMBER_MAX         (32U)
+#define CY_SYSPM_CALLBACKS_NUMBER_MAX           (32U)
 
 /** The mask to unlock the Hibernate power mode */
 #define CY_SYSPM_PWR_HIBERNATE_UNLOCK             ((uint32_t) 0x3Au << SRSS_PWR_HIBERNATE_UNLOCK_Pos)
@@ -766,62 +853,6 @@ extern "C" {
     #define CY_SYSPM_SIMO_BUCK_IS_STABLE_US                (200U)
 
 #endif /* (0u != SRSS_SIMOBUCK_PRESENT) */
-
-/** \cond INTERNAL */
-
-/* Internal macro of all possible wakeup sources from hibernate power mode */
-#define CY_SYSPM_HIB_WAKEUP_SOURSE_MASK        (CY_SYSPM_LPCOMP0_HIGH | CY_SYSPM_LPCOMP1_HIGH | \
-                                                CY_SYSPM_HIBALARM     | CY_SYSPM_HIBWDT | \
-                                                CY_SYSPM_HIBPIN0_HIGH | CY_SYSPM_HIBPIN1_HIGH)
-
-/* Macro to validate parameters in Cy_SysPm_SetHibWakeupSource() and for Cy_SysPm_ClearHibWakeupSource() function */
-#define CY_SYSPM_IS_WAKE_UP_SOURCE_VALID(wakeupSource)   (0UL == ((wakeupSource) & \
-                                                         ((uint32_t) ~(CY_SYSPM_HIB_WAKEUP_SOURSE_MASK))))
-
-/* Macro to validate parameters in Cy_SysPm_DisablePmic() function */
-#define CY_SYSPM_IS_POLARITY_VALID(polarity)            (((polarity) == CY_SYSPM_PMIC_POLARITY_LOW) || \
-                                                         ((polarity) == CY_SYSPM_PMIC_POLARITY_HIGH))
-
-/* Macro to validate parameters in Cy_SysPm_SimoBuckSetVoltage1() function */
-#define CY_SYSPM_IS_SIMO_BUCK_VOLTAGE1_VALID(voltage)   (((voltage) == CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_0_9V) || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT1_VOLTAGE_1_1V))
-
-/* Macro to validate parameters in Cy_SysPm_SimoBuckSetVoltage2() function */
-#define CY_SYSPM_IS_SIMO_BUCK_VOLTAGE2_VALID(voltage)   (((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_15V) || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_2V)  || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_25V) || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_3V)  || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_35V) || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_4V)  || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_45V) || \
-                                                         ((voltage) == CY_SYSPM_SIMO_BUCK_OUT2_VOLTAGE_1_5V))
-
-/* Macro to validate parameters in Cy_SysPm_SimoBuckOutputIsEnabled() function */
-#define CY_SYSPM_IS_SIMO_BUCK_OUTPUT_VALID(output)      (((output) == CY_SYSPM_BUCK_VBUCK_1) || \
-                                                         ((output) == CY_SYSPM_BUCK_VRF))
-
-/* Macro to validate parameters in Cy_SysPm_LdoSetVoltage() function */
-#define CY_SYSPM_IS_LDO_VOLTAGE_VALID(voltage)          (((voltage) == CY_SYSPM_LDO_VOLTAGE_0_9V) || \
-                                                         ((voltage) == CY_SYSPM_LDO_VOLTAGE_1_1V))
-
-/* Macro to validate parameters in Cy_SysPm_ExecuteCallback() function */
-#define CY_SYSPM_IS_CALLBACK_TYPE_VALID(type)           (((type) == CY_SYSPM_SLEEP) || \
-                                                         ((type) == CY_SYSPM_DEEPSLEEP) || \
-                                                         ((type) == CY_SYSPM_HIBERNATE) || \
-                                                         ((type) == CY_SYSPM_ENTER_LP_MODE) || \
-                                                         ((type) == CY_SYSPM_EXIT_LP_MODE))
-
-/* Macro to validate parameters in Cy_SysPm_ExecuteCallback() function */
-#define CY_SYSPM_IS_CALLBACK_MODE_VALID(mode)           (((mode) == CY_SYSPM_CHECK_READY) || \
-                                                         ((mode) == CY_SYSPM_CHECK_FAIL) || \
-                                                         ((mode) == CY_SYSPM_BEFORE_TRANSITION) || \
-                                                         ((mode) == CY_SYSPM_AFTER_TRANSITION))
-
-/* Macro to validate parameters in Cy_SysPm_Sleep() and for Cy_SysPm_DeepSleep() function */
-#define CY_SYSPM_IS_WAIT_FOR_VALID(waitFor)             (((waitFor) == CY_SYSPM_WAIT_FOR_INTERRUPT) || \
-                                                         ((waitFor) == CY_SYSPM_WAIT_FOR_EVENT))
-
-/** \endcond */
 
 /** \} group_syspm_macros */
 
@@ -892,8 +923,8 @@ typedef enum
 /** The enumeration is used to select output voltage for the Linear Regulator */
 typedef enum
 {
-    CY_SYSPM_LDO_VOLTAGE_0_9V = 0x07U,      /**< 0.9 V nominal core voltage */
-    CY_SYSPM_LDO_VOLTAGE_1_1V = 0x17U       /**< 1.1 V nominal core voltage */
+    CY_SYSPM_LDO_VOLTAGE_0_9V,       /**< 0.9 V nominal core voltage */
+    CY_SYSPM_LDO_VOLTAGE_1_1V        /**< 1.1 V nominal core voltage */
 } cy_en_syspm_ldo_voltage_t;
 
 #if(0u != SRSS_SIMOBUCK_PRESENT)
@@ -935,6 +966,27 @@ typedef enum
 
 #endif /* (0u != SRSS_SIMOBUCK_PRESENT) */
 
+/**
+* This enumeration is used to set a polarity for the PMIC input. The PMIC is 
+* automatically enabled when configured polarity of PMIC input and the polarity
+* driven to pmic_wakeup_in pin matches.
+*/
+typedef enum
+{
+    CY_SYSPM_PMIC_POLARITY_LOW   = 0U,    /**< Set active low state for the PMIC input */
+    CY_SYSPM_PMIC_POLARITY_HIGH  = 1U     /**< Set active high state for the PMIC input */
+} cy_en_syspm_pmic_wakeup_polarity_t;
+
+/**
+* This enumeration sets a switch to select  Vbackup or Vddd to supply Vddbackup
+*/
+typedef enum
+{
+    CY_SYSPM_VDDBACKUP_DEFAULT         = 0U,    /**< Automatically selects Vddd or Vbackup to supply 
+                                                     Vddbackup */
+    CY_SYSPM_VDDBACKUP_VBACKUP         = 2U     /**< Set Vbackup to supply Vddbackup */
+} cy_en_syspm_vddbackup_control_t;
+
 /** The SysPm status definitions */
 typedef enum
 {
@@ -955,7 +1007,7 @@ typedef enum
 typedef enum
 {
     CY_SYSPM_SLEEP,          /**< The Sleep enum callback type */
-    CY_SYSPM_DEEPSLEEP,      /**< The DeepSleep enum callback type */
+    CY_SYSPM_DEEPSLEEP,      /**< The Deep Sleep enum callback type */
     CY_SYSPM_HIBERNATE,      /**< The Hibernate enum callback type */
     CY_SYSPM_ENTER_LP_MODE,  /**< The enter into the LPActive mode enum callback type */
     CY_SYSPM_EXIT_LP_MODE,   /**< The exit out of the LPActive mode enum callback type */
@@ -976,15 +1028,13 @@ typedef enum
 } cy_en_syspm_callback_mode_t;
 
 /**
-* This enumeration is used to set a polarity for the PMIC input. The PMIC is 
-* automatically enabled when configured polarity of PMIC input and the polarity
-* driven to pmic_wakeup_in pin matches.
+* This enumeration configures supercapacitor charging.
 */
 typedef enum
 {
-    CY_SYSPM_PMIC_POLARITY_LOW   = 0U,    /**< Set active low state for the PMIC input */
-    CY_SYSPM_PMIC_POLARITY_HIGH  = 1U     /**< Set active high state for the PMIC input */
-} cy_en_syspm_pmic_wakeup_polarity_t;
+    CY_SYSPM_SC_CHARGE_ENABLE     = 0x3CU,    /**< Enables supercapacitor charging */
+    CY_SYSPM_SC_CHARGE_DISABLE    = 0x00U     /**< Disables supercapacitor charging */
+} cy_en_syspm_sc_charge_key_t;
 
 /** \} group_syspm_data_enumerates */
 
@@ -1038,10 +1088,9 @@ typedef struct cy_stc_syspm_callback
 #ifdef CY_IP_MXUDB
 
     /** \cond INTERNAL */
-    #define CY_SYSPM_PERI_GR3_UDB       (3U)
-    
-    /** This internal structure stores non-retained registers in the Deep 
-    *  Sleep power mode.
+
+    /** This internal structure stores non-retained registers in the Deep Sleep
+    *   power mode.
     */
     typedef struct
     {
@@ -1063,11 +1112,17 @@ typedef struct cy_stc_syspm_callback
 
 /** \} group_syspm_data_structures */
 
+
 /**
 * \addtogroup group_syspm_functions
 * \{
 */
 
+
+/**
+* \addtogroup group_syspm_functions_power
+* \{
+*/
 #if(0u != CY_IP_M4CPUSS)
 
     __STATIC_INLINE bool Cy_SysPm_Cm4IsActive(void);
@@ -1083,10 +1138,41 @@ __STATIC_INLINE bool Cy_SysPm_Cm0IsDeepSleep(void);
 __STATIC_INLINE bool Cy_SysPm_Cm0IsLowPower(void);
 __STATIC_INLINE bool Cy_SysPm_IsLowPower(void);
 
+uint32_t Cy_SysPm_ReadStatus(void);
+cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor);
+cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor);
+cy_en_syspm_status_t Cy_SysPm_Hibernate(void);
+cy_en_syspm_status_t Cy_SysPm_EnterLpMode(void);
+cy_en_syspm_status_t Cy_SysPm_ExitLpMode(void);
+void Cy_SysPm_SleepOnExit(bool enable);
+
+void Cy_SysPm_SetHibWakeupSource(uint32_t wakeupSource);
+void Cy_SysPm_ClearHibWakeupSource(uint32_t wakeupSource);
+/** \} group_syspm_functions_power */
+
+
+/**
+* \addtogroup group_syspm_functions_ldo
+* \{
+*/
+void Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage);
 __STATIC_INLINE cy_en_syspm_ldo_voltage_t Cy_SysPm_LdoGetVoltage(void);
 __STATIC_INLINE bool Cy_SysPm_LdoIsEnabled(void);
-__STATIC_INLINE bool Cy_SysPm_GetIoFreezeStatus(void);
+/** \} group_syspm_functions_ldo */
 
+/**
+* \addtogroup group_syspm_functions_iofreeze
+* \{
+*/
+void Cy_SysPm_IoFreeze(void);
+void Cy_SysPm_IoUnfreeze(void);
+__STATIC_INLINE bool Cy_SysPm_GetIoFreezeStatus(void);
+/** \} group_syspm_functions_iofreeze */
+
+/**
+* \addtogroup group_syspm_functions_pmic
+* \{
+*/
 __STATIC_INLINE void Cy_SysPm_EnablePmic(void);
 __STATIC_INLINE void Cy_SysPm_DisablePmic(cy_en_syspm_pmic_wakeup_polarity_t polarity); 
 __STATIC_INLINE void Cy_SysPm_AlwaysEnablePmic(void);
@@ -1097,7 +1183,25 @@ __STATIC_INLINE void Cy_SysPm_UnlockPmic(void);
 __STATIC_INLINE bool Cy_SysPm_IsPmicEnabled(void);
 __STATIC_INLINE bool Cy_SysPm_IsPmicOutputEnabled(void);
 __STATIC_INLINE bool Cy_SysPm_IsPmicLocked(void);
+/** \} group_syspm_functions_pmic */
 
+
+/**
+* \addtogroup group_syspm_functions_backup
+* \{
+*/
+__STATIC_INLINE void Cy_SysPm_SetBackupSupply(cy_en_syspm_vddbackup_control_t vddBackControl);
+__STATIC_INLINE cy_en_syspm_vddbackup_control_t Cy_SysPm_GetBackupSupply(void);
+__STATIC_INLINE void Cy_SysPm_EnableBackupVMeasure(void);
+__STATIC_INLINE void Cy_SysPm_DisableBackupVMeasure(void);
+__STATIC_INLINE void Cy_SysPm_BackupSuperCapCharge(cy_en_syspm_sc_charge_key_t key);
+/** \} group_syspm_functions_backup */
+
+
+/**
+* \addtogroup group_syspm_functions_simo_buck
+* \{
+*/
 #if(0u != SRSS_SIMOBUCK_PRESENT)
 
     __STATIC_INLINE cy_en_syspm_simo_buck_voltage1_t Cy_SysPm_SimoBuckGetVoltage1(void);
@@ -1114,23 +1218,23 @@ __STATIC_INLINE bool Cy_SysPm_IsPmicLocked(void);
     bool Cy_SysPm_SimoBuckOutputIsEnabled(cy_en_syspm_buck_out_t output);
 
 #endif /* (0u != SRSS_SIMOBUCK_PRESENT) */
+/** \} group_syspm_functions_simo_buck */
 
-uint32_t Cy_SysPm_ReadStatus(void);
-cy_en_syspm_status_t Cy_SysPm_Sleep(cy_en_syspm_waitfor_t waitFor);
-cy_en_syspm_status_t Cy_SysPm_DeepSleep(cy_en_syspm_waitfor_t waitFor);
-cy_en_syspm_status_t Cy_SysPm_Hibernate(void);
-cy_en_syspm_status_t Cy_SysPm_EnterLpMode(void);
-cy_en_syspm_status_t Cy_SysPm_ExitLpMode(void);
-void Cy_SysPm_SleepOnExit(bool enable);
 
-void Cy_SysPm_SetHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource);
-void Cy_SysPm_ClearHibWakeupSource(cy_en_syspm_hib_wakeup_source_t wakeupSource);
-void Cy_SysPm_LdoSetVoltage(cy_en_syspm_ldo_voltage_t voltage);
+/**
+* \addtogroup group_syspm_functions_callback
+* \{
+*/
 bool Cy_SysPm_RegisterCallback(cy_stc_syspm_callback_t *handler);
 bool Cy_SysPm_UnregisterCallback(cy_stc_syspm_callback_t const *handler);
 cy_en_syspm_status_t Cy_SysPm_ExecuteCallback(cy_en_syspm_callback_type_t type, cy_en_syspm_callback_mode_t mode);
-void Cy_SysPm_IoFreeze(void);
-void Cy_SysPm_IoUnfreeze(void);
+/** \} group_syspm_functions_callback */
+
+
+/**
+* \addtogroup group_syspm_functions_power
+* \{
+*/
 
 #if(0u != CY_IP_M4CPUSS)
     /*******************************************************************************
@@ -1141,6 +1245,9 @@ void Cy_SysPm_IoUnfreeze(void);
     *
     * \return
     * true - if CM4 is in the active mode, false - if the CM4 is not in active mode.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm4IsActive
     *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_Cm4IsActive(void)
@@ -1159,6 +1266,9 @@ void Cy_SysPm_IoUnfreeze(void);
     * true - if the CM4 is in the sleep mode, 
     * false - if the CM4 is not in the sleep mode.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm4IsSleep
+    *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_Cm4IsSleep(void)
     {
@@ -1170,11 +1280,14 @@ void Cy_SysPm_IoUnfreeze(void);
     * Function Name: Cy_SysPm_Cm4IsDeepSleep
     ****************************************************************************//**
     *
-    * Checks if the CM4 is in the deep sleep mode.
+    * Checks if the CM4 is in the Deep Sleep mode.
     *
     * \return
     * true - if CM4 is in the deep sleep mode, false - if the CM4 is not in 
     * the deep sleep mode.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm4IsDeepSleep
     *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_Cm4IsDeepSleep(void)
@@ -1192,6 +1305,9 @@ void Cy_SysPm_IoUnfreeze(void);
     * \return
     * true - if the CM4 is in the low power mode, 
     * false - if the CM4 is not in the low power mode.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm4IsLowPower
     *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_Cm4IsLowPower(void)
@@ -1212,6 +1328,9 @@ void Cy_SysPm_IoUnfreeze(void);
 * true - if the CM0+ is in the active mode, 
 * false - if the CM0+ is not in the active mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm0IsActive
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_Cm0IsActive(void)
 {
@@ -1229,6 +1348,9 @@ __STATIC_INLINE bool Cy_SysPm_Cm0IsActive(void)
 * true - if the CM0+ is in the sleep mode, 
 * false - if the CM0+ is not in the sleep mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm0IsSleep
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_Cm0IsSleep(void)
 {
@@ -1240,11 +1362,14 @@ __STATIC_INLINE bool Cy_SysPm_Cm0IsSleep(void)
 * Function Name: Cy_SysPm_Cm0IsDeepSleep
 ****************************************************************************//**
 *
-* Checks if the CM0+ is in the deep sleep mode.
+* Checks if the CM0+ is in the Deep Sleep mode.
 *
 * \return
 * true - if the CM0+ is in the deep sleep mode, 
 * false - if the CM0+ is not in the deep sleep mode.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm0IsDeepSleep
 *
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_Cm0IsDeepSleep(void)
@@ -1263,6 +1388,9 @@ __STATIC_INLINE bool Cy_SysPm_Cm0IsDeepSleep(void)
 * true - if the CM0+ is in the low power mode, 
 * false - if the CM0+ is not in the low power mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_Cm0IsLowPower
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_Cm0IsLowPower(void)
 {
@@ -1280,11 +1408,22 @@ __STATIC_INLINE bool Cy_SysPm_Cm0IsLowPower(void)
 * true - the system is in the low power mode,
 * false - the system is is not in the low power mode.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_IsLowPower
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
 {
     return((Cy_SysPm_ReadStatus() & CY_SYSPM_STATUS_SYSTEM_LOWPOWER) != 0U);
 }
+
+/** \} group_syspm_functions_power */
+
+
+/**
+* \addtogroup group_syspm_functions_simo_buck
+* \{
+*/
 
 #if(0u != SRSS_SIMOBUCK_PRESENT)
     /*******************************************************************************
@@ -1296,6 +1435,9 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * \return
     * The current state of the SIMO Buck regulator. True if the SIMO Buck regulator
     * is enabled, false if it is disabled
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
     *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_SimoBuckIsEnabled(void)
@@ -1319,6 +1461,9 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * voltage (Vbuckrf).
     * See \ref cy_en_syspm_simo_buck_voltage2_t.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SimoBuckGetVoltage2
+    *
     *******************************************************************************/
     __STATIC_INLINE cy_en_syspm_simo_buck_voltage2_t Cy_SysPm_SimoBuckGetVoltage2(void)
     {
@@ -1337,16 +1482,15 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * the SIMO Buck regulator.
     *
     * \note The actual device output 1 voltage (Vccbuck1) can be different from
-    * the actual voltage because the actual voltage value depends on the 
+    * the nominal voltage because the actual voltage value depends on the 
     * conditions including the load current.
-    *
-    * \note The actual device output 1 voltage (Vccbuck1) can be different from the 
-    * nominal voltage because the actual voltage value depends on the conditions
-    * including the load current.
     *
     * \return
     * The nominal output voltage 1 (Vccbuck1) of the SIMO Buck regulator.
     * See \ref cy_en_syspm_simo_buck_voltage1_t.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
     *
     *******************************************************************************/
     __STATIC_INLINE cy_en_syspm_simo_buck_voltage1_t Cy_SysPm_SimoBuckGetVoltage1(void)
@@ -1372,6 +1516,9 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * \note Ensure that the new voltage supply for the BLE HW block is settled 
     * and it is stable before calling the Cy_SysPm_DisableVoltage2() function.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DisableVoltage2
+    *
     *******************************************************************************/
     __STATIC_INLINE void Cy_SysPm_DisableVoltage2(void)
     {
@@ -1395,6 +1542,9 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * Enables/disables hardware control for the SIMO Buck output 2
     *
     * Function does not have an effect if SIMO Buck regulator is disabled.
+    *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SimoBuckSetHwControl
     *
     *******************************************************************************/
     __STATIC_INLINE void Cy_SysPm_SimoBuckSetHwControl(bool hwControl)
@@ -1428,6 +1578,9 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     * True if the HW control is set, false if the FW control is set for the 
     * SIMO Buck output 2.
     *
+    * \funcusage
+    * \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SimoBuckGetHwControl
+    *
     *******************************************************************************/
     __STATIC_INLINE bool Cy_SysPm_SimoBuckGetHwControl(void)
     {
@@ -1435,6 +1588,14 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
     }
 
 #endif /* (0u != SRSS_SIMOBUCK_PRESENT) */
+
+/** \} group_syspm_functions_simo_buck */
+
+
+/**
+* \addtogroup group_syspm_functions_ldo
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_SysPm_LdoGetVoltage
@@ -1450,13 +1611,17 @@ __STATIC_INLINE bool Cy_SysPm_IsLowPower(void)
 * The nominal output voltage of the Linear regulator.
 * See \ref cy_en_syspm_ldo_voltage_t.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
+*
 *******************************************************************************/
 __STATIC_INLINE cy_en_syspm_ldo_voltage_t Cy_SysPm_LdoGetVoltage(void)
 {
-    uint32_t retVal;
-    retVal = _FLD2VAL(SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, SRSS->PWR_TRIM_PWRSYS_CTL);
-    
-    return((cy_en_syspm_ldo_voltage_t) retVal);
+    uint32_t curVoltage;
+
+    curVoltage = _FLD2VAL(SRSS_PWR_TRIM_PWRSYS_CTL_ACT_REG_TRIM, SRSS->PWR_TRIM_PWRSYS_CTL);
+
+    return((curVoltage == (CY_SYSPM_SFLASH->LDO_0P9V_TRIM)) ? CY_SYSPM_LDO_VOLTAGE_0_9V : CY_SYSPM_LDO_VOLTAGE_1_1V);
 }
 
 
@@ -1469,12 +1634,22 @@ __STATIC_INLINE cy_en_syspm_ldo_voltage_t Cy_SysPm_LdoGetVoltage(void)
 * \return
 * True means the Linear regulator is enabled. False means it is disabled
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_VoltageRegulator
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_LdoIsEnabled(void)
 {
     return((0U != _FLD2VAL(SRSS_PWR_CTL_LINREG_DIS, SRSS->PWR_CTL)) ? false : true);
 }
 
+/** \} group_syspm_functions_ldo */
+
+
+/**
+* \addtogroup group_syspm_functions_iofreeze
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_SysPm_GetIoFreezeStatus
@@ -1484,12 +1659,22 @@ __STATIC_INLINE bool Cy_SysPm_LdoIsEnabled(void)
 *
 * \return Returns True if IOs are frozen <br> False if IOs are unfrozen.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_GetIoFreezeStatus
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_GetIoFreezeStatus(void)
 {
     return(0U != _FLD2VAL(SRSS_PWR_HIBERNATE_FREEZE, SRSS->PWR_HIBERNATE));
 }
 
+/** \} group_syspm_functions_iofreeze */
+
+
+/**
+* \addtogroup group_syspm_functions_pmic
+* \{
+*/
 
 /*******************************************************************************
 * Function Name: Cy_SysPm_EnablePmic
@@ -1502,7 +1687,10 @@ __STATIC_INLINE bool Cy_SysPm_GetIoFreezeStatus(void)
 * 
 * The function is not effective when the PMIC is locked. Call 
 * Cy_SysPm_UnlockPmic() before enabling the PMIC.
-* 
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnablePmic
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_EnablePmic(void)
 {
@@ -1544,6 +1732,9 @@ __STATIC_INLINE void Cy_SysPm_EnablePmic(void)
 * For information about the PMIC input and output pins and their assignment in 
 * the specific families devices, refer to the appropriate device TRM.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DisablePmic
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_DisablePmic(cy_en_syspm_pmic_wakeup_polarity_t polarity)
 {
@@ -1570,6 +1761,9 @@ __STATIC_INLINE void Cy_SysPm_DisablePmic(cy_en_syspm_pmic_wakeup_polarity_t pol
 * For information about the PMIC input and output pins and their assignment in 
 * the specific families devices, refer to the appropriate device TRM.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_AlwaysEnablePmic
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_AlwaysEnablePmic(void)
 {
@@ -1588,6 +1782,9 @@ __STATIC_INLINE void Cy_SysPm_AlwaysEnablePmic(void)
 *
 * For information about the PMIC output pin and it assignment in 
 * the specific families devices, refer to the appropriate device TRM.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnablePmicOutput
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_EnablePmicOutput(void)
@@ -1619,6 +1816,9 @@ __STATIC_INLINE void Cy_SysPm_EnablePmicOutput(void)
 * The PMIC output is enabled automatically when you call Cy_SysPm_LockPmic(). 
 * To keep PMIC output disabled, the PMIC must remain unlocked.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DisablePmicOutput
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_DisablePmicOutput(void)
 {
@@ -1644,6 +1844,9 @@ __STATIC_INLINE void Cy_SysPm_DisablePmicOutput(void)
 * you call Cy_SysPm_LockPmic(). To keep the PMIC or PMIC output disabled,
 * the PMIC must remain unlocked.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_LockPmic
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_LockPmic(void)
 {
@@ -1664,6 +1867,9 @@ __STATIC_INLINE void Cy_SysPm_LockPmic(void)
 * you call Cy_SysPm_LockPmic(). To keep the PMIC or PMIC output disabled,
 * the PMIC must remain unlocked.
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnablePmic
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysPm_UnlockPmic(void)
 {
@@ -1680,6 +1886,9 @@ __STATIC_INLINE void Cy_SysPm_UnlockPmic(void)
 * \return
 * True - The PMIC is enabled. <br>
 * False - The PMIC is disabled. <br>
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_LockPmic
 *
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_IsPmicEnabled(void)
@@ -1698,6 +1907,9 @@ __STATIC_INLINE bool Cy_SysPm_IsPmicEnabled(void)
 * True - The PMIC output is enabled. <br>
 * False - The PMIC output is disabled. <br>
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DisablePmic
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_IsPmicOutputEnabled(void)
 {
@@ -1715,17 +1927,152 @@ __STATIC_INLINE bool Cy_SysPm_IsPmicOutputEnabled(void)
 * True - The PMIC is locked. <br>
 * False - The PMIC is unlocked. <br>
 *
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_LockPmic
+*
 *******************************************************************************/
 __STATIC_INLINE bool Cy_SysPm_IsPmicLocked(void)
 {
     return((_FLD2VAL(BACKUP_PMIC_CTL_UNLOCK, BACKUP->PMIC_CTL) == CY_SYSPM_PMIC_UNLOCK_KEY) ? false : true);
 }
 
+/** \} group_syspm_functions_pmic */
+
+
+/**
+* \addtogroup group_syspm_functions_backup
+* \{
+*/
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_SetBackupSupply
+****************************************************************************//**
+*
+* Sets the Backup Supply (Vddback) operation mode.
+*
+* \param
+* vddBackControl 
+* Selects Backup Supply (Vddback) operation mode.
+* See \ref cy_en_syspm_vddbackup_control_t.
+*
+* Refer to device TRM for more details about Backup supply modes.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_SetBackupSupply
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysPm_SetBackupSupply(cy_en_syspm_vddbackup_control_t vddBackControl)
+{
+    CY_ASSERT_L3(CY_SYSPM_IS_VDDBACKUP_VALID(vddBackControl));
+
+    BACKUP->CTL = _CLR_SET_FLD32U((BACKUP->CTL), BACKUP_CTL_VDDBAK_CTL, (uint32_t) vddBackControl);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_GetBackupSupply
+****************************************************************************//**
+*
+* Returns the current Backup Supply (Vddback) operation mode.
+*
+* \return
+* The current Backup Supply (Vddback) operation mode, 
+* see \ref cy_en_syspm_status_t.
+*
+* Refer to device TRM for more details about Backup supply modes.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_GetBackupSupply
+*
+*******************************************************************************/
+__STATIC_INLINE cy_en_syspm_vddbackup_control_t Cy_SysPm_GetBackupSupply(void)
+{
+    uint32_t retVal;
+    retVal = _FLD2VAL(BACKUP_CTL_VDDBAK_CTL, BACKUP->CTL);
+
+    return((cy_en_syspm_vddbackup_control_t) retVal);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_EnableBackupVMeasure
+****************************************************************************//**
+*
+* This function enables the Vbackup supply measurement by the ADC. The function 
+* connects the Vbackup supply to the AMUXBUSA. Note that measured signal is 
+* scaled by 40% to allow being measured by the ADC.
+*
+* Refer to device TRM for more details about Vbackup supply measurement.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_EnableBackupVMeasure
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysPm_EnableBackupVMeasure(void)
+{
+    BACKUP->CTL |= BACKUP_CTL_VBACKUP_MEAS_Msk;
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_DisableBackupVMeasure
+****************************************************************************//**
+*
+* The function disables the Vbackup supply measurement by the ADC. The function 
+* disconnects the Vbackup supply from the AMUXBUSA.
+*
+* Refer to device TRM for more details about Vbackup supply measurement.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_DisableBackupVMeasure
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysPm_DisableBackupVMeasure(void)
+{
+    BACKUP->CTL &= ((uint32_t) ~BACKUP_CTL_VBACKUP_MEAS_Msk);
+}
+
+
+/*******************************************************************************
+* Function Name: Cy_SysPm_BackupSuperCapCharge
+****************************************************************************//**
+*
+* Configures the supercapacitor charger circuit.
+*
+* \param key 
+* Passes the key to enable or disable the supercapacitor charger circuit.
+* See \ref cy_en_syspm_sc_charge_key_t.
+*
+* \warning
+* This function is used only for charging the supercapacitor.
+* Do not use this function to charge a battery. Refer to device TRM for more 
+* details.
+*
+* \funcusage
+* \snippet syspm/syspm_2_0_sut_01.cydsn/main_cm4.c snippet_Cy_SysPm_BackupSuperCapCharge
+*
+*******************************************************************************/
+__STATIC_INLINE void Cy_SysPm_BackupSuperCapCharge(cy_en_syspm_sc_charge_key_t key)
+{
+    CY_ASSERT_L3(CY_SYSPM_IS_SC_CHARGE_KEY_VALID(key));
+    
+    if(key == CY_SYSPM_SC_CHARGE_ENABLE)
+    {
+        BACKUP->CTL = _CLR_SET_FLD32U((BACKUP->CTL), BACKUP_CTL_EN_CHARGE_KEY, (uint32_t) CY_SYSPM_SC_CHARGE_ENABLE);
+    }
+    else
+    {
+        BACKUP->CTL &= ((uint32_t) ~BACKUP_CTL_EN_CHARGE_KEY_Msk);
+    }
+}
+
+/** \} group_syspm_functions_backup */
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _CY_SYSPM_H_ */
+#endif /* CY_SYSPM_H */
 
 /** \} group_syspm_functions*/
 /** \} group_syspm */

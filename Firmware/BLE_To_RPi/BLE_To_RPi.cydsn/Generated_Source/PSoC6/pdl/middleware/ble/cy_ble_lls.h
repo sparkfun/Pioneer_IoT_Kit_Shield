@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in the Link
-*  Loss Service of the BLE Component.
+*  Loss Service.
 *
 ********************************************************************************
 * \copyright
@@ -70,7 +70,7 @@ typedef struct
     /** Link Loss Service GATT DB handles structure */
     const cy_stc_ble_llss_t *llss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_lls_config_t;
 

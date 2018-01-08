@@ -123,7 +123,7 @@ cy_en_ble_api_result_t Cy_BLE_RTUS_Init(cy_stc_ble_rtus_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                     events from the BLE Component. The definition of
+*                     events from the BLE Middleware. The definition of
 *                     cy_ble_callback_t for RTUS is: \n
 *                     typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                       void *eventParam)
@@ -228,7 +228,7 @@ static void Cy_BLE_RTUSS_WriteCmdEventHandler(cy_stc_ble_gatts_write_cmd_req_par
 *                     data that should be stored to the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - the request is handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - validation of the input parameters failed
 *
@@ -300,7 +300,7 @@ cy_en_ble_api_result_t Cy_BLE_RTUSS_SetCharacteristicValue(cy_en_ble_rtus_char_i
 *                     characteristic value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - the request is handled successfully;
 *   * CY_BLE_ERROR_INVALID_PARAMETER - validation of the input parameter failed.
 *
@@ -410,7 +410,7 @@ static void Cy_BLE_RTUSC_GetCharRange(cy_stc_ble_disc_range_info_t *charRangeInf
 
     if(cy_ble_discovery[discIdx].servCount == (uint32_t)CY_BLE_SRVI_RTUS)
     {
-        /* RTUS does not have any discriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE */
+        /* RTUS does not have any descriptions, return CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE */
         charRangeInfo->range.startHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
         charRangeInfo->range.endHandle = CY_BLE_GATT_INVALID_ATTR_HANDLE_VALUE;
 
@@ -464,7 +464,7 @@ static void Cy_BLE_RTUSC_ReadResponseEventHandler(cy_stc_ble_gattc_read_rsp_para
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_RTUSS_WRITE_CHAR_CMD event is generated.
+*  Server side, the CY_BLE_EVT_RTUSS_WRITE_CHAR_CMD event is generated.
 *
 *  \param connHandle:    The connection handle.
 *  \param charIndex:     The index of a service characteristic.
@@ -473,7 +473,7 @@ static void Cy_BLE_RTUSC_ReadResponseEventHandler(cy_stc_ble_gattc_read_rsp_para
 *                        that should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was sent successfully.
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the Client is not established.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
@@ -530,7 +530,7 @@ cy_en_ble_api_result_t Cy_BLE_RTUSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *  \param charIndex:     The index of a service characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - the request was sent successfully;
 *   * CY_BLE_ERROR_INVALID_STATE - connection with the Client is not established.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - validation of the input parameters failed.
@@ -539,22 +539,22 @@ cy_en_ble_api_result_t Cy_BLE_RTUSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the RTUS service-specific callback is registered
 *      (with Cy_BLE_RTUS_RegisterAttrCallback):
-*  * CY_BLE_EVT_RTUSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_RTUSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_rtus_char_value_t.
 *  .
 *   Otherwise (if the RTUS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -603,13 +603,13 @@ cy_en_ble_api_result_t Cy_BLE_RTUSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 * Function Name: Cy_BLE_RTUS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the for Reference Time Update Service.
+*  Handles the events from the BLE Stack for the for Reference Time Update Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_RTUS_EventHandler(uint32_t eventCode,

@@ -29,6 +29,9 @@ static cy_stc_ipc_pipe_ep_t * cy_ipc_pipe_epArray = NULL;
 * This is the pointer to an array of endpoint structures that the designer
 * created and will be used to reference all endpoints.
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_Config
+*
 *******************************************************************************/
 void Cy_IPC_Pipe_Config(cy_stc_ipc_pipe_ep_t * theEpArray)
 {
@@ -48,6 +51,9 @@ void Cy_IPC_Pipe_Config(cy_stc_ipc_pipe_ep_t * theEpArray)
 *
 * \param config
 * This is the pointer to the pipe configuration structure
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_Init
 *
 *******************************************************************************/
 void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
@@ -145,6 +151,9 @@ void Cy_IPC_Pipe_Init(cy_stc_ipc_pipe_config_t const *config)
 * \param epInterrupt
 * This is a pointer to the endpoint interrupt description structure.
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_EndpointInit
+*
 *******************************************************************************/
 void Cy_IPC_Pipe_EndpointInit(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t cbArray,
                               uint32_t cbCnt, uint32_t epConfig, cy_stc_sysint_t const *epInterrupt)
@@ -203,10 +212,14 @@ void Cy_IPC_Pipe_EndpointInit(uint32_t epAddr, cy_ipc_pipe_callback_array_ptr_t 
 * \param callBackPtr
 * Pointer to the Release callback function.
 *
-*  \return
+* \return
 *    CY_IPC_PIPE_SUCCESS:          Message was sent to the other end of the pipe
 *    CY_IPC_PIPE_ERROR_BAD_HANDLE: The handle provided for the pipe was not valid
 *    CY_IPC_PIPE_ERROR_SEND_BUSY:  The pipe is already busy sending a message
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_myReleaseCallback
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_SendMessage
 *
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_IPC_Pipe_SendMessage(uint32_t toAddr, uint32_t fromAddr,
@@ -299,20 +312,25 @@ cy_en_ipc_pipe_status_t Cy_IPC_Pipe_SendMessage(uint32_t toAddr, uint32_t fromAd
 *
 * \param callBackPtr
 * Pointer to the callback function called when the endpoint has received a message.
+* If this parameters is NULL current callback will be unregistered.
 *
 * \param clientId
 * The index in the callback array (Client ID) where the function pointer is saved.
 *
-*  \return
+* \return
 *    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
 *    CY_IPC_PIPE_ERROR_BAD_CLIENT:  Client ID out of range, callback not registered.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_myNotifyCallback
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_RegisterCallback
+*
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_IPC_Pipe_RegisterCallback(uint32_t epAddr, cy_ipc_pipe_callback_ptr_t callBackPtr,  uint32_t clientId)
 {
     cy_en_ipc_pipe_status_t returnStatus;
     cy_stc_ipc_pipe_ep_t * thisEp;
 
-    CY_ASSERT_L1(NULL != callBackPtr);
     CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
 
     thisEp = &cy_ipc_pipe_epArray[epAddr];
@@ -346,15 +364,20 @@ cy_en_ipc_pipe_status_t Cy_IPC_Pipe_RegisterCallback(uint32_t epAddr, cy_ipc_pip
 *
 * \param callBackPtr
 * Pointer to the callback executed when the endpoint has received a message.
+* If this parameters is NULL current callback will be unregistered.
 *
-*  \return
+* \return
 *    None
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_myDefaultReleaseCallback
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_RegisterCallbackRel
+*
 *******************************************************************************/
 void Cy_IPC_Pipe_RegisterCallbackRel(uint32_t epAddr, cy_ipc_pipe_relcallback_ptr_t callBackPtr)
 {
     cy_stc_ipc_pipe_ep_t * endpoint;
 
-    CY_ASSERT_L1(NULL != callBackPtr);
     CY_ASSERT_L2(CY_IPC_MAX_ENDPOINTS > epAddr);
 
     endpoint = &cy_ipc_pipe_epArray[epAddr];
@@ -373,8 +396,12 @@ void Cy_IPC_Pipe_RegisterCallbackRel(uint32_t epAddr, cy_ipc_pipe_relcallback_pt
 * \param endpoint
 * Pointer to endpoint structure.
 *
-*  \return
+* \return
 *  None
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_ExecCallback
+*
 *******************************************************************************/
 void Cy_IPC_Pipe_ExecCallback(cy_stc_ipc_pipe_ep_t * endpoint)
 {
@@ -464,8 +491,11 @@ void Cy_IPC_Pipe_ExecCallback(cy_stc_ipc_pipe_ep_t * endpoint)
 * This parameter is the address (or index in the array of endpoint structures)
 * that designates the endpoint to pause.
 *
-*  \return
+* \return
 *    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_EndpointPauseResume
 *
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_IPC_Pipe_EndpointPause(uint32_t epAddr)
@@ -492,8 +522,11 @@ cy_en_ipc_pipe_status_t Cy_IPC_Pipe_EndpointPause(uint32_t epAddr)
 * This parameter is the address (or index in the array of endpoint structures)
 * that designates the endpoint to resume.
 *
-*  \return
+* \return
 *    CY_IPC_PIPE_SUCCESS:           Callback registered successfully
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Pipe_EndpointPauseResume
 *
 *******************************************************************************/
 cy_en_ipc_pipe_status_t Cy_IPC_Pipe_EndpointResume(uint32_t epAddr)

@@ -150,7 +150,7 @@ typedef struct
     /** Cycling Power Service GATT DB handles structure */
     const cy_stc_ble_cpss_t *cpss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_cps_config_t;
 

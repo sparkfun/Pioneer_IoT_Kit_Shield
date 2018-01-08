@@ -3,8 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the Tx Power Service of the BLE
-*  Component.
+*  This file contains the source code for the Tx Power Service.
 *
 ********************************************************************************
 * \copyright
@@ -128,7 +127,7 @@ cy_en_ble_api_result_t Cy_BLE_TPS_Init(cy_stc_ble_tps_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                     events from the BLE Component. The definition of
+*                     events from the BLE Middleware. The definition of
 *                     cy_ble_callback_t for TPS is: \n
 *                     typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                       void *eventParam)
@@ -172,7 +171,7 @@ cy_en_ble_api_result_t Cy_BLE_TPS_RegisterAttrCallback(cy_ble_callback_t callbac
 #ifdef CY_BLE_TPS_SERVER
 
 /******************************************************************************
-* Function Name: cy_ble_TpssWriteEventHandler
+* Function Name: Cy_BLE_TPSS_WriteEventHandler
 ***************************************************************************//**
 *
 *  Handles the Write Request Event for Tx Power service.
@@ -181,7 +180,7 @@ cy_en_ble_api_result_t Cy_BLE_TPS_RegisterAttrCallback(cy_ble_callback_t callbac
 *                                               with a write request for TPS.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *   * CY_BLE_GATT_ERR_NONE - Write is successful.
 *   * CY_BLE_GATT_ERR_REQUEST_NOT_SUPPORTED - Request is not supported.
 *   * CY_BLE_GATT_ERR_INVALID_HANDLE - 'handleValuePair.attrHandle' is not valid.
@@ -245,7 +244,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_TPSS_WriteEventHandler(const cy_stc_ble_
 
 
 /******************************************************************************
-* Function Name: cy_ble_TpssSetCharacteristicValue
+* Function Name: Cy_BLE_TPSS_SetCharacteristicValue
 ***************************************************************************//**
 *
 *  Sets characteristic value of the Tx Power Service, which is identified by
@@ -257,7 +256,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_TPSS_WriteEventHandler(const cy_stc_ble_
 *               stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The characteristic value was read successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of input parameters failed.
 *
@@ -306,7 +305,7 @@ cy_en_ble_api_result_t Cy_BLE_TPSS_SetCharacteristicValue(cy_en_ble_tps_char_ind
 *               value data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - Characteristic value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *
@@ -354,7 +353,7 @@ cy_en_ble_api_result_t Cy_BLE_TPSS_GetCharacteristicValue(cy_en_ble_tps_char_ind
 *               data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - Characteristic Descriptor value was read successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of input parameters failed
 *   * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
@@ -418,8 +417,8 @@ cy_en_ble_api_result_t Cy_BLE_TPSS_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 *               sent to the client's device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of input parameter failed.
 *   * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this.
 *                                      characteristic.
@@ -746,7 +745,7 @@ static void Cy_BLE_TPSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *  \param charIndex: The index of the characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - Request was sent successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the server is not established
@@ -756,22 +755,22 @@ static void Cy_BLE_TPSC_ErrorResponseEventHandler(const cy_stc_ble_gatt_err_para
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the TPS service-specific callback is registered
 *      (with Cy_BLE_TPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_TPSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_TPSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_tps_char_value_t.
 *  .
 *   Otherwise (if the TPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -819,7 +818,7 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *  Sets a characteristic descriptor value of the Tx Power Service.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_TPSS_NOTIFICATION_ENABLED
 *  * CY_BLE_EVT_TPSS_NOTIFICATION_DISABLED
@@ -832,7 +831,7 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *              should be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - The request was sent successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
 *   * CY_BLE_ERROR_INVALID_STATE - Connection with the server is not established.
@@ -842,19 +841,19 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_GetCharacteristicValue(cy_stc_ble_conn_handle
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the TPS service-specific callback is registered
 *      (with Cy_BLE_TPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_TPSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_TPSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, descr index etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_tps_descr_value_t.
 *  .
 *   Otherwise (if the TPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -919,10 +918,10 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *  \param descrIndex: The index of the characteristic descriptor.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *   * CY_BLE_SUCCESS - Request was sent successfully.
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed.
-*   * CY_BLE_ERROR_INVALID_STATE - The component in in invalid state for current
+*   * CY_BLE_ERROR_INVALID_STATE - The BLE Middleware is in invalid state for current
 *                                 operation.
 *   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
 *   * CY_BLE_ERROR_INVALID_OPERATION - Cannot process request to send PDU due to
@@ -931,22 +930,22 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_SetCharacteristicDescriptor(cy_stc_ble_conn_h
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the TPS service-specific callback is registered
 *      (with Cy_BLE_TPS_RegisterAttrCallback):
-*  * CY_BLE_EVT_TPSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_TPSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with event parameter structure
 *                                of type cy_stc_ble_tps_descr_value_t.
 *  .
 *  Otherwise (if the TPS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -993,13 +992,13 @@ cy_en_ble_api_result_t Cy_BLE_TPSC_GetCharacteristicDescriptor(cy_stc_ble_conn_h
 * Function Name: Cy_BLE_TPS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Tx Power Service of the BLE.
+*  Handles the events from the BLE Stack for the Tx Power Service of the BLE.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_TPS_EventHandler(uint32_t eventCode,

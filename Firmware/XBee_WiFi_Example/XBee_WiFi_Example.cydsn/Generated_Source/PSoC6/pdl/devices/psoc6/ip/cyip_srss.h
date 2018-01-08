@@ -5,8 +5,8 @@
 * SRSS IP definitions
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright
@@ -54,8 +54,8 @@ typedef struct {
   __IOM uint32_t PWR_HIBERNATE;                 /*!< 0x00000004 HIBERNATE Mode Register */
   __IOM uint32_t PWR_LVD_CTL;                   /*!< 0x00000008 Low Voltage Detector (LVD) Configuration Register */
    __IM uint32_t RESERVED[2];
-  __IOM uint32_t PWR_BUCK_CTL;                  /*!< 0x00000014 SIMO Buck Control Register */
-  __IOM uint32_t PWR_BUCK_CTL2;                 /*!< 0x00000018 SIMO Buck Control Register 2 */
+  __IOM uint32_t PWR_BUCK_CTL;                  /*!< 0x00000014 Buck Control Register */
+  __IOM uint32_t PWR_BUCK_CTL2;                 /*!< 0x00000018 Buck Control Register 2 */
    __IM uint32_t PWR_LVD_STATUS;                /*!< 0x0000001C Low Voltage Detector (LVD) Status Register */
    __IM uint32_t RESERVED1[24];
   __IOM uint32_t PWR_HIB_DATA[16];              /*!< 0x00000080 HIBERNATE Data Register */

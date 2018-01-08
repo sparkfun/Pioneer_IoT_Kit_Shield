@@ -38,9 +38,9 @@ static void DiscardArrayNoCheck(CySCB_Type const *base, uint32_t size);
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
-* If only SPI functions which do not require context will be used pass NULL
+* If only SPI functions that do not require context will be used to pass NULL
 * as pointer to context.
 *
 * \return
@@ -53,7 +53,7 @@ static void DiscardArrayNoCheck(CySCB_Type const *base, uint32_t size);
 cy_en_scb_spi_status_t Cy_SCB_SPI_Init(CySCB_Type *base, cy_stc_scb_spi_config_t const *config, cy_stc_scb_spi_context_t *context)
 {
     /* Input parameters verification */
-    if ((NULL == base) && (NULL == config))
+    if ((NULL == base) || (NULL == config))
     {
         return CY_SCB_SPI_BAD_PARAM;
     }
@@ -156,7 +156,7 @@ cy_en_scb_spi_status_t Cy_SCB_SPI_Init(CySCB_Type *base, cy_stc_scb_spi_config_t
 * Function Name: Cy_SCB_SPI_DeInit
 ****************************************************************************//**
 *
-* De-initializes the SCB block, returns the register values to default.
+* De-initializes the SCB block; returns the register values to default.
 *
 * \param base
 * The pointer to the SPI SCB instance.
@@ -193,9 +193,9 @@ void Cy_SCB_SPI_DeInit(CySCB_Type *base)
 * Function Name: Cy_SCB_SPI_Disable
 ****************************************************************************//**
 *
-* Disables the SCB block, clears context statuses and disables
+* Disables the SCB block, clears context statuses, and disables
 * TX and RX interrupt sources.
-* Note that after the block is disabled the TX and RX FIFOs and
+* Note that after the block is disabled, the TX and RX FIFOs and
 * hardware statuses are cleared. Also, the hardware stops driving the output
 * and ignores the input.
 *
@@ -205,16 +205,16 @@ void Cy_SCB_SPI_DeInit(CySCB_Type *base)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
-* If only SPI functions which do not require context will be used pass NULL
+* If only SPI functions that do not require context will be used to pass NULL
 * as pointer to context.
 *
 * \note
 * Calling this function when the SPI is busy (master preforms data transfer or
 * slave communicates with the master) may cause transfer corruption because the
 * hardware stops driving the outputs and ignores the inputs.
-* It is recommenced to ensure that the SPI is not busy before calling this
+* Ensure that the SPI is not busy before calling this
 * function.
 *
 *******************************************************************************/
@@ -247,25 +247,34 @@ void Cy_SCB_SPI_Disable(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 ****************************************************************************//**
 *
 * This function handles the transition of the SCB SPI into and out of
-* Deep-Sleep mode. It prevents the device from entering Deep-Sleep if the
-* SPI slave or master is actively communicating, or there is any data in the
-* TX or RX FIFOs.
-* The following behavior of the SPI SCB depends on if the SCB block is
+* Deep Sleep mode. It prevents the device from entering Deep Sleep mode
+* if the SPI slave or master is actively communicating, or there is any data 
+* in the TX or RX FIFOs.
+* The following behavior of the SPI SCB depends on whether the SCB block is
 * wakeup-capable or not:
-* * The SCB wakeup-capable: any transfer intended to the slave wakes up the
-*   device from Deep-Sleep mode. The slave responds with 0xFF to the transfer.
-*   If the transfer occurs before the device enters Deep-Sleep mode, the device
-*   will not enter Deep-Sleep mode and incoming data is stored in the RX FIFO,
-*   otherwise incoming data is ignored.
-*   Only the SPI slave can be configured to be a wakeup source from Deep-Sleep
+* * The SCB is <b>wakeup-capable</b>: any transfer intended to the slave wakes up 
+*   the device from Deep Sleep mode. The slave responds with 0xFF to the transfer 
+*   and incoming data is ignored.   
+*   If the transfer occurs before the device enters Deep Sleep mode, the device
+*   will not enter Deep Sleep mode and incoming data is stored in the RX FIFO.
+*   The SCB clock is disabled before entering Deep Sleep and enabled after the 
+*   device exits Deep Sleep mode. The SCB clock must be enabled after exiting 
+*   Deep Sleep mode and after the source of hf_clk[0] gets stable, this includes 
+*   the FLL/PLL. The SysClk callback ensures that hf_clk[0] gets stable and 
+*   it must be called before Cy_SCB_SPI_DeepSleepCallback. The SCB clock 
+*   disabling may lead to corrupted data in the RX FIFO. Clear the RX FIFO 
+*   after this callback is executed. If the transfer occurs before the device 
+*   enters Deep Sleep mode, the device will not enter Deep Sleep mode and 
+*   incoming data will be stored in the RX FIFO. \n
+*   Only the SPI slave can be configured to be a wakeup source from Deep Sleep
 *   mode.
-* * The SCB is not wakeup-capable: the SPI is disabled. It is enabled when the
-*   device failed to enter Deep-Sleep mode or it is awaken from Deep-Sleep mode.
-*   During the SPI is disabled, it stops driving the outputs and ignores the
+* * The SCB is not <b>wakeup-capable</b>: the SPI is disabled. It is enabled when 
+*   the device fails to enter Deep Sleep mode or it is awakened from Deep Sleep 
+*   mode. While the SPI is disabled, it stops driving the outputs and ignores the
 *   inputs. Any incoming data is ignored.
 *
-* This function can be called during execution of \ref Cy_SysPm_DeepSleep,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_DeepSleep.
+* To do it, register this function as a callback before calling
 * \ref Cy_SysPm_DeepSleep : specify \ref CY_SYSPM_DEEPSLEEP as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -275,6 +284,13 @@ void Cy_SCB_SPI_Disable(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 *
 * \return
 * \ref cy_en_syspm_status_t
+*
+* \note
+* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
+* For proper operation, when the SPI slave is configured to be a wakeup source
+* from Deep Sleep mode, this function must be copied and modified by the user.
+* The SPI clock disable code must be inserted in the \ref CY_SYSPM_BEFORE_TRANSITION
+* and clock enable code in the \ref CY_SYSPM_AFTER_TRANSITION mode processing.
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams)
@@ -288,14 +304,14 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
     {
         case CY_SYSPM_CHECK_READY:
         {
-            /* Check if the High-level API is not busy executing the transfer
+            /* Check whether the High-level API is not busy executing the transfer
             * operation.
             */
             if (0UL == (CY_SCB_SPI_TRANSFER_ACTIVE & Cy_SCB_SPI_GetTransferStatus(locBase, locContext)))
             {
                 /* If the SPI bus is not busy, all data elements are transferred
                 * on the bus from the TX FIFO and shifter and the RX FIFOs are
-                * empty - the SPI is ready to enter Deep-Sleep mode.
+                * empty - the SPI is ready to enter Deep Sleep mode.
                 */
                 if (!Cy_SCB_SPI_IsBusBusy(locBase))
                 {
@@ -323,8 +339,8 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
                                 /* The SCB is NOT wakeup-capable: disable the
                                 * SPI. The master and slave stop driving the
                                 * bus until the SPI is enabled. This happens
-                                * when the device failed to enter Deep-Sleep
-                                * mode or it is awaken from Deep-Sleep mode.
+                                * when the device fails to enter Deep Sleep
+                                * mode or it is awakened from Deep Sleep mode.
                                 */
                                 Cy_SCB_SPI_Disable(locBase, locContext);
 
@@ -339,7 +355,7 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore
+            /* The other driver is not ready for Deep Sleep mode. Restore
             * Active mode configuration.
             */
 
@@ -357,7 +373,7 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
         {
             /* This code executes inside the critical section and enabling the
             * active interrupt source makes the interrupt pending in the NVIC.
-            * However, the interrupt processing is delayed until the code exists
+            * However, the interrupt processing is delayed until the code exits
             * the critical section. The pending interrupt force WFI instruction
             * does nothing and the device remains in Active mode.
             */
@@ -365,10 +381,19 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
             if (_FLD2BOOL(SCB_CTRL_EC_AM_MODE, locBase->CTRL))
             {
                 /* The SCB is wakeup-capable: enable the SPI wakeup interrupt
-                * source. If any transaction happened, the wakeup interrupt
-                * becomes pending and prevents entering Deep-Sleep mode.
+                * source. If any transaction happens, the wakeup interrupt
+                * becomes pending and prevents entering Deep Sleep mode.
                 */
                 Cy_SCB_SetSpiInterruptMask(locBase, CY_SCB_I2C_INTR_WAKEUP);
+                
+                /* Disable SCB clock */
+                locBase->I2C_CFG &= (uint32_t) ~CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                            
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper entering Deep Sleep mode the SPI clock must be disabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
+                */
             }
 
             retStatus = CY_SYSPM_SUCCESS;
@@ -379,6 +404,15 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
         {
             if (_FLD2BOOL(SCB_CTRL_EC_AM_MODE, locBase->CTRL))
             {
+                /* Enable SCB clock */
+                locBase->I2C_CFG |= CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper exiting Deep Sleep mode, the SPI clock must be enabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
+                */
+                
                 /* The SCB is wakeup-capable: disable the SPI wakeup interrupt
                 * source
                 */
@@ -407,15 +441,15 @@ cy_en_syspm_status_t Cy_SCB_SPI_DeepSleepCallback(cy_stc_syspm_callback_params_t
 ****************************************************************************//**
 *
 * This function handles the transition of the SCB SPI into Hibernate mode.
-* It prevents the device from entering Hibernate mode if the SPI slave or master
-* is actively communicating, or there is any data in the TX or RX FIFOs.
+* It prevents the device from entering Hibernate mode if the SPI slave or 
+* master is actively communicating, or there is any data in the TX or RX FIFOs.
 * If the SPI is ready to enter Hibernate mode, it is disabled. If the device
-* failed to enter Hibernate mode, the SPI is enabled. During the SPI is
+* failed to enter Hibernate mode, the SPI is enabled. While the SPI is
 * disabled, it stops driving the outputs and ignores the inputs.
 * Any incoming data is ignored.
 *
-* This function can be called during execution of \ref Cy_SysPm_Hibernate,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_Hibernate.
+* To do it, register this function as a callback before calling
 * \ref Cy_SysPm_Hibernate : specify \ref CY_SYSPM_HIBERNATE as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -438,7 +472,7 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
     {
         case CY_SYSPM_CHECK_READY:
         {
-            /* Check if the High-level API is not busy executing the transfer
+            /* Check whether the High-level API is not busy executing the transfer
             * operation.
             */
             if (0UL == (CY_SCB_SPI_TRANSFER_ACTIVE & Cy_SCB_SPI_GetTransferStatus(locBase, locContext)))
@@ -470,7 +504,7 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore Active
+            /* The other driver is not ready for Hibernate mode. Restore Active
             * mode configuration.
             */
 
@@ -516,14 +550,14 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
 * If the data that will be received is not important, pass NULL as rxBuffer.
 * If the data that will be transmitted is not important, pass NULL as txBuffer
 * and then the \ref CY_SCB_SPI_DEFAULT_TX is sent out as each data element.
-* Note that passing NULL as rxBuffer and txBuffer considered invalid case.
+* Note that passing NULL as rxBuffer and txBuffer are considered invalid cases.
 *
 * After the function configures TX and RX interrupt sources, it returns and
 * \ref Cy_SCB_SPI_Interrupt manages further data transfer.
 *
-* * In the master mode, the transfer operation is started after calling this
+* * In the master mode, the transfer operation starts after calling this
 *   function
-* * In the slave mode, the transfer is registered and will be started when
+* * In the slave mode, the transfer registers and will start when
 *   the master request arrives.
 *
 * When the transfer operation is completed (requested number of data elements
@@ -535,12 +569,12 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
 *
 * \param txBuffer
 * The pointer of the buffer with data to transmit.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type that depends on the configured
 * TX data width.
 *
 * \param rxBuffer
 * The pointer to the buffer to store received data.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type that depends on the configured
 * RX data width.
 *
 * \param size
@@ -549,14 +583,14 @@ cy_en_syspm_status_t Cy_SCB_SPI_HibernateCallback(cy_stc_syspm_callback_params_t
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * \ref cy_en_scb_spi_status_t
 *
 * \note
-* * The buffers must not be modified and stay allocated until the end of the
+* * The buffers must not be modified and must stay allocated until the end of the
 *   transfer.
 * * This function overrides all RX and TX FIFO interrupt sources and changes
 *   the RX and TX FIFO level.
@@ -571,7 +605,7 @@ cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer(CySCB_Type *base, void *txBuffer, voi
 
     cy_en_scb_spi_status_t retStatus = CY_SCB_SPI_TRANSFER_BUSY;
 
-    /* Check if there are no active transfer requests */
+    /* Check whether there are no active transfer requests */
     if (0UL == (CY_SCB_SPI_TRANSFER_ACTIVE & context->status))
     {
         uint32_t fifoSize = Cy_SCB_GetFifoSize(base);
@@ -640,20 +674,20 @@ cy_en_scb_spi_status_t Cy_SCB_SPI_Transfer(CySCB_Type *base, void *txBuffer, voi
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
 * In the slave mode and after abort of transfer operation master continue
 * sending data it gets into RX FIFO and TX FIFO is underflow as there is
-* nothing to send. To drop this data, RX FIFO has to be cleared when
-* the transfer is completed. Otherwise, received data will be kept and
+* nothing to send. To drop this data, RX FIFO must be cleared when
+* the transfer is complete. Otherwise, received data will be kept and
 * copied to the buffer when \ref Cy_SCB_SPI_Transfer is called.
 *
 * \sideeffect
 * The transmit FIFO clear operation also clears the shift register, so that
-* the shifter could be cleared in the middle of a data element transfer,
-* corrupting it. The data element corruption means that all bits which has
+* the shifter can be cleared in the middle of a data element transfer,
+* corrupting it. The data element corruption means that all bits that have
 * not been transmitted are transmitted as "ones" on the bus.
 *
 *******************************************************************************/
@@ -695,7 +729,7 @@ void Cy_SCB_SPI_AbortTransfer(CySCB_Type *base, cy_stc_scb_spi_context_t *contex
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -725,7 +759,7 @@ uint32_t Cy_SCB_SPI_GetNumTransfered(CySCB_Type const *base, cy_stc_scb_spi_cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -751,7 +785,7 @@ uint32_t Cy_SCB_SPI_GetTransferStatus(CySCB_Type const *base, cy_stc_scb_spi_con
 *
 * This is the interrupt function for the SCB configured in the SPI mode.
 * This function must be called inside the  user-defined interrupt service
-* routine in order for \ref Cy_SCB_SPI_Transfer to work.
+* routine for \ref Cy_SCB_SPI_Transfer to work.
 *
 * \param base
 * The pointer to the SPI SCB instance.
@@ -759,13 +793,13 @@ uint32_t Cy_SCB_SPI_GetTransferStatus(CySCB_Type const *base, cy_stc_scb_spi_con
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
 void Cy_SCB_SPI_Interrupt(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 {
-    uint32 locXferErr = 0UL;
+     bool locXferErr = false;
 
     /* Wake up on the slave select condition */
     if (0UL != (CY_SCB_SPI_INTR_WAKEUP & Cy_SCB_GetSpiInterruptStatusMasked(base)))
@@ -776,7 +810,7 @@ void Cy_SCB_SPI_Interrupt(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
     /* The slave error condition */
     if (0UL != (CY_SCB_SLAVE_INTR_SPI_BUS_ERROR & Cy_SCB_GetSlaveInterruptStatusMasked(base)))
     {
-        locXferErr       = CY_SCB_SPI_TRANSFER_ERR;
+        locXferErr       = true;
         context->status |= CY_SCB_SPI_SLAVE_TRANSFER_ERR;
 
         Cy_SCB_ClearSlaveInterrupt(base, CY_SCB_SLAVE_INTR_SPI_BUS_ERROR);
@@ -785,7 +819,7 @@ void Cy_SCB_SPI_Interrupt(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
     /* The RX overflow error condition */
     if (0UL != (CY_SCB_RX_INTR_OVERFLOW & Cy_SCB_GetRxInterruptStatusMasked(base)))
     {
-        locXferErr       = CY_SCB_SPI_TRANSFER_ERR;
+        locXferErr       = true;
         context->status |= CY_SCB_SPI_TRANSFER_OVERFLOW;
 
         Cy_SCB_ClearRxInterrupt(base, CY_SCB_RX_INTR_OVERFLOW);
@@ -794,18 +828,18 @@ void Cy_SCB_SPI_Interrupt(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
     /* The TX underflow error condition or slave complete data transfer */
     if (0UL != (CY_SCB_TX_INTR_UNDERFLOW & Cy_SCB_GetTxInterruptStatusMasked(base)))
     {
-        locXferErr       = CY_SCB_SPI_TRANSFER_ERR;
+        locXferErr       = true;
         context->status |= CY_SCB_SPI_TRANSFER_UNDERFLOW;
 
         Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
     }
 
     /* Report an error, use a callback */
-    if (0UL != locXferErr)
+    if (locXferErr)
     {
         if (NULL != context->cbEvents)
         {
-            context->cbEvents(CY_SCB_SPI_TRANSFER_ERR);
+            context->cbEvents(CY_SCB_SPI_TRANSFER_ERR_EVENT);
         }
     }
 
@@ -854,7 +888,7 @@ void Cy_SCB_SPI_Interrupt(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -919,7 +953,7 @@ static void HandleReceive(CySCB_Type *base, cy_stc_scb_spi_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_spi_context_t allocated
 * by the user. The structure is used during the SPI operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/

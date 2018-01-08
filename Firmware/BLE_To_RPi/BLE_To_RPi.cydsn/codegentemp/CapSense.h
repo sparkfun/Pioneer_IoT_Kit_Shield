@@ -1,11 +1,11 @@
 /***************************************************************************//**
 * \file CapSense.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
-*   This file includes all header files of the CapSense component modules.
+*   This file includes all header files of the CapSense Component modules.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,9 +36,9 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_H)
+#if !defined(CY_SENSE_CapSense_H)
 
-#define CY_CAPSENSE_CapSense_H
+#define CY_SENSE_CapSense_H
 
 #include "CapSense_Configuration.h"
 #include "CapSense_Control.h"
@@ -54,7 +54,7 @@
 #include "CapSense_Structure.h"
 #include "CapSense_Tuner.h"
 
-#endif /* End CY_CAPSENSE_CapSense_H */
+#endif /* End CY_SENSE_CapSense_H */
 
 
 /* [] END OF FILE */

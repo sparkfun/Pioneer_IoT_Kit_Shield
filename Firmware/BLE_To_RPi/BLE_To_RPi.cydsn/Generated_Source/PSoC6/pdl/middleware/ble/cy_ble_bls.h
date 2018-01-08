@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Blood Pressure Profile of the BLE Component.
+*  the Blood Pressure Profile.
 *
 ********************************************************************************
 * \copyright
@@ -119,7 +119,7 @@ typedef struct
     /** Blood Pressure Service GATT DB handles structure */
     const cy_stc_ble_blss_t *blss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_bls_config_t;
 

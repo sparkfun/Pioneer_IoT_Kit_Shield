@@ -22,7 +22,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 #include "cy_ble_stack_gap.h"
 
@@ -225,9 +225,9 @@ typedef struct
 *  occur on invoking this function.
 *
 *  * CY_BLE_EVT_GAP_DEVICE_CONNECTED - If the device connects to a GAP Central and
-*    Link Layer Privacy is disabled in component customizer.
+*    Link Layer Privacy is disabled in BLE Middleware customizer.
 *  * CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE - If the device connects to a GAP Central and
-*    Link Layer Privacy is enabled in component customizer.
+*    Link Layer Privacy is enabled in BLE Middleware customizer.
 *
 *  * CY_BLE_EVT_TIMEOUT - If no device in the GAP Central mode connects to this
 *     device within the specified timeout limit. This event can occur if
@@ -251,7 +251,7 @@ typedef struct
 *   CY_BLE_SUCCESS                           | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER           | On specifying NULL for 'param' or if any of the elements of this structure are invalid.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPP_EnterDiscoveryMode
@@ -285,7 +285,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPP_EnterDiscoveryMode
 *   CY_BLE_SUCCESS                           | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER           | On specifying NULL for 'param' or if any of the elements of this structure are invalid.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPP_UpdateAdvScanData
@@ -305,7 +305,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPP_UpdateAdvScanData
 *  CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP event. It is expected that the
 *  application layer keeps track of the function call performed before occurrence
 *  of this event, as this event can occur on making a call to the
-*  Cy_BLE_GAPP_EnterDiscoveryMode () function as well.
+*  Cy_BLE_GAPP_EnterDiscoveryMode() function as well.
 *
 * \return
 *  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
@@ -315,7 +315,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPP_UpdateAdvScanData
 *   ------------                             | -----------
 *   CY_BLE_SUCCESS                           | On successful operation.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPP_ExitDiscoveryMode

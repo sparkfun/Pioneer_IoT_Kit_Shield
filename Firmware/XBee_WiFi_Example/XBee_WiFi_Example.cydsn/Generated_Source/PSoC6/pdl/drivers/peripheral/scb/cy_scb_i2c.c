@@ -55,7 +55,7 @@ static uint32_t WaitOneUnit(uint32_t *timeout);
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -68,7 +68,7 @@ static uint32_t WaitOneUnit(uint32_t *timeout);
 cy_en_scb_i2c_status_t Cy_SCB_I2C_Init(CySCB_Type *base, cy_stc_scb_i2c_config_t const *config, cy_stc_scb_i2c_context_t *context)
 {
     /* Input parameters verification */
-    if ((NULL == base) && (NULL == config) && (NULL == context))
+    if ((NULL == base) || (NULL == config) || (NULL == context))
     {
         return CY_SCB_I2C_BAD_PARAM;
     }
@@ -160,7 +160,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_Init(CySCB_Type *base, cy_stc_scb_i2c_config_t
 *  Function Name: Cy_SCB_I2C_DeInit
 ****************************************************************************//**
 *
-* De-initializes the SCB block, returns register values to default.
+* De-initializes the SCB block and returns register values to default.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -207,14 +207,14 @@ void Cy_SCB_I2C_DeInit(CySCB_Type *base)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
 * Calling this function when I2C is busy (master preforms transaction or slave
 * was address and communicates with master) may cause transaction corruption
 * because the hardware stops driving the outputs and ignores the inputs.
-* It is recommenced to ensure that I2C is not busy before calling this function.
+* Ensure that I2C is not busy before calling this function.
 *
 *******************************************************************************/
 void Cy_SCB_I2C_Disable(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
@@ -233,23 +233,23 @@ void Cy_SCB_I2C_Disable(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 ****************************************************************************//**
 *
 * This function handles the transition of the I2C SCB into and out of
-* Deep-Sleep mode. It prevents the device from entering Deep-Sleep mode if
-* the I2C slave or master is actively communicating.
-* The following behavior of the I2C SCB depends on if the SCB block is
+* Deep Sleep mode. It prevents the device from entering Deep Sleep 
+* mode if the I2C slave or master is actively communicating.
+* The following behavior of the I2C SCB depends on whether the SCB block is
 * wakeup-capable or not:
-* * The SCB wakeup-capable: on the incoming I2C slave address, the slave
+* * The SCB <b>wakeup-capable</b>: on the incoming I2C slave address, the slave
 *   receives address and stretches the clock until the device is awoken from
-*   Deep-Sleep mode. If the slave address occurs before the device enters
-*   Deep-Sleep mode, the device will not enter Deep-Sleep mode.
-*   Only the I2C slave can be configured to be a wakeup source from Deep-Sleep
+*   Deep Sleep mode. If the slave address occurs before the device enters
+*   Deep Sleep mode, the device will not enter Deep Sleep mode.
+*   Only the I2C slave can be configured to be a wakeup source from Deep Sleep
 *   mode.
-* * The SCB is not wakeup-capable: the I2C is disabled. It is enabled when the
-*   device failed to enter Deep-Sleep mode or it is awaken from Deep-Sleep mode.
-*   During the I2C is disabled, it does stops driving the outputs and ignores
-*   the inputs. The slave NACKs all incoming addresses.
+* * The SCB is <b>not wakeup-capable</b>: the I2C is disabled. It is enabled when 
+*   the device failed to enter Deep Sleep mode or when it is awoken from Deep 
+*   Sleep mode. While the I2C is disabled, it does stops driving the outputs and 
+*   ignores the inputs. The slave NACKs all incoming addresses.
 *
-* This function can be called during execution of \ref Cy_SysPm_DeepSleep,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_DeepSleep.
+* To do it, register this function as a callback before calling
 * \ref Cy_SysPm_DeepSleep : specify \ref CY_SYSPM_DEEPSLEEP as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -260,11 +260,12 @@ void Cy_SCB_I2C_Disable(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \return
 * \ref cy_en_syspm_status_t
 *
-* \warning
+* \note
+* Only applicable for <b>rev-08 of the CY8CKIT-062-BLE</b>.
 * For proper operation, when the I2C slave is configured to be a wakeup source
-* from Deep-Sleep mode, this function must be copied and modified by the user.
+* from Deep Sleep mode, this function must be copied and modified by the user.
 * The I2C clock disable code must be inserted in the \ref CY_SYSPM_BEFORE_TRANSITION
-* and enable code in the \ref CY_SYSPM_AFTER_TRANSITION mode processing.
+* and clock enable code in the \ref CY_SYSPM_AFTER_TRANSITION mode processing.
 *
 *******************************************************************************/
 cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t *callbackParams)
@@ -281,7 +282,7 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
             /* Disable the slave interrupt sources to protect the state */
             Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
 
-            /* If the I2C is in the IDLE state, it is ready for Deep-Sleep mode
+            /* If the I2C is in the IDLE state, it is ready for Deep Sleep mode
             * (either the master or the slave is not busy),
             * otherwise return fail and restore the slave interrupt sources.
             */
@@ -302,8 +303,8 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
                     /* The SCB is NOT wakeup-capable: disable the I2C. The slave
                     * stops responding to the master and the master stops
                     * driving the bus until the I2C is enabled. This happens
-                    * when the device failed to enter into Deep-Sleep mode or it
-                    * is awaken from Deep-Sleep mode.
+                    * when the device failed to enter into Deep Sleep mode or it
+                    * is awaken from Deep Sleep mode.
                     */
                     Cy_SCB_I2C_Disable(locBase, locContext);
                     Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_I2C_SLAVE_INTR);
@@ -321,7 +322,7 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore
+            /* The other driver is not ready for Deep Sleep mode. Restore
             * Active mode configuration.
             */
 
@@ -342,9 +343,9 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_BEFORE_TRANSITION:
         {
-            /* This code executes inside the critical section and enabling the
+            /* This code executes inside the critical section. Enabling the
             * active interrupt source makes the interrupt pending in the NVIC.
-            * However, the interrupt processing is delayed until the code exists
+            * However, the interrupt processing is delayed until the code exits
             * the critical section. The pending interrupt force WFI instruction
             * does nothing and the device remains in Active mode.
             */
@@ -353,16 +354,19 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
             {
                 /* The SCB is wakeup-capable: enable the I2C wakeup interrupt
                 * source. If any transaction was paused, the I2C interrupt
-                * becomes pending and prevents entering Deep-Sleep mode.
+                * becomes pending and prevents entering Deep Sleep mode.
                 * The transaction continues as soon as the global interrupts
                 * are enabled.
                 */
                 Cy_SCB_SetI2CInterruptMask(locBase, CY_SCB_I2C_INTR_WAKEUP);
 
-                /* IMPORTANT (insert code below): for proper entering Deep
-                * Sleep the I2C clock must be disabled. This code must be
-                * inserted by the user because the driver does not have access
-                * to the clock.
+                /* Disable SCB clock */
+                locBase->I2C_CFG &= (uint32_t) ~CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                            
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper entering Deep Sleep mode the I2C clock must be disabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
                 */
             }
 
@@ -374,16 +378,19 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
         {
             if (_FLD2BOOL(SCB_CTRL_EC_AM_MODE, locBase->CTRL))
             {
-                /* IMPORTANT (insert code below): for proper exiting Deep
-                * Sleep, the I2C clock must be enabled. This code must be
-                * inserted by the user because the driver does not have access
-                * to the clock.
+                /* Enable SCB clock */
+                locBase->I2C_CFG |= CY_SCB_I2C_CFG_CLK_ENABLE_Msk;
+                
+                /* IMPORTANT (replace line above for the CY8CKIT-062 rev-08): 
+                * for proper exiting Deep Sleep, the I2C clock must be enabled. 
+                * This code must be inserted by the user because the driver 
+                * does not have access to the clock.
                 */
 
                 /* The SCB is wakeup-capable: disable the I2C wakeup interrupt
                 * source and restore slave interrupt sources.
                 */
-                Cy_SCB_SetI2CInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
+                Cy_SCB_SetI2CInterruptMask  (locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
                 Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_I2C_SLAVE_INTR);
             }
             else
@@ -408,16 +415,16 @@ cy_en_syspm_status_t Cy_SCB_I2C_DeepSleepCallback(cy_stc_syspm_callback_params_t
 * Function Name: Cy_SCB_I2C_HibernateCallback
 ****************************************************************************//**
 *
-* This function handles the transition of the I2C SCB block into Hibernate mode.
-* It prevents the device from entering Hibernate mode if the I2C slave or
+* This function handles the transition of the I2C SCB block into Hibernate 
+* mode. It prevents the device from entering Hibernate mode if the I2C slave or 
 * master is actively communicating.
 * If the I2C is ready to enter Hibernate mode, it is disabled. If the device failed
-* to enter Hibernate mode the I2C is enabled. After the I2C is disabled, it stops
+* to enter Hibernate mode, the I2C is enabled. After the I2C is disabled, it stops
 * driving the outputs and ignores the inputs. The slave NACKs all incoming
 * addresses.
 *
-* This function can be called during execution of \ref Cy_SysPm_Hibernate,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_Hibernate.
+* To do it, register this function as a callback before calling
 * \ref Cy_SysPm_Hibernate : specify \ref CY_SYSPM_HIBERNATE as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -444,8 +451,8 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
             Cy_SCB_SetSlaveInterruptMask(locBase, CY_SCB_CLEAR_ALL_INTR_SRC);
 
             /* If the I2C is in the IDLE state, it is ready for Hibernate mode
-            * (either the master or the slave is not busy),
-            * otherwise, return fail and restore the slave interrupt sources.
+            * (either the master or the slave is not busy).
+            * Otherwise, return fail and restore the slave interrupt sources.
             */
             if (CY_SCB_I2C_IDLE == locContext->state)
             {
@@ -465,7 +472,7 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore the
+            /* The other driver is not ready for Hibernate mode. Restore the
             * Active mode configuration.
             */
 
@@ -512,11 +519,11 @@ cy_en_syspm_status_t Cy_SCB_I2C_HibernateCallback(cy_stc_syspm_callback_params_t
 *
 * \note
 * This function does not change the values of the clock divider connected
-* to the SCB, it only changes the SCB clock oversample registers. If this
+* to the SCB, it changes only the SCB clock oversample registers. If this
 * function is not able to achieve the desired data rate, then the clock
-* divider has to be adjusted. Call this function only while the SCB is
+* divider must be adjusted. Call this function only while the SCB is
 * disabled. For the slave, this function only checks that the attached clock is
-* fast enough to meet the desired data rate, it does not change any registers.
+* fast enough to meet the desired data rate. It does not change any registers.
 *
 *******************************************************************************/
 uint32_t Cy_SCB_I2C_SetDataRate(CySCB_Type *base, uint32_t dataRateHz, uint32_t scbClockHz)
@@ -543,11 +550,11 @@ uint32_t Cy_SCB_I2C_SetDataRate(CySCB_Type *base, uint32_t dataRateHz, uint32_t 
             uint32_t lowPhase;
             uint32_t highPhase;
 
-            /* Convert scb clock and data rate in kHz */
+            /* Convert SCB clock and data rate in kHz */
             uint32_t scbClockKHz = scbClockHz / 1000UL;
             uint32_t dataRateKHz = dataRateHz / 1000UL;
 
-            /* Get period of the scb clock in ns */
+            /* Get period of the SCB clock in ns */
             uint32_t period = 1000000000UL / scbClockHz;
 
             /* Get duration of SCL low and high for the selected data rate */
@@ -567,14 +574,14 @@ uint32_t Cy_SCB_I2C_SetDataRate(CySCB_Type *base, uint32_t dataRateHz, uint32_t 
                 sclHigh = CY_SCB_I2C_MASTER_FSTP_SCL_HIGH;
             }
 
-            /* Get low phase minimum value in scb clocks */
+            /* Get low phase minimum value in SCB clocks */
             lowPhase = sclLow / period;
             while (((period * lowPhase) < sclLow) && (lowPhase < CY_SCB_I2C_LOW_PHASE_MAX))
             {
                 ++lowPhase;
             }
 
-            /* Get high phase minimum value in scb clocks */
+            /* Get high phase minimum value in SCB clocks */
             highPhase = sclHigh / period;
             while (((period * highPhase) < sclHigh) && (highPhase < CY_SCB_I2C_HIGH_PHASE_MAX))
             {
@@ -719,7 +726,7 @@ uint32_t Cy_SCB_I2C_GetDataRate(CySCB_Type const *base, uint32_t scbClockHz)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -740,13 +747,13 @@ uint32_t Cy_SCB_I2C_SlaveGetStatus(CySCB_Type const *base, cy_stc_scb_i2c_contex
 ****************************************************************************//**
 *
 * Configures the buffer pointer and the read buffer size. This is the buffer
-* that the master reads data from. After this function is called, data
+* from which the master reads data. After this function is called, data
 * transfer from the read buffer to the master is handled by
 * \ref Cy_SCB_I2C_Interrupt.
 *
-* When Read transaction is completed (master generated Stop, ReStart or
+* When the Read transaction is completed (master generated Stop, ReStart or
 * error occurred), the \ref CY_SCB_I2C_SLAVE_RD_BUSY status is cleared and
-* the \ref CY_SCB_I2C_SLAVE_RD_CMPLT is set, also
+* the \ref CY_SCB_I2C_SLAVE_RD_CMPLT is set. Also
 * the \ref CY_SCB_I2C_SLAVE_RD_CMPLT_EVENT event is generated.
 *
 * \param base
@@ -761,7 +768,7 @@ uint32_t Cy_SCB_I2C_SlaveGetStatus(CySCB_Type const *base, cy_stc_scb_i2c_contex
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
@@ -806,14 +813,14 @@ void Cy_SCB_I2C_SlaveConfigReadBuf(CySCB_Type const *base, uint8_t *buffer, uint
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \sideeffect
 * If the TX FIFO is used, this function clears it.
 * The TX FIFO clear operation also clears the shift register, thus
 * the shifter can be cleared in the middle of a data element transfer,
-* corrupting it. The data element corruption means that all bits which has
+* corrupting it. The data element corruption means that all bits that have
 * not been transmitted are transmitted as "ones" on the bus.
 *
 *******************************************************************************/
@@ -853,15 +860,15 @@ void Cy_SCB_I2C_SlaveAbortRead(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * The number of bytes read by the master.
 *
 * \note
-* * This function returns an invalid value if read transaction was
-*   aborted or any of listed events occurred during the transaction:
+* * This function returns an invalid value if a read transaction was
+*   aborted or any listed event occurs during the transaction:
 *   \ref CY_SCB_I2C_SLAVE_ARB_LOST, \ref CY_SCB_I2C_SLAVE_BUS_ERR.
 * * This number is updated only when a transaction completes, either through
 *   an error or successfully.
@@ -888,7 +895,7 @@ uint32_t Cy_SCB_I2C_SlaveGetReadTransferCount(CySCB_Type const *base, cy_stc_scb
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -937,20 +944,20 @@ uint32_t Cy_SCB_I2C_SlaveClearReadStatus(CySCB_Type const *base, cy_stc_scb_i2c_
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
-* * The write buffer must not be modified and stay allocated until it has been
+* * The write buffer must not be modified and must stay allocated until it has been
 *   written by the master.
-* * If this function has not been called and the master tries to write data
-*   the 1st byte is NAKed and discarded.
-* * If the master writes more bytes than slave can stores in the write buffer
-*   the \ref CY_SCB_I2C_SLAVE_WR_OVRFL status is set and slave will NACK last
+* * If this function has not been called and the master tries to write data,
+*   the first byte is NAKed and discarded.
+* * If the master writes more bytes than the slave can store in the write buffer,
+*   the \ref CY_SCB_I2C_SLAVE_WR_OVRFL status is set and the slave will NACK last
 *   byte, unless the RX FIFO is used. Then the slave will NAK only after
 *   RX FIFO becomes full.
-* * If the RX FIFO is used the minimum write buffer size is automatically
-*   the size of the RX FIFO. If write buffer is less than RX FIFO size extra
+* * If the RX FIFO is used, the minimum write buffer size is automatically
+*   the size of the RX FIFO. If a write buffer is less than the RX FIFO size, extra
 *   bytes are ACKed and stored into RX FIFO but ignored by firmware.
 *
 *******************************************************************************/
@@ -973,7 +980,7 @@ void Cy_SCB_I2C_SlaveConfigWriteBuf(CySCB_Type const *base, uint8_t *buffer, uin
 ****************************************************************************//**
 *
 * Aborts the configured slave write buffer to be written by the master.
-* If master writes and "abort operation" is requested the next incoming byte will
+* If master writes and "abort operation" are requested, the next incoming byte will
 * be NAKed.
 *
 * \param base
@@ -982,12 +989,12 @@ void Cy_SCB_I2C_SlaveConfigWriteBuf(CySCB_Type const *base, uint8_t *buffer, uin
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
-* If the RX FIFO is used the NAK will not be sent until RX FIFO
-* becomes full however bytes accepted after abort request are ignored.
+* If the RX FIFO is used, the NAK will not be sent until RX FIFO
+* becomes full, however bytes accepted after an abort request are ignored.
 *
 *******************************************************************************/
 void Cy_SCB_I2C_SlaveAbortWrite(CySCB_Type *base,  cy_stc_scb_i2c_context_t *context)
@@ -1029,17 +1036,17 @@ void Cy_SCB_I2C_SlaveAbortWrite(CySCB_Type *base,  cy_stc_scb_i2c_context_t *con
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * Number of bytes written by the master.
 *
 * \note
-* * This function returns an invalid value if write transaction was
-*   aborted or any of listed events occurred during the transaction:
+* * This function returns an invalid value if write transaction is
+*   aborted or any listed event occurs during the transaction:
 *   \ref CY_SCB_I2C_SLAVE_ARB_LOST, \ref CY_SCB_I2C_SLAVE_BUS_ERR.
-* * This number is only updated when the transaction completes, either through
+* * This number is updated only when the transaction completes, either through
 *   an error or successfully.
 *
 *******************************************************************************/
@@ -1056,7 +1063,7 @@ uint32_t Cy_SCB_I2C_SlaveGetWriteTransferCount(CySCB_Type const *base, cy_stc_sc
 * Function Name: Cy_SCB_I2C_SlaveClearWriteStatus
 ****************************************************************************//**
 *
-* Clears the write status flags and  error conditions flags returns and their
+* Clears the write status flags and error condition flags and returns their
 * values.
 *
 * \param base
@@ -1065,7 +1072,7 @@ uint32_t Cy_SCB_I2C_SlaveGetWriteTransferCount(CySCB_Type const *base, cy_stc_sc
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1106,7 +1113,7 @@ uint32_t Cy_SCB_I2C_SlaveClearWriteStatus(CySCB_Type const *base, cy_stc_scb_i2c
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1153,15 +1160,28 @@ uint32_t Cy_SCB_I2C_MasterGetStatus(CySCB_Type const *base, cy_stc_scb_i2c_conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * \ref cy_en_scb_i2c_status_t
 *
 * \note
-* The buffer must not be modified and stay allocated until read operation
-* completion.
+* * The buffer must not be modified and must stay allocated until read operation
+*   completion.
+*
+* * \ref Cy_SCB_I2C_MasterRead requests the SCB hardware to generate a Start 
+*   Condition. The hardware will not generate the Start while the I2C bus is busy. 
+*   The SCB hardware sets the busy status after the Start detection, and clears 
+*   it on the Stop detection. Noise caused by the ESD or other events may cause 
+*   an erroneous Start condition on the bus. Then, the master will never generate 
+*   a Start condition because the hardware assumes the bus is busy. If this occurs, 
+*   the \ref Cy_SCB_I2C_MasterGetStatus returns \ref CY_SCB_I2C_MASTER_BUSY 
+*   status and the transaction will never finish. The option is to implement a 
+*   timeout to detect the transfer completion. If the transfer never completes, 
+*   the SCB needs a reset by calling the \ref Cy_SCB_I2C_Disable and 
+*   \ref Cy_SCB_I2C_Enable functions. The \ref Cy_SCB_I2C_MasterAbortRead 
+*   function will not work, the block must be reset.
 *
 *******************************************************************************/
 cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterRead(CySCB_Type *base,
@@ -1260,7 +1280,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterRead(CySCB_Type *base,
 *
 * This function requests master to abort read operation by NAKing the next byte
 * and generating a Stop condition. The function does not wait until these
-* actions are completed therefore next read operation can be initiated only
+* actions are completed. Therefore the next read operation can be initiated only
 * after the \ref CY_SCB_I2C_MASTER_BUSY is cleared.
 *
 * \param base
@@ -1269,7 +1289,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterRead(CySCB_Type *base,
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 ******************************************************************************/
@@ -1358,15 +1378,28 @@ void Cy_SCB_I2C_MasterAbortRead(CySCB_Type *base, cy_stc_scb_i2c_context_t *cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * \ref cy_en_scb_i2c_status_t
 *
 * \note
-* The buffer must not be modified and stay allocated until data has been
-* copied into TX FIFO.
+* * The buffer must not be modified and must stay allocated until data has been
+*   copied into TX FIFO.
+*
+* * \ref Cy_SCB_I2C_MasterWrite requests the SCB hardware to generate a Start 
+*   Condition. The hardware will not generate the Start while the I2C bus is busy. 
+*   The SCB hardware sets the busy status after the Start detection, and clears 
+*   it on the Stop detection. Noise caused by the ESD or other events may cause 
+*   an erroneous Start condition on the bus. Then, the master will never generate 
+*   a Start condition because the hardware assumes the bus is busy. If this occurs, 
+*   the \ref Cy_SCB_I2C_MasterGetStatus returns \ref CY_SCB_I2C_MASTER_BUSY 
+*   status and the transaction will never finish. The option is to implement a 
+*   timeout to detect the transfer completion. If the transfer never completes, 
+*   the SCB needs a reset by calling the \ref Cy_SCB_I2C_Disable and 
+*   \ref Cy_SCB_I2C_Enable functions. The \ref Cy_SCB_I2C_MasterAbortWrite 
+*   function will not work, the block must be reset.
 *
 *******************************************************************************/
 cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWrite(CySCB_Type *base,
@@ -1445,9 +1478,9 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWrite(CySCB_Type *base,
 * Function Name: Cy_SCB_I2C_MasterAbortWrite
 ****************************************************************************//**
 *
-* This function requests master to abort write operation by generating Stop
-* condition. The function does not wait until this action is completed,
-* therefore next write operation can be initiated only after the
+* This function requests the master to abort write operation by generating a Stop
+* condition. The function does not wait until this action is completed.
+* Therefore next write operation can be initiated only after the
 * \ref CY_SCB_I2C_MASTER_BUSY is cleared.
 *
 * \param base
@@ -1456,16 +1489,16 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWrite(CySCB_Type *base,
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \sideeffect
-* If the TX FIFO is used it is cleared before Stop generation.
-* The TX FIFO clear operation also clears shift register thus shifter
+* If the TX FIFO is used, it is cleared before Stop generation.
+* The TX FIFO clear operation also clears shift register. Thus the shifter
 * could be cleared in the middle of a data element transfer, corrupting it.
 * The remaining bits to transfer within corrupted data element are
 * complemented with ones.\n
-* If the clear operation is requested while master transmits address
+* If the clear operation is requested while the master transmits the address,
 * the direction of transaction is changed to read and one byte is read
 * before Stop is issued. This byte is discarded.
 *
@@ -1542,7 +1575,7 @@ void Cy_SCB_I2C_MasterAbortWrite(CySCB_Type *base, cy_stc_scb_i2c_context_t *con
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1550,11 +1583,11 @@ void Cy_SCB_I2C_MasterAbortWrite(CySCB_Type *base, cy_stc_scb_i2c_context_t *con
 *
 * \note
 * * This function returns an invalid value if read or write transaction was
-*   aborted or any of listed events occurred during the transaction:
+*   aborted or any listed event occurs during the transaction:
 *   \ref CY_SCB_I2C_MASTER_ARB_LOST, \ref CY_SCB_I2C_MASTER_BUS_ERR or
 *   \ref CY_SCB_I2C_MASTER_ABORT_START.
 *
-* * This number is only updated when the transaction completes, either through
+* * This number is updated only when the transaction completes, either through
 *   an error or successfully.
 *
 *******************************************************************************/
@@ -1577,9 +1610,9 @@ uint32_t Cy_SCB_I2C_MasterGetTransferCount(CySCB_Type const *base, cy_stc_scb_i2
 ****************************************************************************//**
 *
 * Generates a Start condition and sends a slave address with the Read/Write bit.
-* This function is blocking and it does not return until the Start condition
-* and address byte are sent and a ACK/NAK is received, an error or timeout
-* occurred.
+* This function is blocking. It does not return until the Start condition
+* and address byte are sent and a ACK/NAK is received, or an error or timeout
+* occurs.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -1593,7 +1626,7 @@ uint32_t Cy_SCB_I2C_MasterGetTransferCount(CySCB_Type const *base, cy_stc_scb_i2
 * See \ref cy_en_scb_i2c_direction_t for the set of constants.
 *
 * \param timeoutMs
-* Defines in milliseconds the time that this function can block for.
+* Defines in milliseconds the time for which this function can block.
 * If that time expires, the function returns. If a zero is passed,
 * the function waits forever for the action to complete. If a timeout occurs,
 * the SCB block is reset. Note The maximum value is UINT32_MAX/1000.
@@ -1601,7 +1634,7 @@ uint32_t Cy_SCB_I2C_MasterGetTransferCount(CySCB_Type const *base, cy_stc_scb_i2
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1642,6 +1675,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStart(CySCB_Type *base,
         Cy_SCB_ClearTxFifo(base);
 
         /* Generate a Start and send address byte */
+        Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
         Cy_SCB_WriteTxFifo(base, (_VAL2FLD(CY_SCB_I2C_ADDRESS, address) | (uint32_t) bitRnW));
         base->I2C_M_CMD  = SCB_I2C_M_CMD_M_START_ON_IDLE_Msk;
 
@@ -1671,9 +1705,9 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStart(CySCB_Type *base,
 *
 * Generates a ReStart condition and sends a slave address with the Read/Write
 * bit.
-* This function is blocking and it does not return until the ReStart condition
-* and address byte are sent and an ACK/NAK is received, an error or timeout
-* occurred.
+* This function is blocking. It does not return until the ReStart condition
+* and address byte are sent and an ACK/NAK is received, or an error or timeout
+* occurs.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -1687,7 +1721,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStart(CySCB_Type *base,
 * See \ref cy_en_scb_i2c_direction_t for the set of constants.
 *
 * \param timeoutMs
-* Defines in milliseconds the time that this function can block for.
+* Defines in milliseconds the time for which this function can block.
 * If that time expires, the function returns. If a zero is passed,
 * the function waits forever for the action to complete. If a timeout occurs,
 * the SCB block is reset. Note The maximum value is UINT32_MAX/1000.
@@ -1695,7 +1729,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStart(CySCB_Type *base,
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1723,28 +1757,41 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendReStart(CySCB_Type *base,
 
     if (0UL != (CY_SCB_I2C_MASTER_ACTIVE & context->state))
     {
-        uint32_t locStatus;
+        uint32_t locStatus = 0U;
         uint32_t timeout = CY_SCB_I2C_CONVERT_TIMEOUT_TO_US(timeoutMs);
 
         /* Set the read or write direction */
         context->state = CY_SCB_I2C_MASTER_ADDR;
         context->masterRdDir = (CY_SCB_I2C_READ_XFER == bitRnW);
 
-        /* Generate a restart (for write direction) and NACK plus restart for the Read direction */
-        base->I2C_M_CMD = SCB_I2C_M_CMD_M_START_Msk |
-                             (_FLD2BOOL(SCB_I2C_STATUS_M_READ, base->I2C_STATUS) ?
-                                                               SCB_I2C_M_CMD_M_NACK_Msk : 0UL);
-
-        /* Send the address byte */
-        Cy_SCB_WriteTxFifo(base, (_VAL2FLD(CY_SCB_I2C_ADDRESS, address) | (uint32_t) bitRnW));
-
-        /* Wait for a completion event from the or slave */
-        do
+        /* Cypress ID #295908: Wait for readiness to do restart (SCL falling edge) */
+        while ((0U == locStatus) &&
+               (0U == (CY_SCB_TX_INTR_UNDERFLOW & Cy_SCB_GetTxInterruptStatus(base))))
+              
         {
-            locStatus  = (CY_SCB_I2C_MASTER_TX_BYTE_DONE & Cy_SCB_GetMasterInterruptStatus(base));
-            locStatus |= WaitOneUnit(&timeout);
+            locStatus = WaitOneUnit(&timeout);
+        }
+        
+        /* Check for timeout and continue */
+        if (0U == locStatus)
+        {   
+            /* Generate a restart (for write direction) and NACK plus restart for the Read direction */
+            base->I2C_M_CMD = SCB_I2C_M_CMD_M_START_Msk |
+                                 (_FLD2BOOL(SCB_I2C_STATUS_M_READ, base->I2C_STATUS) ?
+                                                                   SCB_I2C_M_CMD_M_NACK_Msk : 0UL);
 
-        } while (0UL == locStatus);
+            /* Send the address byte */
+            Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
+            Cy_SCB_WriteTxFifo(base, (_VAL2FLD(CY_SCB_I2C_ADDRESS, address) | (uint32_t) bitRnW));
+
+            /* Wait for a completion event from the or slave */
+            do
+            {
+                locStatus  = (CY_SCB_I2C_MASTER_TX_BYTE_DONE & Cy_SCB_GetMasterInterruptStatus(base));
+                locStatus |= WaitOneUnit(&timeout);
+
+            } while (0UL == locStatus);
+        }
 
         /* Convert the status from register plus timeout to the return status */
         retStatus = HandleStatus(base, locStatus, context);
@@ -1759,14 +1806,14 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendReStart(CySCB_Type *base,
 ****************************************************************************//**
 *
 * Generates a Stop condition to complete the current transaction.
-* This function is blocking and it does not return until the Stop condition
-* is generated, an error occurred or timeout occurred.
+* This function is blocking. It does not return until the Stop condition
+* is generated, or an error or timeout occurs.
 *
 * \param base
 * The pointer to the I2C SCB instance.
 *
 * \param timeoutMs
-* Defines in milliseconds the time that this function can block for.
+* Defines in milliseconds the time for which this function can block.
 * If that time expires, the function returns. If a zero is passed,
 * the function waits forever for the action to complete. If a timeout occurs,
 * the SCB block is reset. Note The maximum value is UINT32_MAX/1000.
@@ -1774,7 +1821,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendReStart(CySCB_Type *base,
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1786,7 +1833,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendReStart(CySCB_Type *base,
 *   before calling this function. If this condition is not met, this function
 *   does nothing and returns.
 *   \ref CY_SCB_I2C_MASTER_NOT_READY.
-* * Even after the slave NAKs the address, this function has to be called
+* * Even after the slave NAKs the address, this function must be called
 *   to complete the transaction.
 *
 *******************************************************************************/
@@ -1829,8 +1876,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStop(CySCB_Type *base,uint32_t timeo
 * a NAK. The NAK will be generated before a Stop or ReStart condition by
 * \ref Cy_SCB_I2C_MasterSendStop or \ref Cy_SCB_I2C_MasterSendReStart function
 * appropriately.
-* This function is blocking and it does not return until a byte is
-* received, an error occurred or timeout occurred.
+* This function is blocking. It does not return until a byte is
+* received, or an error or timeout occurs.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -1843,7 +1890,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStop(CySCB_Type *base,uint32_t timeo
 * The pointer to the location to store the Read byte.
 *
 * \param timeoutMs
-* Defines in milliseconds the time that this function can block for.
+* Defines in milliseconds the time for which this function can block.
 * If that time expires, the function returns. If a zero is passed,
 * the function waits forever for the action to complete. If a timeout occurs,
 * the SCB block is reset. Note The maximum value is UINT32_MAX/1000.
@@ -1851,7 +1898,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterSendStop(CySCB_Type *base,uint32_t timeo
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1925,8 +1972,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterReadByte(CySCB_Type *base,
 ****************************************************************************//**
 *
 * Sends one byte to a slave.
-* This function is blocking and it does not return until a byte is
-* transmitted, an error occurred or timeout occurred.
+* This function is blocking. It does not return until a byte is
+* transmitted, or an error or timeout occurs.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -1935,7 +1982,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterReadByte(CySCB_Type *base,
 * The byte to write to a slave.
 *
 * \param timeoutMs
-* Defines in milliseconds the time that this function can block for.
+* Defines in milliseconds the time for which this function can block.
 * If that time expires, the function returns. If a zero is passed,
 * the function waits forever for the action to complete. If a timeout occurs,
 * the SCB block is reset. Note The maximum value is UINT32_MAX/1000.
@@ -1943,7 +1990,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterReadByte(CySCB_Type *base,
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1969,6 +2016,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWriteByte(CySCB_Type *base, uint8_t byte
         uint32_t timeout = CY_SCB_I2C_CONVERT_TIMEOUT_TO_US(timeoutMs);
 
         /* Send the data byte */
+        Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UNDERFLOW);
         Cy_SCB_WriteTxFifo(base, (uint32_t) byte);
 
         /* Wait for a completion event from the master or slave */
@@ -1992,8 +2040,8 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWriteByte(CySCB_Type *base, uint8_t byte
 ****************************************************************************//**
 *
 * This is the interrupt function for the SCB configured in the I2C mode.
-* This function must be called inside the  user-defined interrupt service
-* routine in order for higher-level functions to work:
+* This function must be called inside the user-defined interrupt service
+* routine for higher-level functions to work:
 * * Slave: Any of the slave functions.
 * * Master: \ref Cy_SCB_I2C_MasterRead and \ref Cy_SCB_I2C_MasterWrite.
 *
@@ -2003,7 +2051,7 @@ cy_en_scb_i2c_status_t Cy_SCB_I2C_MasterWriteByte(CySCB_Type *base, uint8_t byte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2034,7 +2082,7 @@ void Cy_SCB_I2C_Interrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2045,6 +2093,11 @@ static void SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
     /* Handle an I2C wake-up event */
     if (0UL != (CY_SCB_I2C_INTR_WAKEUP & Cy_SCB_GetI2CInterruptStatusMasked(base)))
     {
+        /* Move from IDLE state, the slave was addressed. Following address match 
+        * interrupt continue transfer.
+        */
+        context->state = CY_SCB_I2C_SLAVE_ACTIVE;
+
         Cy_SCB_ClearI2CInterrupt(base, CY_SCB_I2C_INTR_WAKEUP);
     }
 
@@ -2130,7 +2183,7 @@ static void SlaveInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2176,7 +2229,7 @@ static void SlaveHandleAddress(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
             else
             {
                 /* Disable the stop interrupt source */
-                Cy_SCB_SetI2CInterruptMask(base, CY_SCB_I2C_SLAVE_INTR_NO_STOP);
+                Cy_SCB_SetSlaveInterruptMask(base, CY_SCB_I2C_SLAVE_INTR_NO_STOP);
             }
         }
     }
@@ -2266,13 +2319,13 @@ static void SlaveHandleAddress(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
 static void SlaveHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 {
-    /* Check if there is space to put data */
+    /* Check whether there is space to put data */
     if (context->slaveRxBufferSize > 0UL)
     {
         if (context->useRxFifo)
@@ -2338,7 +2391,7 @@ static void SlaveHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *c
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2364,7 +2417,7 @@ static void SlaveHandleDataTransmit(CySCB_Type *base, cy_stc_scb_i2c_context_t *
         Cy_SCB_SetTxInterruptMask(base, CY_SCB_TX_INTR_LEVEL);
     }
 
-    /* Check if the Read buffer was updated in the callback */
+    /* Check whether the Read buffer was updated in the callback */
     if (context->slaveRdBufEmpty)
     {
         /* The Read buffer is empty: copy CY_SCB_I2C_DEFAULT_TX into TX FIFO */
@@ -2439,7 +2492,7 @@ static void SlaveHandleDataTransmit(CySCB_Type *base, cy_stc_scb_i2c_context_t *
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2530,7 +2583,7 @@ static void SlaveHandleStop(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2538,7 +2591,7 @@ static void MasterInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 {
     uint32_t intrCause = Cy_SCB_GetInterruptCause(base);
 
-    /* Check if the slave is active. It can be addressed during the master set-up transfer */
+    /* Check whether the slave is active. It can be addressed during the master set-up transfer */
     if (0UL != (CY_SCB_SLAVE_INTR & intrCause))
     {
         /* Abort the transfer due to slave operation */
@@ -2601,12 +2654,12 @@ static void MasterInterrupt(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
 * The master CY_SCB_MASTER_INTR_I2C_ACK interrupt source is used for Stop
-* generation or reqest to abort transfer.
+* generation or request to abort transfer.
 *
 *******************************************************************************/
 static void MasterHandleEvents(CySCB_Type *base, cy_stc_scb_i2c_context_t *context)
@@ -2623,7 +2676,7 @@ static void MasterHandleEvents(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
         context->masterStatus |= (0UL != (CY_SCB_MASTER_INTR_I2C_ACK & Cy_SCB_GetMasterInterruptStatus(base))) ?
                                             CY_SCB_I2C_MASTER_DATA_NAK : CY_SCB_I2C_MASTER_ADDR_NAK;
 
-        /* Check if Stop generation was requested before */
+        /* Check whether Stop generation was requested before */
         if (CY_SCB_I2C_MASTER_WAIT_STOP != context->state)
         {
             context->state = (context->masterPause) ? CY_SCB_I2C_MASTER_CMPLT : CY_SCB_I2C_MASTER_STOP;
@@ -2662,7 +2715,7 @@ static void MasterHandleEvents(CySCB_Type *base, cy_stc_scb_i2c_context_t *conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2752,7 +2805,7 @@ static void MasterHandleDataReceive(CySCB_Type *base, cy_stc_scb_i2c_context_t *
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2845,7 +2898,7 @@ static void MasterHandleDataTransmit(CySCB_Type *base, cy_stc_scb_i2c_context_t 
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2887,7 +2940,7 @@ static void MasterHandleStop(CySCB_Type *base, cy_stc_scb_i2c_context_t *context
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_i2c_context_t allocated
 * by the user. The structure is used during the I2C operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -2927,8 +2980,8 @@ static void MasterHandleComplete(CySCB_Type *base, cy_stc_scb_i2c_context_t *con
         /* Reset the scb IP block when:
         *  1. Master mode: Reset IP when arbitration is lost or a bus error occurs.
         *  2. Master-Slave mode: Reset IP if it is not the address phase (ACK is 0).
-        *  Otherwise, reset only on a bus error. If "lost arbitration" happened, the slave
-        *  can be addressed, so let the slave  accept the address.
+        *  Otherwise, reset only on a bus error. If "lost arbitration" happens, the slave
+        *  can be addressed, so let the slave accept the address.
         */
 
         bool resetIp = true;
@@ -2981,7 +3034,7 @@ static void MasterHandleComplete(CySCB_Type *base, cy_stc_scb_i2c_context_t *con
 ****************************************************************************//**
 *
 * Waits for one unit before unblock code execution.
-* Note If a timeout value is 0, this function does nothing and returns 0.
+* Note that if a timeout value is 0, this function does nothing and returns 0.
 *
 * \param timeout
 * The pointer to a timeout value.
@@ -3014,7 +3067,7 @@ static uint32_t WaitOneUnit(uint32_t *timeout)
 * Function Name: HandleStatus
 ****************************************************************************//**
 *
-* Convers passed status into the cy_en_scb_i2c_status_t.
+* Converts passed status into the cy_en_scb_i2c_status_t.
 *
 * \param base
 * The pointer to the I2C SCB instance.
@@ -3057,8 +3110,8 @@ static cy_en_scb_i2c_status_t HandleStatus(CySCB_Type *base, uint32_t status, cy
         if (CY_SCB_I2C_MASTER_ADDR == context->state)
         {
             /* This is the address phase:
-            *  1. Master mode: Reset IP when "arbitration lost" occurred.
-            *  2. Master-Slave mode: If "lost arbitration" occurred, the slave
+            *  1. Master mode: Reset IP when "arbitration lost" occurs.
+            *  2. Master-Slave mode: If "lost arbitration" occurs, the slave
             *  can be addressed to let the slave accept the address; do not
             *  reset IP.
             */

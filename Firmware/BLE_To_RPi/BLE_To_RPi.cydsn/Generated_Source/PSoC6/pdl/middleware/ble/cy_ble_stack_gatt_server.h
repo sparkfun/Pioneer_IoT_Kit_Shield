@@ -22,7 +22,7 @@
 
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_gatt.h"
@@ -182,7 +182,7 @@ typedef struct
 *
 *  \note
 *  This operation is not permitted when the BLE Stack is busy processing previous requests. The 'CY_BLE_ERROR_INVALID_OPERATION'
-*  error code will be returned if the stack queue is full or for other reasons, the stack cannot process the operation. If the stack
+*  error code will be returned if the BLE Stack queue is full or for other reasons, the BLE Stack cannot process the operation. If the stack
 *  busy event 'CY_BLE_EVT_STACK_BUSY_STATUS' is triggered with status busy, calling this API will trigger this error code.
 *  For details refer 'CY_BLE_EVT_STACK_BUSY_STATUS' event.
 ******************************************************************************/
@@ -226,7 +226,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTS_Notification
 *
 *  \note
 *  This operation is not permitted when BLE Stack is busy processing previous requests. The 'CY_BLE_ERROR_INVALID_OPERATION'
-*  error code will be returned if the stack queue is full or if, for other reasons, the stack cannot process the operation. If the stack
+*  error code will be returned if the BLE Stack queue is full or if, for other reasons, the BLE Stack cannot process the operation. If the stack
 *  busy event 'CY_BLE_EVT_STACK_BUSY_STATUS' is triggered with status busy, calling this API will trigger this error code.
 *  For details, refer to the 'CY_BLE_EVT_STACK_BUSY_STATUS' event.
 *
@@ -293,7 +293,7 @@ cy_en_ble_api_result_t Cy_BLE_GATTS_ErrorRsp
 * more details on exchange of GATT MTU.
 * 
 *  \param param: parameter is of type CY_BLE_GATT_XCHG_MTU_REQ_PARAM_T.
-*   param->mtu: Size of GATT MTU. Max GATT MTU supported by the BLE stack is 512 Bytes.
+*   param->mtu: Size of GATT MTU. Max GATT MTU supported by the BLE Stack is 512 Bytes.
 * 
 * \return
 *  cy_en_ble_api_result_t : Return value indicates whether the function succeeded or

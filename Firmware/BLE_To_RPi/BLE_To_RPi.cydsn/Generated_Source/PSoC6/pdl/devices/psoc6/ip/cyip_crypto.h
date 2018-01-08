@@ -4,10 +4,6 @@
 * \brief
 * CRYPTO IP definitions
 *
-* \note
-* Generated 7/14/2017 by CyDeviceHeaderGenerator v1.1.0.67
-* from the register map configuration rev#20170327
-*
 ********************************************************************************
 * \copyright
 * Copyright 2016-2017, Cypress Semiconductor Corporation. All rights reserved.

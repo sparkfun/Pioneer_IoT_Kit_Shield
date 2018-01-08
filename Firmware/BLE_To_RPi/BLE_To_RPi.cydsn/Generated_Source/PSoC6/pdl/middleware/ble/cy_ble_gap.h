@@ -41,7 +41,7 @@ extern "C" {
  * @{
  */
 
-/** New Event handler state machine type */
+/** BLE state machine type */
 typedef enum
 {
     CY_BLE_STATE_STOPPED,                             /**< BLE is turned off */
@@ -84,7 +84,6 @@ typedef enum
     CY_BLE_CONN_STATE_CLIENT_DISCOVERED               /**< Server is discovered */
 } cy_en_ble_conn_state_t;
 
-
 /** Structure with Generic Access Profile Service (GAPS) attribute handles */
 typedef struct
 {
@@ -106,7 +105,6 @@ typedef struct
     /** Handle of the GAPS Resolvable Private Address Only characteristic */
     cy_ble_gatt_db_attr_handle_t resolvablePrivateAddressOnly;
 } cy_stc_ble_gaps_t;
-
 
 /** GAP Service characteristics server's GATT DB handles structure type */
 typedef struct
@@ -134,7 +132,6 @@ typedef struct
 }cy_stc_ble_gapc_t;
 
 /* Stack mode defines */
-
 
 /** Advertisement SIG assigned numbers */
 typedef enum
@@ -305,7 +302,7 @@ typedef struct
 /** Store BLE Application Data parameter into flash */
 typedef struct
 {
-    /** Source buffer*/
+    /** Source buffer */
     const uint8_t *srcBuff;
 
     /** Destination buffer */
@@ -319,14 +316,11 @@ typedef struct
     
 } cy_stc_ble_app_flash_param_t;
 
-
 /** @} group_ble_common_api_gap_definitions */
  
 /***************************************
 * API Constants
 ***************************************/
-
-
 #define CY_BLE_AD_TYPE_MORE16UUID                  (0x02u)
 #define CY_BLE_AD_TYPE_CMPL16UUID                  (0x03u)
 #define CY_BLE_AD_TYPE_MORE32UUID                  (0x04u)
@@ -360,14 +354,12 @@ typedef struct
 
 /* Device address stored by user in ROW4 of the SFLASH */
 #define CY_BLE_SFLASH_DEVICE_ADDRESS_PTR           ((cy_stc_ble_gap_bd_addr_t*)(SFLASH->BLE_DEVICE_ADDRESS))
-
 #define CY_BLE_AD_STRUCTURE_MAX_LENGTH             (31u)
 
 /* AD types for complete, shortened local name and device address */
 #define CY_BLE_SHORT_LOCAL_NAME                    (0x08u)  /**< Shortened Local Name */
 #define CY_BLE_COMPLETE_LOCAL_NAME                 (0x09u)  /**< Complete Local Name */
 #define CY_BLE_ADV_DEVICE_ADDR                     (0x1Bu)  /**< LE Bluetooth Device Address */
-
 
 #define CY_BLE_ADVERTISING_FAST                    (0x00u)
 #define CY_BLE_ADVERTISING_SLOW                    (0x01u)
@@ -383,8 +375,7 @@ typedef struct
 #define CY_BLE_PENDING_CCCD_FLASH_CLEAR_ALL_BIT    (0x08u)
 #define CY_BLE_PENDING_CCCD_FLASH_CLEAR_MASK \
     (CY_BLE_PENDING_CCCD_FLASH_CLEAR_BIT | CY_BLE_PENDING_CCCD_FLASH_CLEAR_ALL_BIT)
-
-    
+  
 /**
  * \addtogroup group_ble_common_api_macros
  * @{
@@ -422,7 +413,6 @@ typedef struct
 void Cy_BLE_ServiceInit(void);
 uint32_t Cy_BLE_GetDiscoveryIdx(cy_stc_ble_conn_handle_t connHandle);
 
-
 /***************************************
 * Function Prototypes
 ***************************************/
@@ -433,14 +423,19 @@ uint32_t Cy_BLE_GetDiscoveryIdx(cy_stc_ble_conn_handle_t connHandle);
 
 cy_en_ble_api_result_t Cy_BLE_StoreAppData(const cy_stc_ble_app_flash_param_t *param);
 
- 
 #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
 cy_en_ble_api_result_t Cy_BLE_StoreBondingData(void);
 cy_en_ble_api_result_t Cy_BLE_GAP_RemoveBondedDevice(cy_stc_ble_gap_bd_addr_t* bdAddr);
 #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
 
-/** @} group_ble_common_api_functions */
+#if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+bool Cy_BLE_IsPeerConnected(uint8_t *bdAddr);
+bool Cy_BLE_IsDevicePaired(cy_stc_ble_conn_handle_t *connHandle);
+uint8_t Cy_BLE_GetDeviceRole(cy_stc_ble_conn_handle_t *connHandle);
 
+cy_en_ble_api_result_t Cy_BLE_GetRssiPeer(uint8_t  bdHandle);
+#endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
+/** @} group_ble_common_api_functions */
 
 /**
  * \addtogroup group_ble_common_api_gap_peripheral_functions
@@ -476,7 +471,6 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_CancelDeviceConnection(void);
 
 /** @} group_ble_common_api_gap_central_functions */
 
-
 /***************************************
 * External data references
 ***************************************/
@@ -502,6 +496,10 @@ extern uint8_t cy_ble_scanIndex;
 #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
 extern cy_stc_ble_conn_handle_t cy_ble_connHandle[CY_BLE_CONN_COUNT];
 extern cy_en_ble_conn_state_t cy_ble_connState[CY_BLE_CONN_COUNT];
+
+extern volatile uint8_t cy_ble_devConnRole[CY_BLE_CONN_COUNT];                                                        
+extern volatile bool cy_ble_pairStatus[CY_BLE_CONN_COUNT];
+
 #endif /* ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)) */
 
 #if (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER)
@@ -520,10 +518,12 @@ extern cy_stc_ble_gapp_disc_data_t cy_ble_discoveryData[CY_BLE_GAPP_CONF_COUNT];
 extern cy_stc_ble_gapp_scan_rsp_data_t cy_ble_scanRspData[CY_BLE_GAPP_CONF_COUNT];
 #endif /* CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER */
 
-
-
 #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
 
+/**
+ * \addtogroup group_ble_common_api_global_variables
+ * @{
+ */  
 /** This is a two-bit variable that contains status of pending write to flash operation.
  * This variable is initialized to zero in Cy_BLE_Init().
  * CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT flag is set after write to CCCD event when a
@@ -533,13 +533,13 @@ extern cy_stc_ble_gapp_scan_rsp_data_t cy_ble_scanRspData[CY_BLE_GAPP_CONF_COUNT
  * This function automatically clears pending bits after write operation is complete.
  */
 extern uint8_t cy_ble_pendingFlashWrite;
-
+/** @} group_ble_common_api_global_variables */
+    
 /** Bonding type setting of peer device, CY_BLE_GAP_BONDING_NONE or CY_BLE_GAP_BONDING.
  * It is initialized after pairing with peer device and used for cy_ble_pendingFlashWrite variable
  * setting.
  */
 extern uint8_t cy_ble_peerBonding[CY_BLE_CONN_COUNT];
-
 
 #endif  /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
 
@@ -548,23 +548,22 @@ extern uint8_t cy_ble_peerBonding[CY_BLE_CONN_COUNT];
 * Exported Functions (MACROS)
 ***************************************/
 #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
-
-/**
- * \addtogroup group_ble_common_api_functions
- * @{
-*/
-    
+   
 /******************************************************************************
 * Function Name: Cy_BLE_GetConnHandleIdx
 ***************************************************************************//**
-*  This function returns the index of connHandle in cy_ble_connHandle which correspond to
-*  input parameter
 *
+*  This function searches the array of connection handles (cy_ble_connHandle[])
+*  for the location (index) of a handle that corresponds to the input parameter
+*  connHandle. bdHandle.
+*
+*  This function is designated for internal usage. 
+*    
 *  \param connHandle: The connection handle.
 *
 *  \return
-*   retValue - the index of connHandle
-*
+*  retValue: the index of connHandle  
+*    
 ******************************************************************************/
 __STATIC_INLINE uint8_t Cy_BLE_GetConnHandleIdx(cy_stc_ble_conn_handle_t connHandle)
 {
@@ -590,37 +589,54 @@ __STATIC_INLINE uint8_t Cy_BLE_GetConnHandleIdx(cy_stc_ble_conn_handle_t connHan
 }
 #endif  /* ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)) */
 
+/**
+ * \addtogroup group_ble_common_api_functions
+ * @{
+*/
 /******************************************************************************
 * Function Name: Cy_BLE_GetState
 ***************************************************************************//**
-*  This function is used to determine the current state of the component
-*  state machine.
 *
-*  The component is in the state CY_BLE_STATE_INITIALIZING after the Cy_BLE_Start()
-*  is called and until the CY_BLE_EVT_STACK_ON event is not received. After
-*  successful initialization the state is changed to CY_BLE_STATE_ON.
+*  This function is used to determine the current state of the BLE Middleware
+*  state machine :
 *
+*  \image html ble_middleware_state_machine.png
+*
+*  The BLE Middleware is in the state #CY_BLE_STATE_INITIALIZING after the 
+*  Cy_BLE_Enable() is called and until the #CY_BLE_EVT_STACK_ON event is not 
+*  received. After successful initialization the state is changed to 
+*  #CY_BLE_STATE_ON.
+*
+*  The BLE Middleware is in the state #CY_BLE_STATE_STOPPED 
+*  when the #CY_BLE_EVT_STACK_SHUTDOWN_COMPLETE event is received (after the 
+*  Cy_BLE_Disable() is called).
+*  
 *  For GAP Central role when the Cy_BLE_GAPC_ConnectDevice() is called, the state
-*  is changed to CY_BLE_STATE_CONNECTING. After successful connection indicated
-*  by CY_BLE_EVT_GAP_DEVICE_CONNECTED or CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE
-*  event or the timeout indicated by CY_BLE_EVT_TIMEOUT event, the state is
-*  changed to CY_BLE_STATE_ON.
+*  is changed to #CY_BLE_STATE_CONNECTING. After successful connection indicated
+*  by #CY_BLE_EVT_GAP_DEVICE_CONNECTED or #CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE
+*  event or the timeout indicated by #CY_BLE_EVT_TIMEOUT event, the state is
+*  changed to #CY_BLE_STATE_ON.
 *
 * \return
-*   * CY_BLE_STATE_STOPPED       - BLE is turned off
-*   * CY_BLE_STATE_INITIALIZING, - Initializing state
-*   * CY_BLE_STATE_ON            - BLE is turned on
-*   * CY_BLE_STATE_CONNECTING    - Connecting
+* \ref cy_en_ble_state_t : The current BLE Middleware state. The following are 
+*                         possible states:
 *
+*   State                      | Description
+*   -------------------------- | -----------
+*   CY_BLE_STATE_STOPPED       | BLE is turned off.
+*   CY_BLE_STATE_INITIALIZING  | BLE is initializing (waiting for #CY_BLE_EVT_STACK_ON event).
+*   CY_BLE_STATE_ON            | BLE is turned on.
+*   CY_BLE_STATE_CONNECTING    | BLE is connecting.
+
 ******************************************************************************/
 #define Cy_BLE_GetState()    (cy_ble_state)
 
-
+/** \cond IGNORE */
 /******************************************************************************
 * Function Name: Cy_BLE_SetState
 ***************************************************************************//**
 *
-*  Used to set the component state machine's state.
+*  Used to set the BLE Middleware state machine's state.
 *
 *  \param state: The desired state to which the event handler's
 *   state machine should be set. The parameter state is a variable
@@ -631,6 +647,7 @@ __STATIC_INLINE uint8_t Cy_BLE_GetConnHandleIdx(cy_stc_ble_conn_handle_t connHan
 *
 ******************************************************************************/
 #define Cy_BLE_SetState(state)    (cy_ble_state = (state))
+/** \endcond */
 
 #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
 
@@ -638,19 +655,30 @@ __STATIC_INLINE uint8_t Cy_BLE_GetConnHandleIdx(cy_stc_ble_conn_handle_t connHan
 /******************************************************************************
 * Function Name: Cy_BLE_GetAdvertisementState
 ***************************************************************************//**
+*    
 *  This function returns the state of the link layer hardware advertisement
 *  engine.
 *
+*  \image html ble_advertisement_state_machine.png
+*
 *  When Cy_BLE_GAPP_StartAdvertisement() is called, the state is set to
-*  CY_BLE_ADV_STATE_ADV_INITIATED. It automatically changes to
-*  CY_BLE_ADV_STATE_ADVERTISING when CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
+*  #CY_BLE_ADV_STATE_ADV_INITIATED. It automatically changes to
+*  #CY_BLE_ADV_STATE_ADVERTISING when #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
 *  event is received. When Cy_BLE_GAPP_StopAdvertisement() is called, the
-*  state is set to CY_BLE_ADV_STATE_STOP_INITIATED. It automatically changes
-*  to CY_BLE_ADV_STATE_STOPPED when the CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
+*  state is set to #CY_BLE_ADV_STATE_STOP_INITIATED. It automatically changes
+*  to #CY_BLE_ADV_STATE_STOPPED when the #CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP
 *  event is received.
 *
-*  \return
-*  cy_en_ble_adv_state_t - The current advertising state.
+* \return
+* \ref cy_en_ble_adv_state_t :The current advertising state. The following are 
+*                              possible states.
+*
+*               State                |         Description
+*   -------------------------------- | -----------------------------
+*   CY_BLE_ADV_STATE_STOPPED         | Advertising is stopped.
+*   CY_BLE_ADV_STATE_ADV_INITIATED   | Advertising is initiated.
+*   CY_BLE_ADV_STATE_ADVERTISING     | Advertising is initiated.
+*   CY_BLE_ADV_STATE_STOP_INITIATED  | Stop advertising is initiated.
 *
 ******************************************************************************/
 __STATIC_INLINE cy_en_ble_adv_state_t Cy_BLE_GetAdvertisementState(void)
@@ -658,6 +686,7 @@ __STATIC_INLINE cy_en_ble_adv_state_t Cy_BLE_GetAdvertisementState(void)
     return(cy_ble_advState);
 }
 
+/** \cond IGNORE */
 /******************************************************************************
 * Function Name: Cy_BLE_SetAdvertisementState
 ***************************************************************************//**
@@ -674,6 +703,7 @@ __STATIC_INLINE void Cy_BLE_SetAdvertisementState(cy_en_ble_adv_state_t state)
 {
     cy_ble_advState = state;
 }
+/** \endcond */
 
 #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER) */
 
@@ -682,18 +712,30 @@ __STATIC_INLINE void Cy_BLE_SetAdvertisementState(cy_en_ble_adv_state_t state)
 /******************************************************************************
 * Function Name: Cy_BLE_GetScanState
 ***************************************************************************//**
+*    
 *  This returns the state of the link layer hardware scan engine.
 *
+*  \image html ble_scanning_state_machine.png
+*   
 *  When Cy_BLE_GAPC_StartScan() is called the state is set to
-*  CY_BLE_SCAN_STATE_SCAN_INITIATED. It automatically changes to
-*  CY_BLE_ SCAN _STATE_SCANNING when the CY_BLE_EVT_GAPC_SCAN_START_STOP event is
-*  received. When Cy_BLE_GAPC_StopScan() is called, the state is set to
-*  CY_BLE_SCAN_STATE_STOP_INITIATED. It automatically changes to
-*  CY_BLE_SCAN_STATE_STOPPED when the CY_BLE_EVT_GAPC_SCAN_START_STOP event is
+*  #CY_BLE_SCAN_STATE_SCAN_INITIATED. It automatically changes to
+*  #CY_BLE_SCAN_STATE_SCANNING when the #CY_BLE_EVT_GAPC_SCAN_START_STOP event is
+*  received. 
+*  When Cy_BLE_GAPC_StopScan() is called, the state is set to
+*  #CY_BLE_SCAN_STATE_STOP_INITIATED. It automatically changes to
+*  #CY_BLE_SCAN_STATE_STOPPED when the #CY_BLE_EVT_GAPC_SCAN_START_STOP event is
 *  received.
 *
 *  \return
-*  cy_en_ble_scan_state_t - The current scan state.
+*  \ref cy_en_ble_scan_state_t : The current scan state. The following are 
+*                                possible states.
+*
+*               State                |         Description
+*   -------------------------------- | -----------------------------
+*   CY_BLE_SCAN_STATE_STOPPED        | Scanning is stopped.
+*   CY_BLE_SCAN_STATE_SCAN_INITIATED | Scanning is initiated.
+*   CY_BLE_SCAN_STATE_SCANNING       | Scanning process.
+*   CY_BLE_SCAN_STATE_STOP_INITIATED | Stop scanning is initiated.
 *
 ******************************************************************************/
 __STATIC_INLINE cy_en_ble_scan_state_t Cy_BLE_GetScanState(void)
@@ -701,7 +743,7 @@ __STATIC_INLINE cy_en_ble_scan_state_t Cy_BLE_GetScanState(void)
     return(cy_ble_scanState);
 }
 
-
+/** \cond IGNORE */
 /******************************************************************************
 * Function Name: Cy_BLE_SetScanState
 ***************************************************************************//**
@@ -710,7 +752,7 @@ __STATIC_INLINE cy_en_ble_scan_state_t Cy_BLE_GetScanState(void)
 *
 *  \param state: The desired state.
 *
-* \return
+*  \return
 *  None
 *
 ******************************************************************************/
@@ -718,6 +760,7 @@ __STATIC_INLINE void Cy_BLE_SetScanState(cy_en_ble_scan_state_t state)
 {
     cy_ble_scanState = state;
 }
+/** \endcond */
 
 #endif  /* (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER) */
 
@@ -730,30 +773,43 @@ __STATIC_INLINE void Cy_BLE_SetScanState(cy_en_ble_scan_state_t state)
 *  This function returns the state of the BLE link for the specified connection
 *  handle.
 *
-*  The state is set to CY_BLE_CONN_CONNECTED when CY_BLE_EVT_GATT_CONNECT_IND
+*  The state is set to #CY_BLE_CONN_STATE_CONNECTED when #CY_BLE_EVT_GATT_CONNECT_IND
 *  event is received with the corresponding connection handle.
-*  The state is set to CY_BLE_CONN_DISCONNECTED when the
-*  CY_BLE_EVT_GATT_DISCONNECT_IND event is received.
+*  The state is set to #CY_BLE_CONN_STATE_DISCONNECTED when the
+*  #CY_BLE_EVT_GATT_DISCONNECT_IND event is received.
 *
 *  For GATT Client role when Cy_BLE_GATTC_StartDiscovery() is called, the state
 *  indicates the current flow of the discovery procedure by
-*  CY_BLE_CONN_STATE_CLIENT_SRVC_DISCOVERING,
-*  CY_BLE_CONN_STATE_CLIENT_INCL_DISCOVERING,
-*  CY_BLE_CONN_STATE_CLIENT_CHAR_DISCOVERING,
-*  CY_BLE_CONN_STATE_CLIENT_DESCR_DISCOVERING and changes to
-*  CY_BLE_CONN_STATE_CLIENT_DISCOVERED when the procedure successfully completes.
+*  #CY_BLE_CONN_STATE_CLIENT_SRVC_DISCOVERING,
+*  #CY_BLE_CONN_STATE_CLIENT_INCL_DISCOVERING,
+*  #CY_BLE_CONN_STATE_CLIENT_CHAR_DISCOVERING,
+*  #CY_BLE_CONN_STATE_CLIENT_DESCR_DISCOVERING and changes to
+*  #CY_BLE_CONN_STATE_CLIENT_DISCOVERED when the procedure successfully completes.
 *
-*  The state changes from CY_BLE_CONN_STATE_CLIENT_DISCOVERED to
-*  CY_BLE_CONN_STATE_CLIENT_DISCONNECTED_DISCOVERED when
-*  the CY_BLE_EVT_GATT_DISCONNECT_IND event is received.
-*  The state comes backs to CY_BLE_CONN_STATE_CLIENT_DISCOVERED when
-*  CY_BLE_EVT_GATT_CONNECT_IND event is received and resolvable device
+*  The state changes from #CY_BLE_CONN_STATE_CLIENT_DISCOVERED to
+*  #CY_BLE_CONN_STATE_CLIENT_DISCONNECTED_DISCOVERED when
+*  the #CY_BLE_EVT_GATT_DISCONNECT_IND event is received.
+*  The state comes backs to #CY_BLE_CONN_STATE_CLIENT_DISCOVERED when
+*  #CY_BLE_EVT_GATT_CONNECT_IND event is received and resolvable device
 *  address is not changed.
 *
 *  \param connHandle: The connection handle.
 *
-*  \return
-*  cy_en_ble_conn_state_t - The current client state.
+* \return
+* \ref cy_en_ble_conn_state_t : The current client state. The following are 
+*                               possible states.
+*
+*               State                                |         Description
+*   ------------------------------------------------ | -----------------------------
+*   CY_BLE_CONN_STATE_DISCONNECTED                   | Essentially idle state
+*   CY_BLE_CONN_STATE_CLIENT_DISCONNECTED_DISCOVERED | Server is disconnected but discovered.
+*   CY_BLE_CONN_STATE_CONNECTED                      | Peer device is connected for this and following states.
+*   CY_BLE_CONN_STATE_CLIENT_SRVC_DISCOVERING        | Server services are being discovered.
+*   CY_BLE_CONN_STATE_CLIENT_INCL_DISCOVERING        | Server included services are being discovered
+*   CY_BLE_CONN_STATE_CLIENT_CHAR_DISCOVERING        | Server characteristics are being discovered
+*   CY_BLE_CONN_STATE_CLIENT_DESCR_DISCOVERING       | Server char. descriptors are being discovered 
+*   CY_BLE_CONN_STATE_CLIENT_DISCOVERED              | Server is discovered   
+*
 *
 ******************************************************************************/
 __STATIC_INLINE cy_en_ble_conn_state_t Cy_BLE_GetConnectionState(cy_stc_ble_conn_handle_t connHandle)
@@ -761,7 +817,7 @@ __STATIC_INLINE cy_en_ble_conn_state_t Cy_BLE_GetConnectionState(cy_stc_ble_conn
     return((connHandle.attId < CY_BLE_CONN_COUNT) ? cy_ble_connState[connHandle.attId] : CY_BLE_CONN_STATE_DISCONNECTED);
 }
 
-
+/** \cond IGNORE */
 /******************************************************************************
 * Function Name: Cy_BLE_SetConnectionState
 ***************************************************************************//**
@@ -785,6 +841,7 @@ __STATIC_INLINE void Cy_BLE_SetConnectionState(cy_stc_ble_conn_handle_t connHand
         CY_ASSERT(connHandle.attId >= CY_BLE_CONN_COUNT);
     }
 }
+/** \endcond */
 
 /******************************************************************************
 * Function Name: Cy_BLE_GetNumOfActiveConn
@@ -812,6 +869,7 @@ __STATIC_INLINE uint8_t Cy_BLE_GetNumOfActiveConn(void)
     return(connNum);
 }
 
+
 /******************************************************************************
 * Function Name: Cy_BLE_GetConnHandleByBdHandle
 ***************************************************************************//**
@@ -823,8 +881,8 @@ __STATIC_INLINE uint8_t Cy_BLE_GetNumOfActiveConn(void)
 *  \param bdHandle: Peer device handle
 *
 *  \return
-*   connHandle: Full connection handle.
-*   connHandle.attId = CY_BLE_INVALID_CONN_HANDLE_VALUE: invalid bdHandle
+*  * connHandle: Full connection handle.
+*  * connHandle.attId = CY_BLE_INVALID_CONN_HANDLE_VALUE: invalid bdHandle
 *
 ******************************************************************************/
 __STATIC_INLINE cy_stc_ble_conn_handle_t Cy_BLE_GetConnHandleByBdHandle(uint8_t bdHandle)
@@ -854,7 +912,60 @@ __STATIC_INLINE cy_stc_ble_conn_handle_t Cy_BLE_GetConnHandleByBdHandle(uint8_t 
     return cHandle;
 }
 
+#if(CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES)
+    
+/******************************************************************************
+* Function Name: Cy_BLE_GetFlashWritePendingStatus
+***************************************************************************//**
+*
+*  This function returns the flash Write pending status.
+*  
+*  If this function returns a non-zero value, the application calls
+*  Cy_BLE_StoreBondingData() to store pending bonding data. 
+*  Cy_BLE_StoreBondingData() automatically clears pending bits after the Write 
+*  operation completes.
+*
+* \return
+* \ref cy_ble_pendingFlashWrite : The flash Write pending status.  
+*                                 Possible flags are set after:
+*
+*   <table>
+*    <tr>
+*      <th>Flags</th>
+*      <th>Description</th>
+*    </tr>
+*    <tr>
+*      <td>CY_BLE_PENDING_STACK_FLASH_WRITE_BIT</td>
+*      <td>the CY_BLE_EVT_PENDING_FLASH_WRITE event.</td>
+*    </tr>
+*    <tr>
+*      <td>CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT</td>
+*      <td>a Write to the CCCD event when a peer device supports bonding.
+*      </td>
+*    </tr>
+*    <tr>
+*      <td>CY_BLE_PENDING_CCCD_FLASH_CLEAR_BIT</td>
+*      <td>a call to Cy_BLE_GAP_RemoveBondedDevice() with a request to 
+*          clear CCCD for a particular device.
+*      </td>
+*    </tr>
+*    <tr>
+*      <td>CY_BLE_PENDING_CCCD_FLASH_CLEAR_ALL_BIT</td>
+*      <td>a call to Cy_BLE_GAP_RemoveBondedDevice() with a request to
+*          clear CCCD for all devices. 
+*      </td>
+*    </tr>
+*   </table>    
+*                
+******************************************************************************/
+__STATIC_INLINE uint8_t Cy_BLE_GetFlashWritePendingStatus(void) 
+{
+    return(cy_ble_pendingFlashWrite);
+}
+#endif /* CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES */
+
 #endif /* ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)) */
+
 /** @} group_ble_common_api_functions */
 
 #endif /* CY_BLE_MODE_PROFILE */

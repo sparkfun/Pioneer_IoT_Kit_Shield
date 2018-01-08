@@ -3,7 +3,7 @@
 * \version 2.0
 *
 * \brief
-*  This file contains the source code for the Pulse Oximeter Service of the BLE Component.
+*  This file contains the source code for the Pulse Oximeter Service.
 *
 ********************************************************************************
 * \copyright
@@ -151,7 +151,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXS_Init(cy_stc_ble_plxs_config_t *config)
 *  unregistered callback function.
 *
 *  \param callbackFunc:  An application layer event callback function to receive
-*                        events from the BLE Component. The definition of
+*                        events from the BLE Middleware. The definition of
 *                        cy_ble_callback_t for PLX Service is:
 *                    typedef void (* cy_ble_callback_t) (uint32_t eventCode,
 *                                                        void *eventParam)
@@ -207,8 +207,8 @@ cy_en_ble_api_result_t Cy_BLE_PLXS_RegisterAttrCallback(cy_ble_callback_t callba
 *               stored in the GATT database.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully.
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully.
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed.
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional characteristic is absent
 *
@@ -321,8 +321,8 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *               be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional characteristic is absent
 *
@@ -381,8 +381,8 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_GetCharacteristicValue(cy_en_ble_plxs_char_i
 *                     data should be stored.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*  * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*  * CY_BLE_SUCCESS - The request was handled successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - Optional descriptor is absent
 *
@@ -449,8 +449,8 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_GetCharacteristicDescriptor(cy_stc_ble_conn_
 *               to Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
 *                                      characteristic
@@ -527,8 +527,8 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_SendNotification(cy_stc_ble_conn_handle_t co
 *               to Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
+*  A return value of type cy_en_ble_api_result_t.
+*   * CY_BLE_SUCCESS - The request was handled successfully
 *   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
 *   * CY_BLE_ERROR_INVALID_OPERATION - Operation is invalid for this
 *                                      characteristic
@@ -539,14 +539,14 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_SendNotification(cy_stc_ble_conn_handle_t co
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PLXS service-specific callback is registered
 *      (with Cy_BLE_PLXS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PLXSS_INDICATION_CONFIRMED - in case if the indication is
+*  * CY_BLE_EVT_PLXSS_INDICATION_CONFIRMED - In case if the indication is
 *                                successfully delivered to the peer device.
 *  .
 *   Otherwise (if the PLXS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - in case if the indication is
+*  * CY_BLE_EVT_GATTS_HANDLE_VALUE_CNF - In case if the indication is
 *                                successfully delivered to the peer device.
 *
 ******************************************************************************/
@@ -609,7 +609,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXSS_SendIndication(cy_stc_ble_conn_handle_t conn
 * Function Name: Cy_BLE_PLXSS_ConfirmationEventHandler
 ***************************************************************************//**
 *
-*  Handles the Value Confirmation request event from the BLE stack.
+*  Handles the Value Confirmation request event from the BLE Stack.
 *
 *  \param *eventParam: Pointer to a structure of type cy_stc_ble_conn_handle_t
 *
@@ -752,15 +752,6 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_PLXSS_WriteEventHandler(cy_stc_ble_gatts
                                 break;
                         }
                     }
-                #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) && \
-                    (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES))
-
-                    /* Set flag to store bonding data to flash */
-                    if(cy_ble_peerBonding[eventParam->connHandle.attId] == CY_BLE_GAP_BONDING)
-                    {
-                        cy_ble_pendingFlashWrite |= CY_BLE_PENDING_CCCD_FLASH_WRITE_BIT;
-                    }
-                #endif /* (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
 
                     cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
                     break;
@@ -790,8 +781,8 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_PLXSS_WriteEventHandler(cy_stc_ble_gatts
 *  This function is used to write the characteristic (which is identified by
 *  charIndex) value attribute in the server. As a result a Write Request is
 *  sent to the GATT Server and on successful execution of the request on the
-*  Server side the CY_BLE_EVT_PLXSS_WRITE_CHAR events is generated.
-*  On successful request execution on the Server side the Write Response is
+*  Server side, the CY_BLE_EVT_PLXSS_WRITE_CHAR event is generated.
+*  On successful request execution on the Server side, the Write Response is
 *  sent to the Client.
 *
 *  \param connHandle: The connection handle.
@@ -801,7 +792,7 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_PLXSS_WriteEventHandler(cy_stc_ble_gatts
 *               sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed
@@ -813,19 +804,19 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_PLXSS_WriteEventHandler(cy_stc_ble_gatts
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PLXS service-specific callback is registered
 *      (with Cy_BLE_PLXS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PLXSC_WRITE_CHAR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_PLXSC_WRITE_CHAR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_plxs_char_value_t.
 *  .
 *   Otherwise (if the PLXS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -901,7 +892,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *  \param charIndex: The index of the service characteristic.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The read request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_GATT_DB_INVALID_ATTR_HANDLE - The peer device doesn't have
@@ -913,22 +904,22 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_SetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PLXS service-specific callback is registered
 *      (with Cy_BLE_PLXS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PLXSC_READ_CHAR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_PLXSC_READ_CHAR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index , value, etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_plxs_char_value_t.
 *  .
 *   Otherwise (if the PLXS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -982,7 +973,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *  Sets the Characteristic Descriptor of the specified Characteristic.
 *
 *  Internally, Write Request is sent to the GATT Server and on successful
-*  execution of the request on the Server side the following events can be
+*  execution of the request on the Server side, the following events can be
 *  generated:
 *  * CY_BLE_EVT_PLXSS_INDICATION_ENABLED
 *  * CY_BLE_EVT_PLXSS_INDICATION_DISABLED
@@ -997,7 +988,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *               be sent to the server device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid
@@ -1009,19 +1000,19 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_GetCharacteristicValue(cy_stc_ble_conn_handl
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *   If the PLXS service-specific callback is registered
 *      (with Cy_BLE_PLXS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PLXSC_WRITE_DESCR_RESPONSE - in case if the requested attribute is
+*  * CY_BLE_EVT_PLXSC_WRITE_DESCR_RESPONSE - In case if the requested attribute is
 *                                successfully written on the peer device,
 *                                the details (char index, descr index etc.) are
 *                                provided with event parameter structure
 *                                of type cy_stc_ble_plxs_descr_value_t.
 *  .
 *   Otherwise (if the PLXS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_WRITE_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_WRITE_RSP - In case if the requested attribute is
 *                                successfully written on the peer device.
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1084,7 +1075,7 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *  \param descrIndex: The index of the service characteristic descriptor.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
+*  A return value of type cy_en_ble_api_result_t.
 *  * CY_BLE_SUCCESS - The request was sent successfully
 *  * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameters failed
 *  * CY_BLE_ERROR_INVALID_STATE - The state is not valid
@@ -1096,22 +1087,22 @@ cy_en_ble_api_result_t Cy_BLE_PLXSC_SetCharacteristicDescriptor(cy_stc_ble_conn_
 *
 * \events
 *  In case of successful execution (return value = CY_BLE_SUCCESS)
-*  the next events can appear: \n
+*  the following events can appear: \n
 *  If the PLXS service-specific callback is registered
 *      (with Cy_BLE_PLXS_RegisterAttrCallback):
-*  * CY_BLE_EVT_PLXSC_READ_DESCR_RESPONSE - in case if the requested attribute is
-*                                successfully written on the peer device,
+*  * CY_BLE_EVT_PLXSC_READ_DESCR_RESPONSE - In case if the requested attribute is
+*                                successfully read on the peer device,
 *                                the details (char index, descr index, value, etc.)
 *                                are provided with event parameter structure
 *                                of type cy_stc_ble_plxs_descr_value_t.
 *  .
 *  Otherwise (if the PLXS service-specific callback is not registered):
-*  * CY_BLE_EVT_GATTC_READ_RSP - in case if the requested attribute is
+*  * CY_BLE_EVT_GATTC_READ_RSP - In case if the requested attribute is
 *                                successfully read on the peer device,
 *                                the details (handle, value, etc.) are
 *                                provided with event parameters
 *                                structure (cy_stc_ble_gattc_read_rsp_param_t).
-*  * CY_BLE_EVT_GATTC_ERROR_RSP - in case if there is some trouble with the
+*  * CY_BLE_EVT_GATTC_ERROR_RSP - In case if an error occurred with the
 *                                requested attribute on the peer device,
 *                                the details are provided with event parameters
 *                                structure (cy_stc_ble_gatt_err_param_t).
@@ -1589,13 +1580,13 @@ static void Cy_BLE_PLXSC_TimeOutEventHandler(const cy_stc_ble_timeout_param_t *e
 * Function Name: Cy_BLE_PLXS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the PLXS Service.
+*  Handles the events from the BLE Stack for the PLXS Service.
 *
 *  \param eventCode:  the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_PLXS_EventHandler(uint32_t eventCode,

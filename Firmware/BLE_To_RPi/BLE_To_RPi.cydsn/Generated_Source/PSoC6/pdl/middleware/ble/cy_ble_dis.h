@@ -82,7 +82,7 @@ typedef struct
     /** Device Information Service GATT DB handles structure */
     const cy_stc_ble_diss_t *diss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_dis_config_t;
 

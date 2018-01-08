@@ -116,7 +116,7 @@ typedef struct
     /** Weight Scale Service GATT DB handles structure */
     const cy_stc_ble_wsss_t *wsss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_wss_config_t;
 

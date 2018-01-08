@@ -24,8 +24,6 @@
 * The function also has a way to specify through a parameter which IPC
 * interrupts must be notified during the release event.
 *
-* This function is internal and should not be called directly by user software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -41,19 +39,17 @@
 *   \retval CY_IPC_DRV_ERROR: The IPC channel was not acquired before the
 *                       function call.
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_ReadMsgPtr
+*
 *******************************************************************************/
-#if defined (__ICCARM__)
-    __ramfunc 
-#else
-    CY_SECTION(".cy_ramfunc")
-#endif
 cy_en_ipcdrv_status_t Cy_IPC_Drv_LockRelease (IPC_STRUCT_Type* base, uint32_t releaseEventIntr)
 {
     cy_en_ipcdrv_status_t retStatus;
 
-   /* Check to make sure the IPC is Acquired */
-   if( Cy_IPC_Drv_IsLockAcquired(base) )
-   {
+    /* Check to make sure the IPC is Acquired */
+    if( Cy_IPC_Drv_IsLockAcquired(base) )
+    {
         /* The IPC was acquired, release the IPC channel */
         Cy_IPC_Drv_ReleaseNotify(base, releaseEventIntr);
 
@@ -67,6 +63,7 @@ cy_en_ipcdrv_status_t Cy_IPC_Drv_LockRelease (IPC_STRUCT_Type* base, uint32_t re
     return (retStatus);
 }
 
+
 /*******************************************************************************
 * Function Name: Cy_IPC_Drv_SendMsgWord
 ****************************************************************************//**
@@ -76,8 +73,6 @@ cy_en_ipcdrv_status_t Cy_IPC_Drv_LockRelease (IPC_STRUCT_Type* base, uint32_t re
 * message notify one or multiple IPC interrupts. The IPC channel is locked and
 * remains locked after the function returns.  The receiver of the message should
 * release the channel.
-*
-* This function is internal and should not be called directly by user software.
 *
 * \param base
 * This parameter is a handle that represents the base address of the registers
@@ -94,6 +89,9 @@ cy_en_ipcdrv_status_t Cy_IPC_Drv_LockRelease (IPC_STRUCT_Type* base, uint32_t re
 * \return   Status of the operation:
 *   \retval CY_IPC_DRV_SUCCESS: The send operation was successful.
 *   \retval CY_IPC_DRV_ERROR: The IPC channel is unavailable because it is already locked.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_SendMsgWord
 *
 *******************************************************************************/
 cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgWord (IPC_STRUCT_Type* base, uint32_t notifyEventIntr, uint32_t message)
@@ -128,8 +126,6 @@ cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgWord (IPC_STRUCT_Type* base, uint32_t n
 * Cy_IPC_Drv_Release() function after reading the message to release the
 * IPC channel.
 *
-* This function is internal and should not be called directly by user software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -145,6 +141,9 @@ cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgWord (IPC_STRUCT_Type* base, uint32_t n
 *   \retval CY_IPC_DRV_ERROR:   The function encountered an error because the IPC
 *                       channel was already in a released state, meaning the data
 *                       may be invalid.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_ReadMsgWord
 *
 *******************************************************************************/
 cy_en_ipcdrv_status_t  Cy_IPC_Drv_ReadMsgWord (IPC_STRUCT_Type const * base, uint32_t * message)

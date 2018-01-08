@@ -59,7 +59,7 @@
 *******************************************************************************/
 __STATIC_INLINE void Clock_1_Enable(void)
 {
-    Cy_SysClk_PeriphEnableDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM);
+    (void)Cy_SysClk_PeriphEnableDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -75,7 +75,7 @@ __STATIC_INLINE void Clock_1_Enable(void)
 *******************************************************************************/
 __STATIC_INLINE void Clock_1_Disable(void)
 {
-    Cy_SysClk_PeriphDisableDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM);
+    (void)Cy_SysClk_PeriphDisableDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM);
 }
 
 /*******************************************************************************
@@ -97,7 +97,7 @@ __STATIC_INLINE void Clock_1_Disable(void)
 *******************************************************************************/
 __STATIC_INLINE void Clock_1_SetDivider(uint32_t dividerValue)
 {
-    Cy_SysClk_PeriphSetDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM, dividerValue);
+    (void)Cy_SysClk_PeriphSetDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM, dividerValue);
 }
 
 /*******************************************************************************
@@ -145,7 +145,7 @@ __STATIC_INLINE uint32_t Clock_1_GetDivider(void)
 *******************************************************************************/
 __STATIC_INLINE void Clock_1_SetFracDivider(uint32_t dividerIntValue, uint32_t dividerFracValue)
 {
-    Cy_SysClk_PeriphSetFracDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM, dividerIntValue, dividerFracValue);
+    (void)Cy_SysClk_PeriphSetFracDivider(Clock_1_DIV_TYPE, Clock_1_DIV_NUM, dividerIntValue, dividerFracValue);
 }
 
 /*******************************************************************************

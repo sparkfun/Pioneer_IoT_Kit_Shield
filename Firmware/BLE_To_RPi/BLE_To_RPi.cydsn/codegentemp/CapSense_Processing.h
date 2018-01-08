@@ -1,15 +1,15 @@
 /***************************************************************************//**
 * \file CapSense_Processing.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
-* This file provides the function prototypes for the Data Processing module.
-* The Data Processing module is responsible for the low level raw counts
-* processing provided by the sensing module, maintaining baseline and
-* difference values and performing high-level widget processing like updating
-* button status or calculating slider position.
+*   This file provides the function prototypes for the Data Processing module.
+*   The Data Processing module is responsible for the low level raw counts
+*   processing provided by the sensing module, maintaining baseline and
+*   difference values and performing high-level widget processing like updating
+*   button status or calculating slider position.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -40,8 +40,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_DATA_PROCESS_H)
-#define CY_CAPSENSE_CapSense_DATA_PROCESS_H
+#if !defined(CY_SENSE_CapSense_DATA_PROCESS_H)
+#define CY_SENSE_CapSense_DATA_PROCESS_H
 
 #include "CapSense_Configuration.h"
 #include "CapSense_Structure.h"
@@ -94,8 +94,8 @@
 * Function Prototypes - internal functions.
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -133,7 +133,7 @@ void CapSense_DpInitialize(void);
 
     uint32 CapSense_DpProcessCsdSensorRawCountsExt(
                     CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
-                    CapSense_RAM_SNS_STRUCT *ptrSns,
+                    CapSense_RAM_SNS_STRUCT *curSnsPtr,
                     CapSense_PTR_FILTER_VARIANT fltrHistV,
                      uint32 mode);
 
@@ -146,7 +146,7 @@ void CapSense_DpInitialize(void);
 
     uint32 CapSense_DpProcessCsxSensorRawCountsExt(
                     CapSense_FLASH_WD_STRUCT const *ptrFlashWdgt,
-                    CapSense_RAM_SNS_STRUCT *ptrSns,
+                    CapSense_RAM_SNS_STRUCT *curSnsPtr,
                     CapSense_PTR_FILTER_VARIANT fltrHistV,
                      uint32 mode);
 
@@ -155,7 +155,7 @@ void CapSense_DpInitialize(void);
 #endif /* #if (0u != CapSense_TOTAL_CSX_WIDGETS) */
 
 void CapSense_DpUpdateDifferences(
-        CapSense_RAM_WD_BASE_STRUCT  *ptrRamWdgt, CapSense_RAM_SNS_STRUCT *ptrSns);
+        CapSense_RAM_WD_BASE_STRUCT  *ptrRamWdgt, CapSense_RAM_SNS_STRUCT *curSnsPtr);
 
 #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
     void CapSense_DpUpdateThresholds(
@@ -170,9 +170,9 @@ void CapSense_DpUpdateDifferences(
 
 
 /** \}
-* \endif */
+* \endcond */
 
-#endif /* End CY_CAPSENSE_CapSense_DATA_PROCESS_H */
+#endif /* End CY_SENSE_CapSense_DATA_PROCESS_H */
 
 
 /* [] END OF FILE */

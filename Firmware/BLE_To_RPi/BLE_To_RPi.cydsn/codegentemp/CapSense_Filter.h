@@ -1,11 +1,11 @@
 /***************************************************************************//**
-* \file     CapSense_Filter.h
-* \version  1.0
+* \file CapSense_Filter.h
+* \version 2.0
 *
-* \brief    This file contains the definitions for all firmware filters
-*           implementation.
+* \brief
+*   This file contains the definitions for all firmware filters implementation.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_FILTER_H)
-#define CY_CAPSENSE_CapSense_FILTER_H
+#if !defined(CY_SENSE_CapSense_FILTER_H)
+#define CY_SENSE_CapSense_FILTER_H
 
 #include "syslib/cy_syslib.h"
 #include "cyfitter.h"
@@ -53,8 +53,8 @@
 * LOW LEVEL API
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_LOW_LEVEL
-* \addtogroup group_capsense_low_level
+* \cond SECTION_CYSENSE_LOW_LEVEL
+* \addtogroup group_cysense_low_level
 * \{
 */
 
@@ -66,25 +66,32 @@ void CapSense_InitializeAllBaselines(void);
 void CapSense_InitializeWidgetBaseline(uint32 widgetId);
 void CapSense_InitializeSensorBaseline(uint32 widgetId, uint32 sensorId);
 
+#if ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+     (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)))
+    void CapSense_InitializeAllFilters(void);
+    void CapSense_InitializeWidgetFilter(uint32 widgetId);
+#endif /* ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+           (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))) */
+
 /** \}
-* \endif */
+* \endcond */
 
 
 /*******************************************************************************
 * Function Prototypes - internal functions
 *******************************************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
 void CapSense_FtInitialize(void);
 
-#if (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)
+#if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
     void CapSense_RunNoiseEnvelope(uint32 widgetId, uint32 sensorId);
     void CapSense_InitializeNoiseEnvelope(uint32 widgetId, uint32 sensorId);
-#endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
+#endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
 
 #if (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN)
     void CapSense_InitializeIIR(uint32 widgetId, uint32 sensorId);
@@ -119,11 +126,11 @@ uint32 CapSense_FtIIR1stOrder(uint32 input, uint32 prevOutput, uint32 n, uint32 
 
 void CapSense_FtInitializeBaselineChannel(CapSense_RAM_SNS_STRUCT *ptrSensor, uint32 wdType, uint32 channel);
 
-#if (CapSense_REGULAR_RC_FILTER_EN || CapSense_PROX_RC_FILTER_EN)
+#if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
     void CapSense_FtRunEnabledFilters(uint32 widgetId, uint32 sensorId);
     void CapSense_FtRunEnabledFiltersInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                                       CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType);
-#endif /* (CapSense_REGULAR_RC_FILTER_EN || CapSense_PROX_RC_FILTER_EN) */
+#endif /* (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
 
 #if (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN)
@@ -164,7 +171,7 @@ void CapSense_FtInitializeBaselineChannel(CapSense_RAM_SNS_STRUCT *ptrSensor, ui
 #endif /* (CapSense_ENABLE == CapSense_ALP_FILTER_EN) */
 
 /** \}
-* \endif */
+* \endcond */
 
 /***************************************
 * Initial Parameter Constants
@@ -176,7 +183,7 @@ void CapSense_FtInitializeBaselineChannel(CapSense_RAM_SNS_STRUCT *ptrSensor, ui
 #define NOISE_ENVELOPE_RESET_COUNTER                (0x0Au)
 #define NOISE_ENVELOPE_4_TIMES                      (0x02u)
 
-#endif /* End CY_CAPSENSE_CapSense_FILTER_H */
+#endif /* End CY_SENSE_CapSense_FILTER_H */
 
 
 /* [] END OF FILE */

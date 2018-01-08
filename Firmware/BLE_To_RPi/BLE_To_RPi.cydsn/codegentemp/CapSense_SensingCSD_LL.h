@@ -1,11 +1,11 @@
 /***************************************************************************//**
 * \file CapSense_SensingCSD_LL.h
-* \version 1.0
+* \version 2.0
 *
 * \brief
 *   This file provides the headers of APIs specific to CSD sensing implementation.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_SENSINGCSD_LL_H)
-#define CY_CAPSENSE_CapSense_SENSINGCSD_LL_H
+#if !defined(CY_SENSE_CapSense_SENSINGCSD_LL_H)
+#define CY_SENSE_CapSense_SENSINGCSD_LL_H
 
 #include "cyfitter_gpio.h"
 #include "syslib/cy_syslib.h"
@@ -47,30 +47,6 @@
 /****************************************************************************
 * Register and mode mask definition
 ****************************************************************************/
-
-
-/* CMOD and CSH capacitor port-pins registers */
-#if (CapSense_ENABLE == CapSense_CSD_EN)
-
-    #if ((CapSense_ENABLE == CapSense_CSD_SHIELD_EN) && \
-         (CapSense_ENABLE == CapSense_CSD_SHIELD_TANK_EN))
-        #define CapSense_CTANK_CONNECTION                   (CapSense_CSD__DEDICATED_IO1)
-    #endif /* ((CapSense_ENABLE == CapSense_CSD_SHIELD_EN) && \
-               (CapSense_ENABLE == CapSense_CSD_SHIELD_TANK_EN)) */
-
-    #if(0u != CapSense_CSX_EN)
-        #define CapSense_CMOD_CONNECTION                    (CapSense_CSD__CSHIELD_PAD)
-    #else
-        #define CapSense_CMOD_CONNECTION                    (CapSense_CSD__DEDICATED_IO0)
-    #endif /* (0u != CapSense_CSX_EN) */
-
-    #define CapSense_CSD_CMOD_PORT_PTR                      (CapSense_Cmod_0_PORT)
-    #define CapSense_CSD_CMOD_PIN                           (CapSense_Cmod_0_NUM)
-
-    #define CapSense_CSD_CTANK_PORT_PTR                     (CapSense_Csh_0_PORT)
-    #define CapSense_CSD_CTANK_PIN                          (CapSense_Csh_0_NUM)
-
-#endif  /* (CapSense_ENABLE == CapSense_CSD_EN) */
 
 #define CapSense_CSD_CSDCMP_INIT                                (CapSense_CSD_CSDCMP_CSDCMP_DISABLED)
 
@@ -126,19 +102,7 @@
 
 #define CapSense_CSD_SW_SHIELD_SEL_INIT                 (CapSense_CSD_SW_SHIELD_SEL_SW_HCAV_HSCMP)
 
-#if(CapSense_CSD_IREF_SRSS != CapSense_CSD_IREF_SOURCE)
-    #define CapSense_IREF_SRC_CFG   (CSD_CONFIG_IREF_SEL_Msk)
-#else
-    #define CapSense_IREF_SRC_CFG   (0u)
-#endif /* (CapSense_CSD_IREF_SRSS != CapSense_CSD_IREF_SOURCE) */
-
-#if(CapSense_ENABLE != CapSense_LP_MODE_EN)
-    #define CapSense_PWR_MODE_CFG   (0u)
-#else
-    #define CapSense_PWR_MODE_CFG   (CSD_CONFIG_LP_MODE_Msk)
-#endif /* (CapSense_ENABLE != CapSense_LP_MODE_EN) */
-
-/* Defining default CSDv2 configuration according to settings in customizer. */
+/* Defining default HW configuration according to settings in customizer. */
 #define CapSense_DEFAULT_CSD_CONFIG                 (CapSense_CSD_CONFIG_FILTER_DELAY_12MHZ |\
                                                              CapSense_IREF_SRC_CFG |\
                                                              CapSense_PWR_MODE_CFG)
@@ -223,7 +187,7 @@
     #define CapSense_DEFAULT_IDACB_BALL_MODE            (CapSense_CSD_IDACB_BALL_MODE_FULL <<\
                                                                  CapSense_CSD_IDACB_BALL_MODE_POS)
 
-    #define CapSense_DEFAULT_SENSE_DUTY_SEL             (0x00000000uL)
+    #define CapSense_DEFAULT_SENSE_DUTY_SEL             (CapSense_CSD_SENSE_DUTY_SENSE_POL_PHI_HIGH)
 
 #elif(CapSense_SENSING_LOW_EMI == CapSense_CSD_SENSING_METHOD)
 
@@ -314,35 +278,28 @@
                                                                         (CapSense_CSD_AVG_CYCLES_PER_LOOP))
 
 #define CapSense_CSD_IDAC_MOD_BITS_USED                     (7u)
-#define CapSense_CAL_MIDDLE_BIT                             (1u << (CapSense_CSD_IDAC_MOD_BITS_USED - 1u))
-#define CapSense_MAX_16_BITS_VALUE                          (0x0000FFFFLu)
-#define CapSense_MAX_SCAN_TIME                              (CapSense_MAX_16_BITS_VALUE * CapSense_CSD_SCANSPEED_DIVIDER)
-#define CapSense_CALIBR_WATCHDOG_CYCLES_NUM                 (CapSense_MAX_SCAN_TIME / CapSense_CSD_AVG_CYCLES_PER_LOOP)
+#define CapSense_CAL_MIDDLE_BIT                             (1uL << (CapSense_CSD_IDAC_MOD_BITS_USED - 1u))
+/* Increased scan time duration to cover coarse and fine init cycles */
+#define CapSense_MAX_17_BITS_VALUE                          (0x0001FFFFLu)
+#define CapSense_MAX_SCAN_TIME                              ((CapSense_MAX_17_BITS_VALUE * CapSense_CSD_SCANSPEED_DIVIDER) /\
+                                                                        (CYDEV_CLK_PERICLK__MHZ))
+#define CapSense_CALIBR_WATCHDOG_CYCLES_NUM                 (((CapSense_CPU_CLOCK_FREQ_MHZ) * (CapSense_MAX_SCAN_TIME)) /\
+                                                                        (CapSense_CSD_AVG_CYCLES_PER_LOOP))
 
 #define CapSense_DELAY_EXTRACYCLES_NUM                      (9u)
 
 /* Calibration constants */
 #define CapSense_IDAC_MOD_MAX_CALIB_ERROR                   (10u)
 
-#if (CapSense_IDAC_GAIN_8X == CapSense_CSD_IDAC_GAIN)
+#if (CapSense_IDAC_GAIN_HIGH == CapSense_CSD_IDAC_GAIN)
     #define CapSense_CSD_IDAC_GAIN_VALUE_NA                 (2400u)
-#elif (CapSense_IDAC_GAIN_HIGH == CapSense_CSD_IDAC_GAIN)
-    #define CapSense_CSD_IDAC_GAIN_VALUE_NA                 (2400u)
-#elif (CapSense_IDAC_GAIN_4X == CapSense_CSD_IDAC_GAIN)
-    #define CapSense_CSD_IDAC_GAIN_VALUE_NA                 (1200u)
 #elif (CapSense_IDAC_GAIN_MEDIUM == CapSense_CSD_IDAC_GAIN)
     #define CapSense_CSD_IDAC_GAIN_VALUE_NA                 (300u)
 #else
     #define CapSense_CSD_IDAC_GAIN_VALUE_NA                 (37u)
-#endif /* (CapSense_IDAC_GAIN_8X == CapSense_CSD_IDAC_GAIN) */
+#endif /* (CapSense_IDAC_GAIN_HIGH == CapSense_CSD_IDAC_GAIN) */
 
-#if (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN)
-    #define CapSense_CSD_DUAL_IDAC_FACTOR                   (2u)
-#else
-    #define CapSense_CSD_DUAL_IDAC_FACTOR                   (1u)
-#endif /* (CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) */
-
-/* Defining the drive mode of pins depending on the Inactive sensor connection setting in the component customizer. */
+/* Defining the drive mode of pins depending on the Inactive sensor connection setting in the Component customizer. */
 #if(CapSense_SNS_CONNECTION_GROUND == CapSense_CSD_INACTIVE_SNS_CONNECTION)
     #define CapSense_CSD_INACTIVE_SNS_GPIO_DM               (CY_GPIO_DM_STRONG)
 #elif(CapSense_SNS_CONNECTION_HIGHZ == CapSense_CSD_INACTIVE_SNS_CONNECTION)
@@ -386,14 +343,14 @@
 #else
     #define CapSense_DEFAULT_IDACA_POLARITY                 (CapSense_CSD_IDACA_POLARITY_VSSA_SRC << CapSense_CSD_IDACA_POLARITY_POS)
     #define CapSense_DEFAULT_IDACB_POLARITY                 (CapSense_CSD_IDACB_POLARITY_VSSA_SRC << CapSense_CSD_IDACB_POLARITY_POS)
-#endif /*  (CapSense_IDAC_SINKING == CapSense_CSD_IDAC_CONFIG) */
+#endif /* (CapSense_IDAC_SINKING == CapSense_CSD_IDAC_CONFIG) */
 
 
-#if(CapSense_CSD_VREF_SRSS != CapSense_CSD_VREF_SOURCE)
+#if(CapSense_VREF_SRSS != CapSense_CSD_VREF_SOURCE)
     #define CapSense_CSD_SW_REFGEN_VREF_SRC                 (CapSense_CSD_SW_REFGEN_SEL_SW_SGRP_MSK)
 #else
     #define CapSense_CSD_SW_REFGEN_VREF_SRC                 (CapSense_CSD_SW_REFGEN_SEL_SW_SGR_MSK)
-#endif /* (CapSense_CSD_VREF_SRSS != CapSense_CSD_VREF_SOURCE) */
+#endif /* (CapSense_VREF_SRSS != CapSense_CSD_VREF_SOURCE) */
 
 
 /* IDAC legs configuration */
@@ -418,7 +375,7 @@
 #endif /* ((CapSense_ENABLE == CapSense_CSD_IDAC_COMP_EN) && \
         (CapSense_DISABLE == CapSense_CSD_DEDICATED_IDAC_COMP_EN)) */
 
-/* IDACs register configuration is based on the component configuration */
+/* IDACs register configuration is based on the Component configuration */
 #define CapSense_IDAC_MOD_DEFAULT_CFG                       (CapSense_DEFAULT_IDACA_RANGE | \
                                                                      CapSense_DEFAULT_IDACA_POLARITY | \
                                                                      CapSense_DEFAULT_IDACA_BALL_MODE | \
@@ -455,6 +412,15 @@ extern uint32 CapSense_configCsd;
     extern uint8 CapSense_badConversionsNum;
 #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
+#if (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE)
+    /* Stores IDAC and raw count that corresponds to a sensor with maximum Cp within a widget */
+    extern uint8 CapSense_calibratedIdac;
+    extern uint16 CapSense_calibratedRawcount;
+    #if (CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN)
+        extern uint8 CapSense_calibratedIdacRow;
+        extern uint16 CapSense_calibratedRawcountRow;
+    #endif /*(CapSense_CSD_MATRIX_WIDGET_EN || CapSense_CSD_TOUCHPAD_WIDGET_EN) */
+#endif /* (CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) */
 
 /***************************************
 * Function Prototypes
@@ -470,8 +436,8 @@ extern void CapSense_CSDPostMultiScan(void);
 
 
 /**
-* \if SECTION_CAPSENSE_LOW_LEVEL
-* \addtogroup group_capsense_low_level
+* \cond SECTION_CYSENSE_LOW_LEVEL
+* \addtogroup group_cysense_low_level
 * \{
 */
 
@@ -483,19 +449,19 @@ void CapSense_CSDScanExt(void);
      (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN))
     cy_status CapSense_CSDCalibrateWidget(uint32 widgetId, uint32 target);
 #endif /* ((CapSense_CSD_SS_DIS != CapSense_CSD_AUTOTUNE) || \
-           (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN))  */
+           (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN)) */
 void CapSense_CSDConnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr);
 void CapSense_CSDDisconnectSns(CapSense_FLASH_IO_STRUCT const *snsAddrPtr);
 
 /** \}
-* \endif */
+* \endcond */
 
 /*****************************************************
 * Function Prototypes - internal Low Level functions
 *****************************************************/
 /**
-* \if SECTION_CAPSENSE_INTERNAL
-* \addtogroup group_capsense_internal
+* \cond SECTION_CYSENSE_INTERNAL
+* \addtogroup group_cysense_internal
 * \{
 */
 
@@ -522,7 +488,7 @@ void CapSense_SsCSDDisconnectSnsExt(uint32 widgetId, uint32 sensorId);
            (CapSense_ENABLE == CapSense_CSD_IDAC_AUTOCAL_EN)) */
 
 /** \}
-* \endif */
+* \endcond */
 
 /***************************************
 * Global software variables
@@ -538,7 +504,7 @@ extern void CapSense_CSDPostMultiScanGanged(void);
     extern uint8 CapSense_badConversionsNum;
 #endif /* (CapSense_ENABLE == CapSense_CSD_NOISE_METRIC_EN) */
 
-#endif /* End CY_CAPSENSE_CapSense_SENSINGCSD_LL_H */
+#endif /* End CY_SENSE_CapSense_SENSINGCSD_LL_H */
 
 
 /* [] END OF FILE */

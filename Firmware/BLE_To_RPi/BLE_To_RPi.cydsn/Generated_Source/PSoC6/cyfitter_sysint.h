@@ -18,16 +18,24 @@
 #define INCLUDED_CYFITTER_SYSINT_H
 #include "cy_device_headers.h"
 
-/* BLE_bless_isr */
-#define BLE_bless_isr__INTC_CORTEXM0P_ASSIGNED 1
-#define BLE_bless_isr__INTC_CORTEXM0P_MUX 3u
-#define BLE_bless_isr__INTC_CORTEXM0P_PRIORITY 1u
-#define BLE_bless_isr__INTC_NUMBER 24u
-
 /* CapSense_ISR */
 #define CapSense_ISR__INTC_CORTEXM0P_ASSIGNED 1
 #define CapSense_ISR__INTC_CORTEXM0P_MUX 4u
 #define CapSense_ISR__INTC_CORTEXM0P_PRIORITY 2u
 #define CapSense_ISR__INTC_NUMBER 49u
+#define CapSense_ISR_INTC_CORTEXM0P_ASSIGNED 1
+#define CapSense_ISR_INTC_CORTEXM0P_MUX 4u
+#define CapSense_ISR_INTC_CORTEXM0P_PRIORITY 2u
+#define CapSense_ISR_INTC_NUMBER 49u
+
+/* BLE_bless_isr */
+#define BLE_bless_isr__INTC_CORTEXM0P_ASSIGNED 1
+#define BLE_bless_isr__INTC_CORTEXM0P_MUX 3u
+#define BLE_bless_isr__INTC_CORTEXM0P_PRIORITY 1u
+#define BLE_bless_isr__INTC_NUMBER 24u
+#define BLE_bless_isr_INTC_CORTEXM0P_ASSIGNED 1
+#define BLE_bless_isr_INTC_CORTEXM0P_MUX 3u
+#define BLE_bless_isr_INTC_CORTEXM0P_PRIORITY 1u
+#define BLE_bless_isr_INTC_NUMBER 24u
 
 #endif /* INCLUDED_CYFITTER_SYSINT_H */

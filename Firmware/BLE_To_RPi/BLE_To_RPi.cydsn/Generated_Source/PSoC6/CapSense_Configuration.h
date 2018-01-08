@@ -1,11 +1,11 @@
 /*******************************************************************************
 * \file       CapSense_Configuration.h
-* \version    1.0
+* \version    2.0
 *
 * \brief
 *   This file provides the customizer parameters definitions.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -36,8 +36,8 @@
 * limited by and subject to the applicable Cypress software license agreement.
 *******************************************************************************/
 
-#if !defined(CY_CAPSENSE_CapSense_CONFIGURATION_H)
-#define CY_CAPSENSE_CapSense_CONFIGURATION_H
+#if !defined(CY_SENSE_CapSense_CONFIGURATION_H)
+#define CY_SENSE_CapSense_CONFIGURATION_H
 
 #include "syslib/cy_syslib.h"
 #include "cyfitter.h"
@@ -70,7 +70,7 @@
 *******************************************************************************/
 #define CapSense_CSD_EN                   (1u)
 #define CapSense_CSX_EN                   (0u)
-#define CapSense_CSD_CSX_EN               (CapSense_CSD_EN & CapSense_CSX_EN)
+#define CapSense_CSD_CSX_EN               (CapSense_CSD_EN && CapSense_CSX_EN)
 
 /*******************************************************************************
 * Definitions for number of widgets and sensors
@@ -142,6 +142,8 @@
 #define CapSense_TOTAL_RADIAL_SLIDERS     (0u)
 #define CapSense_TOTAL_TOUCHPADS          (0u)
 #define CapSense_MAX_CENTROID_LENGTH      (5u)
+#define CapSense_SLIDER_MULT_METHOD       (0u)
+#define CapSense_TOUCHPAD_MULT_METHOD     (0u)
 
 /*******************************************************************************
 * Enabled sensor types
@@ -157,9 +159,10 @@
 #define CapSense_CSX_GANGED_SNS_EN        (0u)
 
 /*******************************************************************************
-* Max number of sensors used among all widgets
+* Max number of sensors used among all the widgets
 *******************************************************************************/
 #define CapSense_MAX_SENSORS_PER_WIDGET   (5u)
+#define CapSense_MAX_SENSORS_PER_5X5_TOUCHPAD (1u)
 
 /*******************************************************************************
 * Total number of all used electrodes (NOT unique)
@@ -268,7 +271,10 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_IIR_FILTER_PERFORMANCE       (2u)
 #define CapSense_IIR_FILTER_MEMORY            (3u)
 
-/* Regular sensor raw-count filters */
+/* Raw count filters */
+#define CapSense_RC_FILTER_EN                 (CapSense_REGULAR_RC_FILTER_EN || CapSense_PROX_RC_FILTER_EN)
+
+/* Regular sensor raw count filters */
 #define CapSense_REGULAR_RC_FILTER_EN         (1u)
 #define CapSense_REGULAR_RC_IIR_FILTER_EN     (0u)
 #define CapSense_REGULAR_RC_MEDIAN_FILTER_EN  (0u)
@@ -276,7 +282,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_REGULAR_RC_CUSTOM_FILTER_EN  (0u)
 #define CapSense_REGULAR_RC_ALP_FILTER_EN     (0u)
 
-/* Proximity sensor raw-count filters */
+/* Proximity sensor raw count filters */
 #define CapSense_PROX_RC_FILTER_EN            (0u)
 #define CapSense_PROX_RC_IIR_FILTER_EN        (0u)
 #define CapSense_PROX_RC_MEDIAN_FILTER_EN     (0u)
@@ -288,17 +294,17 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_REGULAR_RC_ALP_FILTER_COEFF  (2u)
 #define CapSense_PROX_RC_ALP_FILTER_COEFF     (2u)
 
-/* IIR raw-count filter algorithm for regular sensors */
+/* IIR raw count filter algorithm for regular sensors */
 #define CapSense_REGULAR_IIR_RC_TYPE          (CapSense_IIR_FILTER_STANDARD)
 
-/* IIR raw-count filter coefficients for regular sensors */
+/* IIR raw count filter coefficients for regular sensors */
 #define CapSense_REGULAR_IIR_RC_N             (128u)
 #define CapSense_REGULAR_IIR_RC_SHIFT         (0u)
 
-/* IIR raw-count filter algorithm for proximity sensors*/
+/* IIR raw count filter algorithm for proximity sensors*/
 #define CapSense_PROX_IIR_RC_TYPE             (CapSense_IIR_FILTER_STANDARD)
 
-/* IIR raw-count filter coefficients for proximity sensors */
+/* IIR raw count filter coefficients for proximity sensors */
 #define CapSense_PROX_IIR_RC_N                (128u)
 #define CapSense_PROX_IIR_RC_SHIFT            (0u)
 
@@ -324,23 +330,23 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_WD_BSLN_COEFF_EN             (0u)
 
 /* Centroid position filters */
-#define CapSense_POS_IIR_FILTER_EN            (0x00u)
-#define CapSense_POS_MEDIAN_FILTER_EN         (0x00u)
-#define CapSense_POS_AVERAGE_FILTER_EN        (0x00u)
-#define CapSense_POS_JITTER_FILTER_EN         (0x01u)
-#define CapSense_CSX_TOUCHPAD_POS_MEDIAN_FILTER_EN (0x00u)
+#define CapSense_POSITION_FILTER_EN           (1u)
+#define CapSense_POS_MEDIAN_FILTER_EN         (0u)
+#define CapSense_POS_IIR_FILTER_EN            (0u)
+#define CapSense_POS_ADAPTIVE_IIR_FILTER_EN   (0u)
+#define CapSense_POS_AVERAGE_FILTER_EN        (0u)
+#define CapSense_POS_JITTER_FILTER_EN         (1u)
+#define CapSense_BALLISTIC_MULTIPLIER_EN      (0u)
+#define CapSense_CENTROID_3X3_CSD_EN          (0u)
+#define CapSense_CENTROID_5X5_CSD_EN          (0u)
+#define CapSense_CSD_5X5_MAX_FINGERS          (1u)
 
 #define CapSense_POS_IIR_COEFF                (128u)
+#define CapSense_POS_IIR_RESET_RADIAL_SLIDER  (35u)
+
 #define CapSense_CSX_TOUCHPAD_UNDEFINED       (40u)
 
-
 /* IDAC options */
-
-/* CSDv1 IDAC gain */
-#define CapSense_IDAC_GAIN_4X                 (4u)
-#define CapSense_IDAC_GAIN_8X                 (8u)
-
-/* CSDv2 IDAC gain */
 #define CapSense_IDAC_GAIN_LOW                (0uL)
 #define CapSense_IDAC_GAIN_MEDIUM             (1uL)
 #define CapSense_IDAC_GAIN_HIGH               (2uL)
@@ -354,10 +360,6 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 
 /* Shield electrode delay */
 #define CapSense_NO_DELAY                     (0u)
-/* CSDv1 */
-#define CapSense_SH_DELAY_50NS                (1u)
-#define CapSense_SH_DELAY_100NS               (2u)
-/* CSDv2 */
 #define CapSense_SH_DELAY_5NS                 (1u)
 #define CapSense_SH_DELAY_10NS                (2u)
 #define CapSense_SH_DELAY_20NS                (3u)
@@ -375,7 +377,6 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_CLK_SOURCE_SSC3              (0x03u)
 #define CapSense_CLK_SOURCE_SSC4              (0x04u)
 
-/* CSDv1 and CSDv2 */
 #define CapSense_CLK_SOURCE_PRS8              (0x05u)
 #define CapSense_CLK_SOURCE_PRS12             (0x06u)
 #define CapSense_CLK_SOURCE_PRSAUTO           (0xFFu)
@@ -393,43 +394,43 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_RES15BIT                     (15u)
 #define CapSense_RES16BIT                     (16u)
 
-/* CSDv2: Initialization switch resistance */
+/* Initialization switch resistance */
 #define CapSense_INIT_SW_RES_LOW              (0x00000000Lu)
 #define CapSense_INIT_SW_RES_MEDIUM           (0x00000001Lu)
 #define CapSense_INIT_SW_RES_HIGH             (0x00000002Lu)
 
-/* CSDv2: Initialization switch resistance */
+/* Initialization switch resistance */
 #define CapSense_SCAN_SW_RES_LOW              (0x00000000Lu)
 #define CapSense_SCAN_SW_RES_MEDIUM           (0x00000001Lu)
 #define CapSense_SCAN_SW_RES_HIGH             (0x00000002Lu)
 
-/* CSDv2: CSD shield switch resistance */
+/* CSD shield switch resistance */
 #define CapSense_SHIELD_SW_RES_LOW            (0x00000000Lu)
 #define CapSense_SHIELD_SW_RES_MEDIUM         (0x00000001Lu)
 #define CapSense_SHIELD_SW_RES_HIGH           (0x00000002Lu)
 #define CapSense_SHIELD_SW_RES_LOW_EMI        (0x00000003Lu)
 
-/* CSDv2: CSD shield switch resistance */
+/* CSD shield switch resistance */
 #define CapSense_INIT_SHIELD_SW_RES_LOW       (0x00000000Lu)
 #define CapSense_INIT_SHIELD_SW_RES_MEDIUM    (0x00000001Lu)
 #define CapSense_INIT_SHIELD_SW_RES_HIGH      (0x00000002Lu)
 #define CapSense_INIT_SHIELD_SW_RES_LOW_EMI   (0x00000003Lu)
 
-/* CSDv2: CSD shield switch resistance */
+/* CSD shield switch resistance */
 #define CapSense_SCAN_SHIELD_SW_RES_LOW       (0x00000000Lu)
 #define CapSense_SCAN_SHIELD_SW_RES_MEDIUM    (0x00000001Lu)
 #define CapSense_SCAN_SHIELD_SW_RES_HIGH      (0x00000002Lu)
 #define CapSense_SCAN_SHIELD_SW_RES_LOW_EMI   (0x00000003Lu)
 
-/* CSDv2: Vref source */
+/* Vref source */
 #define CapSense_VREF_SRSS                    (0x00000000Lu)
 #define CapSense_VREF_PASS                    (0x00000001Lu)
 
-/* CSDv2: Iref source */
+/* Iref source */
 #define CapSense_IREF_SRSS                    (0x00000000Lu)
 #define CapSense_IREF_PASS                    (0x00000001Lu)
 
-/* CSDv2: Sensing method */
+/* Sensing method */
 #define CapSense_SENSING_LEGACY               (0x00000000Lu)
 #define CapSense_SENSING_LOW_EMI              (0x00000001Lu)
 #define CapSense_SENSING_FULL_WAVE            (0x00000002Lu)
@@ -444,7 +445,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 
 #define CapSense_LP_MODE_EN                   (0u)
 
-#define CapSense_CSDV2_ANALOG_WAKEUP_DELAY_US (0u)
+#define CapSense_BLOCK_ANALOG_WAKEUP_DELAY_US (0u)
 
 /*******************************************************************************
 * CSD Specific settings
@@ -471,7 +472,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_CSD_SNSCLK_R_CONST           (1000u)
 #define CapSense_CSD_VREF_MV                  (1219u)
 
-/* CSD settings - CSDv2 */
+/* CSD settings */
 #define CapSense_CSD_ANALOG_STARTUP_DELAY_US  (0u)
 #define CapSense_CSD_FINE_INIT_TIME           (10u)
 #define CapSense_CSD_DEDICATED_IDAC_COMP_EN   (1u)
@@ -499,6 +500,9 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 
 #define CapSense_CSD_SENSE_WIDTH_LE              (10)
 
+#define CapSense_CSD_MFS_DIVIDER_OFFSET_F1       (1u)
+#define CapSense_CSD_MFS_DIVIDER_OFFSET_F2       (2u)
+
 /*******************************************************************************
 * CSX Specific settings
 *******************************************************************************/
@@ -518,7 +522,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_CSX_MULTIPHASE_TX_EN         (0u)
 #define CapSense_CSX_MAX_TX_PHASE_LENGTH      (0u)
 
-/* CSX settings - CSDv2 */
+/* CSX settings */
 #define CapSense_CSX_ANALOG_STARTUP_DELAY_US  (0u)
 #define CapSense_CSX_AUTO_ZERO_EN             (0u)
 #define CapSense_CSX_AUTO_ZERO_TIME           (15u)
@@ -530,6 +534,9 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_CSX_INIT_SHIELD_SWITCH_RES   (CapSense_INIT_SHIELD_SW_RES_HIGH)
 #define CapSense_CSX_SCAN_SHIELD_SWITCH_RES   (CapSense_SCAN_SHIELD_SW_RES_LOW)
 
+#define CapSense_CSX_MFS_DIVIDER_OFFSET_F1    (1u)
+#define CapSense_CSX_MFS_DIVIDER_OFFSET_F2    (2u)
+
 /* Gesture parameters */
 #define CapSense_GES_GLOBAL_EN                (0u)
 
@@ -539,17 +546,18 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 *******************************************************************************/
 
 /* RAM Global Parameters Definitions */
-#define CapSense_CONFIG_ID                      (0x8EA2u)
-#define CapSense_DEVICE_ID                      (0x0980u)
+#define CapSense_CONFIG_ID                      (0x9FB4u)
+#define CapSense_DEVICE_ID                      (0x0900u)
+#define CapSense_HW_CLOCK                       (0x2EE0u)
 #define CapSense_CSD0_CONFIG                    (0x0106u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * Button0 initialization values for FLASH data structure
 *******************************************************************************/
-#define CapSense_BUTTON0_STATIC_CONFIG          (1u)
+#define CapSense_BUTTON0_STATIC_CONFIG          (10241u)
 #define CapSense_BUTTON0_NUM_SENSORS            (1u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * Button0 initialization values for RAM data structure
 *******************************************************************************/
 #define CapSense_BUTTON0_RESOLUTION             (CapSense_RES12BIT)
@@ -565,13 +573,13 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_BUTTON0_FINGER_CAP             (300u)
 #define CapSense_BUTTON0_SIGPFC                 (0u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * Button1 initialization values for FLASH data structure
 *******************************************************************************/
-#define CapSense_BUTTON1_STATIC_CONFIG          (1u)
+#define CapSense_BUTTON1_STATIC_CONFIG          (10241u)
 #define CapSense_BUTTON1_NUM_SENSORS            (1u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * Button1 initialization values for RAM data structure
 *******************************************************************************/
 #define CapSense_BUTTON1_RESOLUTION             (CapSense_RES13BIT)
@@ -587,16 +595,17 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_BUTTON1_FINGER_CAP             (300u)
 #define CapSense_BUTTON1_SIGPFC                 (0u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * LinearSlider0 initialization values for FLASH data structure
 *******************************************************************************/
-#define CapSense_LINEARSLIDER0_STATIC_CONFIG    (129u)
+#define CapSense_LINEARSLIDER0_STATIC_CONFIG    (10369u)
 #define CapSense_LINEARSLIDER0_NUM_SENSORS      (5u)
 #define CapSense_LINEARSLIDER0_X_RESOLUTION     (100u)
 #define CapSense_LINEARSLIDER0_X_CENT_MULT      ((CapSense_LINEARSLIDER0_X_RESOLUTION * 256u) / \
                                                  (CapSense_LINEARSLIDER0_NUM_SENSORS - 1u))
+#define CapSense_LINEARSLIDER0_IIR_FILTER_COEFF (128u)
 
-/***************************************************************************//**
+/*******************************************************************************
 * LinearSlider0 initialization values for RAM data structure
 *******************************************************************************/
 #define CapSense_LINEARSLIDER0_RESOLUTION       (CapSense_RES12BIT)
@@ -633,6 +642,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_ADC_FULLRANGE_MODE           (0u)
 #define CapSense_ADC_VREF_MODE                (1u)
 
+#define CapSense_ADC_MIN_CHANNELS             (1u)
 #define CapSense_ADC_EN                       (0u)
 #define CapSense_ADC_STANDALONE_EN            (0u)
 #define CapSense_ADC_TOTAL_CHANNELS           (0u)
@@ -643,7 +653,7 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_ADC_AZ_TIME                  (5u)
 #define CapSense_ADC_VREF_MV                  (2133u)
 #define CapSense_ADC_GAIN                     (11Lu)
-#define CapSense_ADC_IDAC_DEFAULT             (30u)
+#define CapSense_ADC_IDAC_DEFAULT             (31u)
 #define CapSense_ADC_MODCLK_DIV_DEFAULT       (2u)
 #define CapSense_ADC_MEASURE_MODE             (CapSense_ADC_FULLRANGE_MODE)
 #define CapSense_ADC_ANALOG_STARTUP_DELAY_US  (23u)
@@ -663,9 +673,20 @@ typedef uint16 CapSense_THRESHOLD_TYPE;
 #define CapSense_TST_EXTERNAL_CAP_EN            (0Lu)
 #define CapSense_TST_INTERNAL_CAP_EN            (0Lu)
 #define CapSense_TST_VDDA_EN                    (0Lu)
+#define CapSense_TST_FINE_INIT_TIME             (1Lu)
 
 
-#endif /* CY_CAPSENSE_CapSense_CONFIGURATION_H */
+#define CapSense_TST_ANALOG_STARTUP_DELAY_US    (23u)
+
+/*******************************************************************************
+* Gesture Configuration
+*******************************************************************************/
+#define CapSense_TIMESTAMP_INTERVAL             (1Lu)
+#define CapSense_GESTURE_EN_WIDGET_ID           (0Lu)
+#define CapSense_BALLISTIC_EN_WIDGET_ID         (0Lu)
+
+
+#endif /* CY_SENSE_CapSense_CONFIGURATION_H */
 
 
 /* [] END OF FILE */

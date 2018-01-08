@@ -39,7 +39,7 @@ static void HandleDataTransmit(CySCB_Type *base, cy_stc_scb_uart_context_t *cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 * If only UART functions which do not require context will be used pass NULL
 * as pointer to context.
@@ -53,7 +53,7 @@ static void HandleDataTransmit(CySCB_Type *base, cy_stc_scb_uart_context_t *cont
 *******************************************************************************/
 cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_config_t const *config, cy_stc_scb_uart_context_t *context)
 {
-    if ((NULL == base) && (NULL == config))
+    if ((NULL == base) || (NULL == config))
     {
         return CY_SCB_UART_BAD_PARAM;
     }
@@ -178,7 +178,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Init(CySCB_Type *base, cy_stc_scb_uart_confi
 * Function Name: Cy_SCB_UART_DeInit
 ****************************************************************************//**
 *
-* De-initializes the SCB block, returns the register values to default.
+* De-initializes the SCB block. Returns the register values to default.
 *
 * \param base
 * The pointer to the UART SCB instance.
@@ -232,9 +232,9 @@ void Cy_SCB_UART_DeInit(CySCB_Type *base)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
-* If only UART functions which do not require context will be used pass NULL
+* If only UART functions that do not require context will be used to pass NULL
 * as pointer to context.
 *
 * \note
@@ -265,14 +265,14 @@ void Cy_SCB_UART_Disable(CySCB_Type *base, cy_stc_scb_uart_context_t *context)
 ****************************************************************************//**
 *
 * This function handles the transition of the SCB UART into and out of
-* Deep-Sleep mode. It prevents the device from entering Deep-Sleep mode if
-* the UART is transmitting data or has any data in the RX FIFO. If the UART
-* is ready to enter Deep-Sleep mode, it is disabled. The UART is enabled
-* when the device failed to enter Deep-Sleep mode or it is awaken from
-* Deep-Sleep mode. During the UART is disabled, it stops driving the outputs
+* Deep Sleep mode. It prevents the device from entering Deep Sleep 
+* mode if the UART is transmitting data or has any data in the RX FIFO. If the
+* UART is ready to enter Deep Sleep mode, it is disabled. The UART is enabled
+* when the device fails to enter Deep Sleep mode or it is awakened from
+* Deep Sleep mode. While the UART is disabled, it stops driving the outputs
 * and ignores the inputs. Any incoming data is ignored.
 *
-* This function can be called during execution of \ref Cy_SysPm_DeepSleep,
+* This function must be called during execution of \ref Cy_SysPm_DeepSleep,
 * to do it, register this function as a callback before calling
 * \ref Cy_SysPm_DeepSleep : specify \ref CY_SYSPM_DEEPSLEEP as the callback
 * type and call \ref Cy_SysPm_RegisterCallback.
@@ -296,7 +296,7 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
     {
         case CY_SYSPM_CHECK_READY:
         {
-            /* Check if the High-level API is not busy executing the transmit
+            /* Check whether the High-level API is not busy executing the transmit
             * or receive operation.
             */
             if ((0UL == (CY_SCB_UART_TRANSMIT_ACTIVE & Cy_SCB_UART_GetTransmitStatus(locBase, locContext))) &&
@@ -304,7 +304,7 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
             {
                 /* If all data elements are transmitted from the TX FIFO and
                 * shifter and the RX FIFO is empty: the UART is ready to enter
-                * Deep-Sleep mode.
+                * Deep Sleep mode.
                 */
                 if (Cy_SCB_UART_IsTxComplete(locBase))
                 {
@@ -314,7 +314,7 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
                         * lines and the receiver stops receiving data until
                         * the UART is enabled.
                         * This happens when the device failed to enter Deep
-                        * Sleep or it is awaken from Deep-Sleep mode.
+                        * Sleep or it is awaken from Deep Sleep mode.
                         */
                         Cy_SCB_UART_Disable(locBase, locContext);
 
@@ -327,7 +327,7 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
 
         case CY_SYSPM_CHECK_FAIL:
         {
-            /* The other driver is not ready for Deep-Sleep mode. Restore the
+            /* The other driver is not ready for Deep Sleep mode. Restore the
             * Active mode configuration.
             */
 
@@ -340,7 +340,7 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
 
         case CY_SYSPM_BEFORE_TRANSITION:
             /* Do noting: the UART is not capable of waking up from
-            * Deep-Sleep mode.
+            * Deep Sleep mode.
             */
         break;
 
@@ -365,15 +365,15 @@ cy_en_syspm_status_t Cy_SCB_UART_DeepSleepCallback(cy_stc_syspm_callback_params_
 * Function Name: Cy_SCB_UART_HibernateCallback
 ****************************************************************************//**
 *
-* This function handles the transition of the SCB UART into Hibernate mode.
+* This function handles the transition of the SCB UART into Hibernate mode. 
 * It prevents the device from entering Hibernate mode if the UART is
 * transmitting data or has any data in the RX FIFO. If the UART is ready
-* to enter Hibernate mode, it is disabled. If the device failed to enter
-* Hibernate mode, the UART is enabled. During the UART is disabled, it stops
+* to enter Hibernate mode, it is disabled. If the device fails to enter
+* Hibernate mode, the UART is enabled. While the UART is disabled, it stops
 * driving the outputs and ignores the inputs. Any incoming data is ignored.
 *
-* This function can be called during execution of \ref Cy_SysPm_Hibernate,
-* to do it, register this function as a callback before calling
+* This function must be called during execution of \ref Cy_SysPm_Hibernate.
+* To do it, register this function as a callback before calling
 * \ref Cy_SysPm_Hibernate : specify \ref CY_SYSPM_HIBERNATE as the callback type
 * and call \ref Cy_SysPm_RegisterCallback.
 *
@@ -412,7 +412,7 @@ cy_en_syspm_status_t Cy_SCB_UART_HibernateCallback(cy_stc_syspm_callback_params_
 *
 * \param buffer
 * Pointer to the user defined ring buffer.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -423,7 +423,7 @@ cy_en_syspm_status_t Cy_SCB_UART_HibernateCallback(cy_stc_syspm_callback_params_
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
@@ -460,7 +460,7 @@ void Cy_SCB_UART_StartRingBuffer(CySCB_Type *base, void *buffer, uint32_t size, 
 * Function Name: Cy_SCB_UART_StopRingBuffer
 ****************************************************************************//**
 *
-* Stops receiving data into the ring buffer, and clears the ring buffer.
+* Stops receiving data into the ring buffer and clears the ring buffer.
 *
 * \param base
 * The pointer to the UART SCB instance.
@@ -468,7 +468,7 @@ void Cy_SCB_UART_StartRingBuffer(CySCB_Type *base, void *buffer, uint32_t size, 
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -494,7 +494,7 @@ void Cy_SCB_UART_StopRingBuffer(CySCB_Type *base, cy_stc_scb_uart_context_t *con
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -538,7 +538,7 @@ uint32_t Cy_SCB_UART_GetNumInRingBuffer(CySCB_Type const *base, cy_stc_scb_uart_
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -573,7 +573,7 @@ void Cy_SCB_UART_ClearRingBuffer(CySCB_Type const *base, cy_stc_scb_uart_context
 *
 * \param buffer
 * Pointer to buffer to store received data.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -582,7 +582,7 @@ void Cy_SCB_UART_ClearRingBuffer(CySCB_Type const *base, cy_stc_scb_uart_context
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -603,7 +603,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Receive(CySCB_Type *base, void *buffer, uint
 
     cy_en_scb_uart_status_t retStatus = CY_SCB_UART_RECEIVE_BUSY;
 
-    /* Check if there are no active transfer requests */
+    /* check whether there are no active transfer requests */
     if (0UL == (context->rxStatus & CY_SCB_UART_RECEIVE_ACTIVE))
     {
         uint8_t  *tmpBuf = (uint8_t *) buffer;
@@ -658,7 +658,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Receive(CySCB_Type *base, void *buffer, uint
                 size -= numToCopy;
                 context->rxBufIdx = numToCopy;
 
-                /* Check if all requested data has been read from the ring buffer */
+                /* Check whether all requested data has been read from the ring buffer */
                 if (0UL == size)
                 {
                     /* Enable the RX-error interrupt sources to update the error status */
@@ -726,7 +726,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Receive(CySCB_Type *base, void *buffer, uint
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \note
@@ -734,7 +734,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Receive(CySCB_Type *base, void *buffer, uint
 *   operation.
 * * If after the abort of the receive operation the transmitter continues
 *   sending data, it gets into the RX FIFO. To drop this data, the RX FIFO
-*   and ring buffer (if enabled) have to be cleared when the transmitter
+*   and ring buffer (if enabled) must be cleared when the transmitter
 *   stops sending data. Otherwise, received data will be kept and copied
 *   to the buffer when \ref Cy_SCB_UART_Receive is called.
 *
@@ -766,7 +766,7 @@ void Cy_SCB_UART_AbortReceive(CySCB_Type *base, cy_stc_scb_uart_context_t *conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -795,7 +795,7 @@ uint32_t Cy_SCB_UART_GetNumReceived(CySCB_Type const *base, cy_stc_scb_uart_cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -831,7 +831,7 @@ uint32_t Cy_SCB_UART_GetReceiveStatus(CySCB_Type const *base, cy_stc_scb_uart_co
 *
 * \param buffer
 * Pointer to user data to place in transmit buffer.
-* The item size is defined by the data type which depends on the configured
+* The item size is defined by the data type, which depends on the configured
 * data width.
 *
 * \param size
@@ -840,14 +840,14 @@ uint32_t Cy_SCB_UART_GetReceiveStatus(CySCB_Type const *base, cy_stc_scb_uart_co
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
 * \ref cy_en_scb_uart_status_t
 *
 * \note
-* * The buffer must not be modified and stay allocated until its content is
+* * The buffer must not be modified and must stay allocated until its content is
 *   copied into the TX FIFO.
 * * This function overrides the TX FIFO interrupt sources and changes the
 *   TX FIFO level.
@@ -861,7 +861,7 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Transmit(CySCB_Type *base, void *buffer, uin
 
     cy_en_scb_uart_status_t retStatus = CY_SCB_UART_TRANSMIT_BUSY;
 
-    /* Check if there are no active transfer requests */
+    /* Check whether there are no active transfer requests */
     if (0UL == (CY_SCB_UART_TRANSMIT_ACTIVE & context->txStatus))
     {
         /* Set up context */
@@ -906,13 +906,13 @@ cy_en_scb_uart_status_t Cy_SCB_UART_Transmit(CySCB_Type *base, void *buffer, uin
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \sideeffect
 * The transmit FIFO clear operation also clears the shift register, so that
-* the shifter could be cleared in the middle of a data element transfer,
-* corrupting it. The data element corruption means that all bits which has
+* the shifter can be cleared in the middle of a data element transfer,
+* corrupting it. The data element corruption means that all bits that have
 * not been transmitted are transmitted as "ones" on the bus.
 *
 *******************************************************************************/
@@ -942,7 +942,7 @@ void Cy_SCB_UART_AbortTransmit(CySCB_Type *base, cy_stc_scb_uart_context_t *cont
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -971,7 +971,7 @@ uint32_t Cy_SCB_UART_GetNumLeftToTransmit(CySCB_Type const *base, cy_stc_scb_uar
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 * \return
@@ -1006,8 +1006,8 @@ uint32_t Cy_SCB_UART_GetTransmitStatus(CySCB_Type const *base, cy_stc_scb_uart_c
 * Width of break condition. Valid range is the TX data width (4 to 16 bits)
 *
 * \note
-* Before sending break all UART TX interrurpt sources are disabled. The state
-* of UART TX interrurpt sources is restored before function retuns.
+* Before sending break all UART TX interrupt sources are disabled. The state
+* of UART TX interrupt sources is restored before function returns.
 *
 * \sideeffect
 * If this function is called while there is data in the TX FIFO or shifter that
@@ -1021,7 +1021,7 @@ void Cy_SCB_UART_SendBreakBlocking(CySCB_Type *base, uint32_t breakWidth)
 
     CY_ASSERT_L2(CY_SCB_UART_IS_TX_BREAK_WIDTH_VALID(breakWidth));
 
-    /* Disable all UART TX interurpt sources and clear UART TX Done history */
+    /* Disable all UART TX interrupt sources and clear UART TX Done history */
     txIntrReg = Cy_SCB_GetTxInterruptMask(base);
     Cy_SCB_SetTxInterruptMask(base, 0UL);
     Cy_SCB_ClearTxInterrupt(base, CY_SCB_TX_INTR_UART_DONE);
@@ -1064,7 +1064,7 @@ void Cy_SCB_UART_SendBreakBlocking(CySCB_Type *base, uint32_t breakWidth)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1171,7 +1171,7 @@ void Cy_SCB_UART_Interrupt(CySCB_Type *base, cy_stc_scb_uart_context_t *context)
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1239,7 +1239,7 @@ static void HandleDataReceive(CySCB_Type *base, cy_stc_scb_uart_context_t *conte
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/
@@ -1323,7 +1323,7 @@ static void HandleRingBuffer(CySCB_Type *base, cy_stc_scb_uart_context_t *contex
 * \param context
 * The pointer to the context structure \ref cy_stc_scb_uart_context_t allocated
 * by the user. The structure is used during the UART operation for internal
-* configuration and data keeping. The user must not modify anything
+* configuration and data retention. The user must not modify anything
 * in this structure.
 *
 *******************************************************************************/

@@ -77,7 +77,7 @@ typedef struct
     /** Bootloader Service GATT DB handles structure */
     const cy_stc_ble_btss_t *btss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_bts_config_t;
 

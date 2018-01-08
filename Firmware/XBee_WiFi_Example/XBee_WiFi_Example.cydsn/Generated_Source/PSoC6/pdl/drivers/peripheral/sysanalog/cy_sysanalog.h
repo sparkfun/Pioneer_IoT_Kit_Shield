@@ -19,7 +19,7 @@
 * This driver provides an interface for configuring the Analog Reference (AREF) block
 * and querying the INTR_CAUSE register of the PASS.
 *
-* <b> AREF Block </b>
+* The AREF block has the following features:
 *
 *   - Generates a voltage reference (VREF) from one of three sources:
 *       - Local 1.2 V reference (<b>low noise, optimized for analog performance</b>)
@@ -34,6 +34,7 @@
 *
 * The locally generated references are the recommended sources for blocks in the PASS because
 * they have tighter accuracy, temperature stability, and lower noise than the SRSS references.
+* The SRSS references can be used to save power if the low accuracy and higher noise can be tolerated.
 *
 * \image html aref_block_diagram.png
 * \image latex aref_block_diagram.png
@@ -68,8 +69,6 @@
 *   </tr>
 * </table>
 *
-* <b> PASS INTR_CAUSE </b>
-*
 * This driver provides a function to query the INTR_CAUSE register of the PASS.
 * There are two interrupts in the PASS:
 *
@@ -81,7 +80,7 @@
 *
 * \section group_sysanalog_usage Usage
 *
-* <b> Initialization </b>
+* \subsection group_sysanalog_usage_init Initialization
 *
 * To configure the AREF, call \ref Cy_SysAnalog_Init and provide a pointer
 * to the configuration structure, \ref cy_stc_sysanalog_config_t. Three predefined structures
@@ -91,13 +90,9 @@
 *   - \ref Cy_SysAnalog_Fast_SRSS
 *   - \ref Cy_SysAnalog_Fast_External
 *
-* <b> Enable </b>
+* After initialization, call \ref Cy_SysAnalog_Enable to enable the hardware.
 *
-* If the \ref cy_stc_sysanalog_config_t.enable field of the configuration structure is set to true,
-* the hardware will be enabled after initialization.
-* If set to false, a separate call to \ref Cy_SysAnalog_Enable is required to enable the hardware.
-*
-* <b> Deep Sleep Operation </b>
+* \subsection group_sysanalog_usage_dsop Deep Sleep Operation
 *
 * The AREF current and voltage references can be enabled to operate in Deep Sleep mode
 * with \ref Cy_SysAnalog_SetDeepSleepMode. There are four options for Deep Sleep operation:
@@ -115,7 +110,8 @@
 *
 * If the CTDAC is configured to use the VREF in Deep Sleep mode, the AREF must be enabled for \ref CY_SYSANALOG_DEEPSLEEP_IPTAT_IZTAT_VREF.
 *
-* Note that the SRSS references are not available to the AREF in Deep Sleep mode. When operating
+* \note
+* The SRSS references are not available to the AREF in Deep Sleep mode. When operating
 * in Deep Sleep mode, the local or external references must be selected.
 *
 * \section group_sysanalog_more_information More Information
@@ -139,7 +135,7 @@
 * \defgroup group_sysanalog_macros Macros
 * \defgroup group_sysanalog_functions Functions
 * \defgroup group_sysanalog_globals Global Variables
-* \defgroup group_sysanalog_data_structures Data structures
+* \defgroup group_sysanalog_data_structures Data Structures
 * \defgroup group_sysanalog_enums Enumerated Types
 */
 
@@ -209,19 +205,17 @@ typedef enum
     CY_SYSANALOG_BAD_PARAM  = CY_SYSANALOG_ID | CY_PDL_STATUS_ERROR | 0x01uL    /**< Invalid input parameters */
 }cy_en_sysanalog_status_t;
 
-/** Aref startup timing modes
+/** Aref startup mode from power on reset and from Deep Sleep wakeup
 *
-* The AREF block supports a fast 10 us startup time with a noise trade off.
-* This fast startup time is during wakeup from Deep Sleep mode only.
-* To achieve the fast startup from Deep Sleep mode, the IPTAT must be enabled in Deep Sleep mode
-* (see \ref cy_en_sysanalog_deep_sleep_t).
+* To achieve the fast startup time (10 us) from Deep Sleep wakeup, the IPTAT generators must be
+* enabled in Deep Sleep mode (see \ref cy_en_sysanalog_deep_sleep_t).
 *
 * The fast startup is the recommended mode.
 */
 typedef enum
 {
-    CY_SYSANALOG_STARTUP_NORMAL     = 0u,                                           /**< Normal startup with nominal noise */
-    CY_SYSANALOG_STARTUP_FAST       = 1u << PASS_AREF_AREF_CTRL_AREF_MODE_Pos       /**< Fast startup from Deep Sleep mode with high noise */
+    CY_SYSANALOG_STARTUP_NORMAL     = 0u,                                           /**< Normal startup */
+    CY_SYSANALOG_STARTUP_FAST       = 1u << PASS_AREF_AREF_CTRL_AREF_MODE_Pos       /**< Fast startup (10 us) - recommended */
 }cy_en_sysanalog_startup_t;
 
 /** AREF voltage reference sources
@@ -313,7 +307,6 @@ typedef struct
     cy_en_sysanalog_iztat_source_t          iztat;     /**< AREF 1uA IZTAT source: Local or SRSS */
     cy_en_sysanalog_vref_source_t           vref;      /**< AREF Vref: Local, SRSS, or external pin */
     cy_en_sysanalog_deep_sleep_t            deepSleep; /**< AREF Deep Sleep mode */
-    bool                                    enable;    /**< Enable or disable PASS AREF clock */
 }cy_stc_sysanalog_config_t;
 
 /** \} group_sysanalog_data_structures */
@@ -329,7 +322,6 @@ typedef struct
 * Other configuration options are set to:
 *   - .startup          = CY_PASS_AREF_MODE_FAST
 *   - .deepSleep        = CY_PASS_AREF_DEEPSLEEP_DISABLE
-*   - .enable           = true
 */
 extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_Local;
 
@@ -337,7 +329,6 @@ extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_Local;
 * Other configuration options are set to:
 *   - .startup          = CY_PASS_AREF_MODE_FAST
 *   - .deepSleep        = CY_PASS_AREF_DEEPSLEEP_DISABLE
-*   - .enable           = true
 */
 extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_SRSS;
 
@@ -345,7 +336,6 @@ extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_SRSS;
 * Other configuration options are set to:
 *   - .startup          = CY_PASS_AREF_MODE_FAST
 *   - .deepSleep        = CY_PASS_AREF_DEEPSLEEP_DISABLE
-*   - .enable           = true
 */
 extern const cy_stc_sysanalog_config_t Cy_SysAnalog_Fast_External;
 
@@ -378,6 +368,10 @@ __STATIC_INLINE void Cy_SysAnalog_IztatSelect(cy_en_sysanalog_iztat_source_t izt
 *
 * \return None
 *
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_DEINIT
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_DeInit(void)
 {
@@ -400,6 +394,10 @@ __STATIC_INLINE void Cy_SysAnalog_DeInit(void)
 * \return uint32_t
 * Interrupt cause register value.
 *
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_GET_INTR_CAUSE
+*
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_SysAnalog_GetIntrCause(void)
 {
@@ -417,13 +415,18 @@ __STATIC_INLINE uint32_t Cy_SysAnalog_GetIntrCause(void)
 *   - Enable IPTAT generator and IPTAT outputs for CTB
 *   - Enable all generators and outputs: IPTAT, IZTAT, and VREF
 *
-* Note that the SRSS references are not available to the AREF in Deep Sleep mode. When operating
+* \note
+* The SRSS references are not available to the AREF in Deep Sleep mode. When operating
 * in Deep Sleep mode, the local or external references must be selected.
 *
 * \param deepSleep
-* value from enum \ref cy_en_sysanalog_deep_sleep_t
+* Select a value from \ref cy_en_sysanalog_deep_sleep_t
 *
 * \return None
+*
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_SET_DEEPSLEEP_MODE
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_SetDeepSleepMode(cy_en_sysanalog_deep_sleep_t deepSleep)
@@ -440,7 +443,12 @@ __STATIC_INLINE void Cy_SysAnalog_SetDeepSleepMode(cy_en_sysanalog_deep_sleep_t 
 *
 * Return Deep Sleep mode configuration as set by \ref Cy_SysAnalog_SetDeepSleepMode
 *
-* \return cy_en_sysanalog_deep_sleep_t
+* \return
+* A value from \ref cy_en_sysanalog_deep_sleep_t
+*
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_GET_DEEPSLEEP_MODE
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_sysanalog_deep_sleep_t Cy_SysAnalog_GetDeepSleepMode(void)
@@ -456,6 +464,10 @@ __STATIC_INLINE cy_en_sysanalog_deep_sleep_t Cy_SysAnalog_GetDeepSleepMode(void)
 *
 * \return None
 *
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_ENABLE
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_Enable(void)
 {
@@ -470,6 +482,10 @@ __STATIC_INLINE void Cy_SysAnalog_Enable(void)
 *
 * \return None
 *
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_DISABLE
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_Disable(void)
 {
@@ -480,15 +496,21 @@ __STATIC_INLINE void Cy_SysAnalog_Disable(void)
 * Function Name: Cy_SysAnalog_SetArefMode
 ****************************************************************************//**
 *
-* Set the AREF start up mode from Deep Sleep mode.
-* The AREF can start up in a normal or fast mode. If fast start up
-* is desired, the AREF must be enabled in Deep Sleep mode with the IPTAT
-* generator enabled. See \ref Cy_SysAnalog_SetDeepSleepMode.
+* Set the AREF startup mode from power on reset or from Deep Sleep wakeup.
+* The AREF can startup in a normal or fast mode.
+*
+* If fast startup is desired from Deep Sleep wakeup, the IPTAT generators must be enabled during
+* Deep Sleep. This is a minimum Deep Sleep mode setting of \ref CY_SYSANALOG_DEEPSLEEP_IPTAT_1
+* (see also \ref Cy_SysAnalog_SetDeepSleepMode).
 *
 * \param startup
 * Value from enum \ref cy_en_sysanalog_startup_t
 *
 * \return None
+*
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_SET_AREF_MODE
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_SetArefMode(cy_en_sysanalog_startup_t startup)
@@ -515,6 +537,10 @@ __STATIC_INLINE void Cy_SysAnalog_SetArefMode(cy_en_sysanalog_startup_t startup)
 *
 * \return None
 *
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_VREF_SELECT
+*
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_VrefSelect(cy_en_sysanalog_vref_source_t vref)
 {
@@ -532,12 +558,16 @@ __STATIC_INLINE void Cy_SysAnalog_VrefSelect(cy_en_sysanalog_vref_source_t vref)
 *   - the SRSS (not available to the AREF in Deep Sleep mode)
 *
 * The locally generated reference has higher accuracy, more stability over temperature,
-* an lower noise than the SRSS reference.
+* and lower noise than the SRSS reference.
 *
 * \param iztat
 * Value from enum \ref cy_en_sysanalog_iztat_source_t
 *
 * \return None
+*
+* \funcusage
+*
+* \snippet sysanalog_sut_01.cydsn/main_cm0p.c SYSANA_SNIPPET_IZTAT_SELECT
 *
 *******************************************************************************/
 __STATIC_INLINE void Cy_SysAnalog_IztatSelect(cy_en_sysanalog_iztat_source_t iztat)

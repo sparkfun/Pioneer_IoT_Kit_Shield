@@ -41,12 +41,12 @@ static cy_en_ble_gatt_err_code_t Cy_BLE_BTS_EventHandler(uint32_t eventCode, voi
 * Function Name: Cy_BLE_BTS_Init
 ***************************************************************************//**
 *
-*  This function initializes the BTS service.
+*  This function initializes the Bootloader service.
 *
 *  \param config: Configuration structure for the Bootloader service.
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes.
 *
 *   Error Codes                             | Description
@@ -86,13 +86,13 @@ cy_en_ble_api_result_t Cy_BLE_BTS_Init(cy_stc_ble_bts_config_t *config)
 * Function Name: Cy_BLE_BTS_RegisterAttrCallback
 ***************************************************************************//**
 *
-*  Registers a callback function for service-specific attribute operations.
-*  Service-specific write requests from a peer device will not be handled with
-*  an unregistered callback function.
+*  Registers a callback function for Bootloader Service specific attribute operations.
+*  Service specific write requests from peer device will not be handled with
+*  unregistered callback function.
 *
-*  \param callbackFunc: An application layer event callback function to receive
-*                        events from the BLE Component. The definition of
-*                        cy_ble_callback_t for BTS is: \n
+*  \param callbackFunc:  An application layer event callback function to receive
+*    events from the BLE Middleware. The definition of \ref cy_ble_callback_t 
+*    for Bootloader Service is:<br>
 *    typedef void (* cy_ble_callback_t) (uint32_t eventCode, void *eventParam),
 *    where:
 *      * eventCode indicates the event that triggered this callback.
@@ -100,11 +100,11 @@ cy_en_ble_api_result_t Cy_BLE_BTS_Init(cy_stc_ble_bts_config_t *config)
 *
 *  \sideeffect
 *  The *eventParams in the callback function should not be used by the
-*  application once the callback function execution is finished. Otherwise this
-*  data may become corrupted.
+*  application once the callback function execution is finished. Otherwise
+*  this data may become corrupted.
 *
 *  \return
-*  cy_en_ble_api_result_t : Return value indicates if the function succeeded or
+*  \ref cy_en_ble_api_result_t : Return value indicates if the function succeeded or
 *  failed. The following are possible error codes:
 *
 *   Error Codes                             | Description
@@ -373,27 +373,29 @@ static void Cy_BLE_BTSS_ExecuteWriteRequestEventHandler(cy_stc_ble_gatts_exec_wr
 * Function Name: Cy_BLE_BTSS_SendNotification
 ***************************************************************************//**
 *
-*  This function updates the value of the Bootloader service characteristic in the
-*  GATT database. If the client has configured a notification on the Battery
-*  Level characteristic, the function additionally sends this value using a
-*  GATT Notification message.
-**
+*  Sends a notification with the characteristic value, as specified by its 
+*  charIndex, to the Client device.
+*
 *  \param connHandle: The BLE peer device connection handle
 *
-*  \param charIndex: The index of a service characteristic of type
-*              cy_en_ble_bts_char_index_t.
-*  \param attrSize: The size of the characteristic value attribute.
-*  \param attrValue: The pointer to the characteristic value data that should be
-*               sent to the Client device.
+*  \param charIndex:  The index of the service characteristic of 
+*                     type \ref cy_en_ble_bts_char_index_t. The valid value is
+*                     * \ref  CY_BLE_BTS_BT_SERVICE
+*  \param attrSize:   The size of the characteristic value attribute.
+*  \param attrValue:  The pointer to the characteristic value data that should be
+*                     sent to the Client device.
 *
 * \return
-*  Return value is of type cy_en_ble_api_result_t.
-*   * CY_BLE_SUCCESS - The request handled successfully
-*   * CY_BLE_ERROR_INVALID_PARAMETER - Validation of the input parameter failed
-*   * CY_BLE_ERROR_INVALID_OPERATION - This operation is not permitted
-*   * CY_BLE_ERROR_INVALID_STATE - Connection with the client is not established
-*   * CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED - Memory allocation failed.
-*   * CY_BLE_ERROR_NTF_DISABLED - Notification is not enabled by the client.
+*  A return value of type \ref cy_en_ble_api_result_t.
+*
+*   Error Codes                              | Description
+*   ------------                             | -----------
+*   CY_BLE_SUCCESS                           | The request was handled successfully.
+*   CY_BLE_ERROR_INVALID_PARAMETER           | Validation of the input parameter failed.
+*   CY_BLE_ERROR_INVALID_OPERATION           | Operation is invalid for this characteristic.
+*   CY_BLE_ERROR_INVALID_STATE               | Connection with the Client is not established.
+*   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
+*   CY_BLE_ERROR_NTF_DISABLED                | Notification is not enabled by the Client.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_BTSS_SendNotification(cy_stc_ble_conn_handle_t connHandle,
@@ -453,13 +455,13 @@ cy_en_ble_api_result_t Cy_BLE_BTSS_SendNotification(cy_stc_ble_conn_handle_t con
 * Function Name: Cy_BLE_BTS_EventHandler
 ***************************************************************************//**
 *
-*  Handles the events from the BLE stack for the Bootloader service.
+*  Handles the events from the BLE Stack for the Bootloader service.
 *
 *  \param eventCode:   the event code
 *  \param eventParam:  the event parameters
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 static cy_en_ble_gatt_err_code_t Cy_BLE_BTS_EventHandler(uint32_t eventCode,

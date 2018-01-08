@@ -34,12 +34,6 @@
 * Firmware does not need to use the DRV API. It can implement IPC functionality
 * entirely with the PIPE and SEMA APIs.
 *
-* \note "Warning[Ta023]: Call to a non __ramfunc function." - The warning may
-* appear during the build process while using IAR IDE. The reason - some
-* functions in RAM memory that use the __ramfunc keyword, may invoke
-* functions located in the ROM memory. You can ignore this warning or
-* disable it by adding the --diag_suppress=Ta023 option to the compiler.
-*
 * \section group_ipc_background Background
 *
 * IPC is implemented in hardware as a collection of individual communication
@@ -170,15 +164,20 @@
 * duplex communication between cores. On the CM0+ the notify interrupt is
 * assigned to NVIC IRQn 27. See System Interrupt (SysInt) for background.
 *
+* To create your own pipe you should make 3 steps:
+*   -# Define pipe callbacks processing interrupt handler
+*   -# Define your pipe configuration by cy_stc_ipc_pipe_config_t type structure
+*   -# Call Cy_IPC_Pipe_Init() to initialize your pipe on both cores
+*
 * \section group_ipc_configuration_sema Configuration Considerations - SEMA
 *
-* Startup code calls Cy_IPC_SystemSemaInit (in cy_ipc_config.c) to set up
-* semaphore functionality. This function calls the PDL init function 
+* Startup code calls Cy_IPC_SystemSemaInit() (in cy_ipc_config.c) to set up
+* semaphore functionality. This function calls the PDL init function
 * Cy_IPC_Sema_Init() with default values. By default the semaphore system
 * uses IPC channel 4, and creates 128 semaphores. Do <b>not</b> change the IPC
 * channel. You can change the number of semaphores.
 *
-* To change the number of semaphores, modify this line of code in cy_ipc_config.h. 
+* To change the number of semaphores, modify this line of code in cy_ipc_config.h.
 *
 * \code
 * #define CY_IPC_SEMA_COUNT               (uint32_t)(128u)
@@ -190,6 +189,17 @@
 * system use. Your application can use semaphores greater than 15.
 *
 * \section group_ipc_more_information More Information
+*
+* Cy_IPC_SystemSemaInit() and Cy_IPC_SystemPipeInit() functions are called in the
+* SystemInit function. If the default startup file is not used, or SystemInit is
+* not called in your project, call the following three functions prior to
+* executing any flash or EmEEPROM write or erase operation. For example:
+*  -# Cy_IPC_SystemSemaInit()
+*  -# Cy_IPC_SystemPipeInit()
+*  -# Cy_Flash_Init()
+*
+* Also Cy_IPC_SystemPipeInit function is called to support BLE host/controller
+* communication.
 *
 * See the technical reference manual(TRM) for more information on the IPC.
 *
@@ -220,6 +230,22 @@
 *     <td>The cast from the void to pointer and vice versa is used to transmit
 *         data via the \ref group_ipc channel by exchanging the pointer. We
 *         exchange only one pointer, so there is no way to avoid this cast.</td>
+*   </tr>
+* </table>
+*
+* \section group_ipc_changelog Changelog
+*
+* <table class="doxtable">
+*   <tr><th>Version</th><th>Changes</th><th>Reason for Change</th></tr>
+*   <tr>
+*     <td>1.10</td>
+*     <td>Added support for more IPC structures</td>
+*     <td>New device support</td>
+*   </tr>
+*   <tr>
+*     <td>1.0</td>
+*     <td>Initial version</td>
+*     <td></td>
 *   </tr>
 * </table>
 *
@@ -316,7 +342,6 @@ extern "C" {
 
 __STATIC_INLINE void     Cy_IPC_Drv_WriteDataValue (IPC_STRUCT_Type* base, uint32_t dataValue);
 __STATIC_INLINE uint32_t Cy_IPC_Drv_ReadDataValue (IPC_STRUCT_Type const * base);
-__STATIC_INLINE void     Cy_IPC_Drv_ReleaseNotify (IPC_STRUCT_Type* base, uint32_t notifyEventIntr);
 
 __STATIC_INLINE uint32_t Cy_IPC_Drv_ExtractAcquireMask (uint32_t intMask);
 __STATIC_INLINE uint32_t Cy_IPC_Drv_ExtractReleaseMask (uint32_t intMask);
@@ -332,6 +357,7 @@ __STATIC_INLINE IPC_STRUCT_Type*       Cy_IPC_Drv_GetIpcBaseAddress (uint32_t ip
 __STATIC_INLINE IPC_INTR_STRUCT_Type*  Cy_IPC_Drv_GetIntrBaseAddr (uint32_t ipcIntrIndex);
 
 __STATIC_INLINE void     Cy_IPC_Drv_AcquireNotify (IPC_STRUCT_Type * base, uint32_t notifyEventIntr);
+__STATIC_INLINE void     Cy_IPC_Drv_ReleaseNotify (IPC_STRUCT_Type * base, uint32_t notifyEventIntr);
 
 __STATIC_INLINE  cy_en_ipcdrv_status_t Cy_IPC_Drv_LockAcquire (IPC_STRUCT_Type const * base);
 cy_en_ipcdrv_status_t    Cy_IPC_Drv_LockRelease (IPC_STRUCT_Type * base, uint32_t releaseEventIntr);
@@ -360,9 +386,6 @@ __STATIC_INLINE void     Cy_IPC_Drv_ClearInterrupt (IPC_INTR_STRUCT_Type * base,
 * This function takes an IPC channel index as a parameter and returns the base
 * address the IPC registers corresponding to the IPC channel.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \note The user is responsible for ensuring that ipcIndex does not exceed the
 * limits.
 *
@@ -372,6 +395,10 @@ __STATIC_INLINE void     Cy_IPC_Drv_ClearInterrupt (IPC_INTR_STRUCT_Type * base,
 *
 * \return
 * Returns a pointer to the base of the IPC registers.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_myIpc
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetIpcBaseAddress
 *
 *******************************************************************************/
 __STATIC_INLINE IPC_STRUCT_Type* Cy_IPC_Drv_GetIpcBaseAddress (uint32_t ipcIndex)
@@ -387,9 +414,6 @@ __STATIC_INLINE IPC_STRUCT_Type* Cy_IPC_Drv_GetIpcBaseAddress (uint32_t ipcIndex
 * This function takes an IPC interrupt structure index and returns the base
 * address of the IPC interrupt registers corresponding to the IPC Interrupt.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \note The user is responsible for ensuring that ipcIntrIndex does not exceed the
 * limits.
 *
@@ -399,6 +423,10 @@ __STATIC_INLINE IPC_STRUCT_Type* Cy_IPC_Drv_GetIpcBaseAddress (uint32_t ipcIndex
 *
 * \return
 * Returns a pointer to the base of the IPC interrupt registers.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_myIpcIntr
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetIntrBaseAddr
 *
 *******************************************************************************/
 __STATIC_INLINE IPC_INTR_STRUCT_Type* Cy_IPC_Drv_GetIntrBaseAddr (uint32_t ipcIntrIndex)
@@ -414,9 +442,6 @@ __STATIC_INLINE IPC_INTR_STRUCT_Type* Cy_IPC_Drv_GetIntrBaseAddr (uint32_t ipcIn
 * This function is used to set the interrupt mask for an IPC Interrupt.
 * The mask sets release or acquire notification events for all IPC channels.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from the
 * IPC interrupt number using \ref Cy_IPC_Drv_GetIntrBaseAddr.
@@ -428,6 +453,9 @@ __STATIC_INLINE IPC_INTR_STRUCT_Type* Cy_IPC_Drv_GetIntrBaseAddr (uint32_t ipcIn
 * \param ipcNotifyMask
 * An encoded list of all IPC channels that can trigger the interrupt on a
 * notify event.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_SetInterruptMask
 *
 *******************************************************************************/
 __STATIC_INLINE void  Cy_IPC_Drv_SetInterruptMask (IPC_INTR_STRUCT_Type* base,
@@ -446,9 +474,6 @@ __STATIC_INLINE void  Cy_IPC_Drv_SetInterruptMask (IPC_INTR_STRUCT_Type* base,
 *
 * This function is used to read the interrupt mask.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from
 * the IPC interrupt number using \ref Cy_IPC_Drv_GetIntrBaseAddr.
@@ -460,6 +485,9 @@ __STATIC_INLINE void  Cy_IPC_Drv_SetInterruptMask (IPC_INTR_STRUCT_Type* base,
 *   <tr><td>Ipc_PORTX_RELEASE   <td>Xth bit set
 *   <tr><td>Ipc_PORTX_NOTIFY    <td>X+16th bit set
 *   </table>
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetInterruptMask
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptMask(IPC_INTR_STRUCT_Type const * base)
@@ -475,9 +503,6 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptMask(IPC_INTR_STRUCT_Type const 
 * can be used in the interrupt service routine to find which source triggered
 * the interrupt.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from the
 * IPC interrupt number using \ref Cy_IPC_Drv_GetIntrBaseAddr.
@@ -489,6 +514,9 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptMask(IPC_INTR_STRUCT_Type const 
 *   <tr><td>Ipc_PORTX_RELEASE   <td>Xth bit set
 *   <tr><td>Ipc_PORTX_NOTIFY    <td>X+16th bit set
 *   </table>
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetInterruptStatusMasked
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatusMasked (IPC_INTR_STRUCT_Type const * base)
@@ -503,9 +531,6 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatusMasked (IPC_INTR_STRUCT_Ty
 * This function is used to read the pending interrupts. Note that this read is
 * an unmasked read of the interrupt status. Interrupt sources read as active by
 * this function would generate interrupts only if they were not masked.
-
-* This function is internal and should not be called directly by user
-* software.
 *
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from the
@@ -518,6 +543,9 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatusMasked (IPC_INTR_STRUCT_Ty
 *   <tr><td>Ipc_PORTX_RELEASE   <td>Xth bit set
 *   <tr><td>Ipc_PORTX_NOTIFY    <td>X+16th bit set
 *   </table>
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetInterruptStatus
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatus(IPC_INTR_STRUCT_Type const * base)
@@ -534,9 +562,6 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatus(IPC_INTR_STRUCT_Type cons
 * \note That interrupt sources set using this interrupt would generate interrupts
 * only if they are not masked.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from the
 * IPC interrupt number using \ref Cy_IPC_Drv_GetIntrBaseAddr.
@@ -548,6 +573,9 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_GetInterruptStatus(IPC_INTR_STRUCT_Type cons
 * \param ipcNotifyMask
 * An encoded list of all IPC channels that can trigger the interrupt on a
 * notify event.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_SetInterrupt
 *
 *******************************************************************************/
 __STATIC_INLINE void  Cy_IPC_Drv_SetInterrupt(IPC_INTR_STRUCT_Type* base, uint32_t ipcReleaseMask, uint32_t ipcNotifyMask)
@@ -565,9 +593,6 @@ __STATIC_INLINE void  Cy_IPC_Drv_SetInterrupt(IPC_INTR_STRUCT_Type* base, uint32
 * This function is used to clear the interrupt source. Use this function to clear
 * a pending interrupt source in the interrupt status.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This is a handle to the IPC interrupt. This handle can be calculated from the
 * IPC interrupt number using \ref Cy_IPC_Drv_GetIntrBaseAddr.
@@ -579,6 +604,9 @@ __STATIC_INLINE void  Cy_IPC_Drv_SetInterrupt(IPC_INTR_STRUCT_Type* base, uint32
 * \param ipcNotifyMask
 * An encoded list of all IPC channels that can trigger the interrupt on a
 * notify event.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetInterruptStatusMasked
 *
 *******************************************************************************/
 __STATIC_INLINE void  Cy_IPC_Drv_ClearInterrupt(IPC_INTR_STRUCT_Type* base, uint32_t ipcReleaseMask, uint32_t ipcNotifyMask)
@@ -600,9 +628,6 @@ __STATIC_INLINE void  Cy_IPC_Drv_ClearInterrupt(IPC_INTR_STRUCT_Type* base, uint
 *
 * The function generates a notify event by IPC interrupt structures.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -613,6 +638,9 @@ __STATIC_INLINE void  Cy_IPC_Drv_ClearInterrupt(IPC_INTR_STRUCT_Type* base, uint
 * Bit encoded list of IPC interrupt structures that are triggered
 * by a notification. Bit number correspond to number of the IPC interrupt
 * structure.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_AcquireNotify
 *
 *******************************************************************************/
 __STATIC_INLINE void  Cy_IPC_Drv_AcquireNotify (IPC_STRUCT_Type* base, uint32_t notifyEventIntr)
@@ -626,9 +654,6 @@ __STATIC_INLINE void  Cy_IPC_Drv_AcquireNotify (IPC_STRUCT_Type* base, uint32_t 
 ****************************************************************************//**
 *
 * The function generates a notify event to an IPC interrupt structure.
-*
-* This function is internal and should not be called directly by user
-* software.
 *
 * \param base
 * This parameter is a handle that represents the base address of the registers
@@ -689,11 +714,6 @@ __STATIC_INLINE void     Cy_IPC_Drv_WriteDataValue (IPC_STRUCT_Type* base, uint3
 * Value from DATA register.
 *
 *******************************************************************************/
-#if defined (__ICCARM__)
-    __ramfunc 
-#else
-    CY_SECTION(".cy_ramfunc")
-#endif
 __STATIC_INLINE uint32_t Cy_IPC_Drv_ReadDataValue (IPC_STRUCT_Type const * base)
 {
     return (base->DATA);
@@ -706,9 +726,6 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_ReadDataValue (IPC_STRUCT_Type const * base)
 * The function is used to test the status of an IPC channel. The function
 * tells the reader if the IPC channel was in the locked or released state.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -719,6 +736,9 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_ReadDataValue (IPC_STRUCT_Type const * base)
 *   Status for the function:
 *   true:  The IPC channel is in the Locked state.
 *   false: The IPC channel is in the Released state.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_IsLockAcquired
 *
 *******************************************************************************/
 __STATIC_INLINE bool Cy_IPC_Drv_IsLockAcquired (IPC_STRUCT_Type const * base)
@@ -732,9 +752,6 @@ __STATIC_INLINE bool Cy_IPC_Drv_IsLockAcquired (IPC_STRUCT_Type const * base)
 *
 * The function is used to get the status of an IPC channel.
 *
-* This function is internal and should not be called directly by user
-* software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -743,6 +760,9 @@ __STATIC_INLINE bool Cy_IPC_Drv_IsLockAcquired (IPC_STRUCT_Type const * base)
 *
 * \return
 * Value from LOCK_STATUS register.
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_GetLockStatus
 *
 *******************************************************************************/
 __STATIC_INLINE uint32_t Cy_IPC_Drv_GetLockStatus (IPC_STRUCT_Type const * base)
@@ -806,8 +826,6 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_ExtractReleaseMask (uint32_t intMask)
 * The function also has an associated notification field that will let the
 * message notify one or multiple interrupts.
 *
-* This function is internal and should not be called directly by user software.
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -826,6 +844,9 @@ __STATIC_INLINE uint32_t Cy_IPC_Drv_ExtractReleaseMask (uint32_t intMask)
 *   \retval CY_IPC_DRV_ERROR:   The IPC channel is unavailable because
 *                               it is already locked.
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_SendMsgPtr
+*
 *******************************************************************************/
 __STATIC_INLINE cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgPtr(IPC_STRUCT_Type* base, uint32_t notifyEventIntr, void const * msgPtr)
 {
@@ -838,8 +859,6 @@ __STATIC_INLINE cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgPtr(IPC_STRUCT_Type* ba
 ****************************************************************************//**
 *
 * This function is used to read a 32-bit pointer message through an IPC channel.
-*
-* This function is internal and should not be called directly by user software.
 *
 * \param base
 * This parameter is a handle that represents the base address of the registers
@@ -859,6 +878,9 @@ __STATIC_INLINE cy_en_ipcdrv_status_t  Cy_IPC_Drv_SendMsgPtr(IPC_STRUCT_Type* ba
 *                       channel was already in a released state meaning the data
 *                       in it is invalid.
 *
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_ReadMsgPtr
+*
 *******************************************************************************/
 __STATIC_INLINE  cy_en_ipcdrv_status_t  Cy_IPC_Drv_ReadMsgPtr (IPC_STRUCT_Type const * base, void ** msgPtr)
 {
@@ -872,8 +894,6 @@ __STATIC_INLINE  cy_en_ipcdrv_status_t  Cy_IPC_Drv_ReadMsgPtr (IPC_STRUCT_Type c
 *
 * This function is used to acquire the IPC channel.
 *
-* This function is internal and should not be called directly by user software
-*
 * \param base
 * This parameter is a handle that represents the base address of the registers
 * of the IPC channel.
@@ -884,6 +904,9 @@ __STATIC_INLINE  cy_en_ipcdrv_status_t  Cy_IPC_Drv_ReadMsgPtr (IPC_STRUCT_Type c
 *   \retval CY_IPC_DRV_SUCCESS: The IPC was successfully acquired
 *   \retval CY_IPC_DRV_ERROR:   The IPC was not acquired because it was already acquired
 *                       by another master
+*
+* \funcusage
+* \snippet IPC_sut_01.cydsn/main_cm4.c snippet_Cy_IPC_Drv_LockAcquire
 *
 *******************************************************************************/
 __STATIC_INLINE cy_en_ipcdrv_status_t Cy_IPC_Drv_LockAcquire (IPC_STRUCT_Type const * base)

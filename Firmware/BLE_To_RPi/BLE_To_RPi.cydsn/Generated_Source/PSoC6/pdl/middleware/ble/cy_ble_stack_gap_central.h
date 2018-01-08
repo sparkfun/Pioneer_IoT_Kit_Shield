@@ -21,7 +21,7 @@
 #define CY_BLE_STACK_GAP_CENTRAL_H_
 
 /***************************************
-* Common stack includes
+* Common BLE Stack includes
 ***************************************/
 
 #include "cy_ble_stack_gap.h"
@@ -407,7 +407,7 @@ typedef struct
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter for 'param' or if any element within 'param' has an invalid value.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPC_StartDiscovery
@@ -430,7 +430,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StartDiscovery
 *   ------------                          | -----------
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPC_StopDiscovery
@@ -443,38 +443,34 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StopDiscovery
 * Function Name: Cy_BLE_GAPC_InitConnection
 ***************************************************************************//**
 *  This function instructs the BLE Stack to initiate a connection request to the
-*  remote device with required connection parameters. The connection request from
-*  the application is acknowledged by the BLE Controller as
-*  'CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE' or 'CY_BLE_EVT_GAP_DEVICE_CONNECTED'
-*  depending on whether Link Layer Privacy is enabled or not in the component customizer. That
-*  means, a request is correct, permitted, and  all parameters that are part of the
-*  request are correct. If the parameter validation or request is not permitted,
-*  then the BLE controller throws the 'CY_BLE_EVT_GAP_DEVICE_CONNECTED' event with error code in the status,
-*  instead of CY_BLE_EVT_GAP_DEVICE_CONNECTED/CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE.
-*  For a positive condition, the controller can issue a connect request to a peer. If it fails to establish
-*  connection, 'CY_BLE_EVT_GAP_DEVICE_DISCONNECTED' is passed to application.
-*  Once connection is established, CY_BLE_EVT_GAP_CONN_ESTB will be sent to the application
-*  if the application has set the CY_BLE_CONN_ESTB_EVENT_MASK event mask using Cy_BLE_SetCustomEventMask().
-*  The stack supports creating only one master connection at a time. 
+*  remote device with required connection parameters.
+*  The connection request from the application is acknowledged by the BLE Stack as ''CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE' (Link Layer Privacy is enabled) 
+*  or 'CY_BLE_EVT_GAP_DEVICE_CONNECTED'(Link Layer Privacy is not enabled) in BLE Middleware customizer. 
+*
+*  'status'parameter of the above mentioned events states if all the parameters passed through this API are correct or request is permitted.
+*  If the parameter validation fails or request is not permitted, then the BLE Stack generates 
+*  'CY_BLE_EVT_GAP_DEVICE_CONNECTED/CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE' event with error code in the ''status'.
+*
+*  'CY_BLE_EVT_GAP_CONN_ESTB' event will be generated optionally to the application,
+*  if application has set the CY_BLE_CONN_ESTB_EVENT_MASK event mask using Cy_BLE_SetCustomEventMask().
+*  Or no new event is generated on successful connection is established. 
+*
+*  If BLE Stack fails to establish connection then 'CY_BLE_EVT_GAP_DEVICE_DISCONNECTED' is generated to application.
 *
 *  This API should not be called until the previous call to the API has resulted in a connection
-*  completion as indicated by the event CY_BLE_EVT_GAP_DEVICE_CONNECTED/
-*  CY_BLE_EVT_GAP_DEVICE_CONNECTEDCY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE  Or
+*  completion as indicated by the event CY_BLE_EVT_GAP_DEVICE_CONNECTED/CY_BLE_EVT_GAP_ENHANCE_CONN_COMPLETE  Or
 *  Cy_BLE_GAPC_CancelConnection() is not yet completed, which is informed through 
 *  event 'CY_BLE_EVT_GAP_CREATE_CONN_CANCEL_COMPLETE'
 *
 *  The CY_BLE_EVT_GATT_CONNECT_IND event is generated at the GAP Peripheral end after connection is 
 *  completed with a peer Central device. For a GAP Central device, this event is generated as an 
-*  acknowledgment of receiving this event successfully by the BLE Controller. 
+*  acknowledgment of receiving this event successfully by the BLE Stack. 
 *
 *  This is a non-blocking function. This function must be called after
-*  successfully stopping scanning. Scanning is successfully stopped on invoking
+*  successfully stopping scan. Scanning is successfully stopped on invoking
 *  the Cy_BLE_GAPC_StopDiscovery() function and receiving the event
 *  CY_BLE_EVT_GAPC_SCAN_START_STOP with the event data of '0x01',
 *  indicating success.
-*
-*  For details related to connection modes and procedures, refer to Bluetooth
-*  4.1 Core Specification, Volume 3, Part C, Section 9.3.
 *
 *  \param param: Structure of type 'cy_stc_ble_gapc_conn_info_t' that contains the
 *              connection parameters.\n
@@ -492,9 +488,11 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_StopDiscovery
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter for 'param' or if any element within 'param' has an invalid value.
 *   CY_BLE_ERROR_INVALID_OPERATION        | Operation is not permitted.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
-*  Note: In multi connection use case, the recommended minimum connection interval per connection should be
+*  \note:
+*  Note1: BLE Stack supports creating only one master connection at a time.
+*  Note2: In multi connection use case, the recommended minimum connection interval per connection should be
 *        greater than N * Max Time taken by individual connections to complete a BLE Connection Event (CE).
 *        Min_CI = N * Average Time Per CE.
 *        Average time for each CE is the amount of time taken to complete one BLE Tx and Rx transaction. This
@@ -538,7 +536,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_InitConnection
 *   CY_BLE_SUCCESS                           | On successful operation.
 *   CY_BLE_ERROR_INVALID_OPERATION           | Operation is not permitted.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED    | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES      | BLE Stack resources are unavailable.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPC_CancelConnection
 (
@@ -574,12 +572,13 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_CancelConnection
 *   CY_BLE_SUCCESS                        | On successful operation.
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL as input parameter for 'param' or 'bdAddr'.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 *
-* Note1: param should point to valid memory location until completion of API
-*        is indicated via CY_BLE_EVT_GAP_RESOLVE_DEVICE_COMPLETE event.
-* Note2: If using whitelist filtering, update the whitelist
-*        with the new address using Cy_BLE_AddDeviceToWhiteList API.
+* \note:
+*  Note1: param should point to valid memory location until completion of API
+*        is indicated via 'CY_BLE_EVT_GAP_RESOLVE_DEVICE_COMPLETE' event.
+*  Note2: If using whitelist filtering, update the whitelist
+*        with the new address using Cy_BLE_AddDeviceToWhiteList() API.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPC_ResolveDevice
 (
@@ -620,7 +619,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_SetRemoteAddr
 * Function Name: Cy_BLE_GAPC_ConnectionParamUpdateRequest
 ***************************************************************************//**
 *
-*  This function sends the connection parameter update command to a local controller.
+*  This function sends the connection parameter update command to a local BLE device.
 *  This function can be used only from a device connected in the GAP Central role.
 *  \note: The connection parameter update procedure, defined as part of Bluetooth spec 4.1, is not supported.
 *          This function will allow the GAP Central application to update the connection parameter for a local controller
@@ -639,7 +638,7 @@ cy_en_ble_api_result_t Cy_BLE_GAPC_SetRemoteAddr
 *   CY_BLE_ERROR_INVALID_PARAMETER        | On specifying NULL for input parameter.
 *   CY_BLE_ERROR_NO_DEVICE_ENTITY         | If connection does not exist for corresponding 'bdHandle'.
 *   CY_BLE_ERROR_MEMORY_ALLOCATION_FAILED | Memory allocation failed.
-*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | Stack resources are unavailable.
+*   CY_BLE_ERROR_INSUFFICIENT_RESOURCES   | BLE Stack resources are unavailable.
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_GAPC_ConnectionParamUpdateRequest
 (

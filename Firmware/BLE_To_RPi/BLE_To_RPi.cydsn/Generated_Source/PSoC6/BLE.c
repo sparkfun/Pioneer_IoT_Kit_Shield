@@ -196,7 +196,7 @@ cy_en_ble_api_result_t Cy_BLE_Start(cy_ble_callback_t callbackFunc)
 *    Errors codes                    | Description
 *    ------------                    | -----------
 *    CY_BLE_SUCCESS                  | On successful operation.
-*    CY_BLE_ERROR_INVALID_OPERATION   | On calling Cy_BLE_Stop before calling Cy_BLE_Start.
+*    CY_BLE_ERROR_INVALID_OPERATION  | On calling Cy_BLE_Stop before calling Cy_BLE_Start.
 *
 ******************************************************************************/
 cy_en_ble_api_result_t Cy_BLE_Stop(void)

@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the function prototypes and constants used in
-*  the Apple Notification Center (ANC) Service of the BLE Component.
+*  the Apple Notification Center (ANC) Service.
 *
 ********************************************************************************
 * \copyright
@@ -116,7 +116,7 @@ typedef struct
     /** Service GATT DB handles structure */
     const cy_stc_ble_ancss_t *ancss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_ancs_config_t;
 

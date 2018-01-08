@@ -1,11 +1,12 @@
 /***************************************************************************//**
-* \file     CapSense_Filter.c
-* \version  1.0
+* \file CapSense_Filter.c
+* \version 2.0
 *
-* \brief    This file contains the implementation source code to implement all
-*           firmware filters.
+* \brief
+*   This file contains the implementation source code to implement all
+*   firmware filters.
 *
-* \see CapSense v1.0 Datasheet
+* \see CapSense v2.0 Datasheet
 *
 *//*****************************************************************************
 * Copyright (2016-2017), Cypress Semiconductor Corporation.
@@ -61,83 +62,11 @@
 *******************************************************************************/
 void CapSense_FtInitialize(void)
 {
-    uint32 widgetId;
-    uint32 sensorId;
-    uint32 sensorsNumber;
-
-    CapSense_FLASH_WD_STRUCT const *ptrWidget;
-    CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;
-    CapSense_PTR_FILTER_VARIANT ptrFilterHistObj;
-
-    #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN
-        CapSense_RAM_WD_BASE_STRUCT *ptrWidgetRam;
-        SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT *ptrNoiseEnvelope = NULL;
-    #endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
-
-    for (widgetId = CapSense_TOTAL_WIDGETS; widgetId-- > 0u;)
-    {
-        ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];
-
-        #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN
-            ptrWidgetRam = ptrWidget->ptr2WdgtRam;
-        #endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
-
-        /* Find total amount of sensors in specified widget */
-        sensorsNumber = CapSense_GET_SNS_CNT_BY_PTR(ptrWidget);
-
-        for (sensorId = sensorsNumber; sensorId-- > 0u;)
-        {
-            /* Find pointer to specified sensor object */
-            ptrSensor = ptrWidget->ptr2SnsRam;
-            ptrSensor = &ptrSensor[sensorId];
-
-            /* Find pointer to to specified filter sensor object */
-            ptrFilterHistObj.ptr = ptrWidget->ptr2FltrHistory;
-
-            #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN
-                /* Find pointer to specified noise envelope sensor object */
-                ptrNoiseEnvelope = ptrWidget->ptr2NoiseEnvlp;
-                ptrNoiseEnvelope = &ptrNoiseEnvelope[sensorId];
-            #endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
-
-            if ((CapSense_WD_TYPE_ENUM)ptrWidget->wdgtType != CapSense_WD_PROXIMITY_E)
-            {
-                #if (CapSense_REGULAR_SENSOR_EN)
-                    ptrFilterHistObj.ptrRegular = &ptrFilterHistObj.ptrRegular[sensorId];
-                #endif /* (CapSense_REGULAR_SENSOR_EN) */
-            }
-            else
-            {
-                #if (CapSense_PROXIMITY_SENSOR_EN)
-                    ptrFilterHistObj.ptrProx = &ptrFilterHistObj.ptrProx[sensorId];
-                #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
-            }
-
-            #if (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN)
-                CapSense_InitializeIIRInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
-            #endif /* (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN) */
-
-            #if (CapSense_REGULAR_RC_MEDIAN_FILTER_EN || CapSense_PROX_RC_MEDIAN_FILTER_EN)
-                CapSense_InitializeMedianInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
-            #endif /* (CapSense_REGULAR_RC_MEDIAN_FILTER_EN || CapSense_PROX_RC_MEDIAN_FILTER_EN) */
-
-            #if (CapSense_REGULAR_RC_AVERAGE_FILTER_EN || CapSense_PROX_RC_AVERAGE_FILTER_EN)
-                CapSense_InitializeAverageInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
-            #endif /* (CapSense_REGULAR_RC_AVERAGE_FILTER_EN || CapSense_PROX_RC_AVERAGE_FILTER_EN) */
-
-            #if (CapSense_ALP_FILTER_EN)
-                CapSense_InitializeALPInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
-            #endif
-            
-            #if (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)
-                if (CapSense_SENSE_METHOD_CSD_E ==
-                    CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[widgetId]))
-                {
-                    SmartSense_InitializeNoiseEnvelope(ptrSensor->raw[0u], ptrWidgetRam->sigPFC, ptrNoiseEnvelope);
-                }
-            #endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
-        }
-    }
+    #if ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+         (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)))
+        CapSense_InitializeAllFilters();
+    #endif /* ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+               (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))) */
 }
 
 
@@ -274,7 +203,7 @@ cy_status CapSense_UpdateSensorBaseline(uint32 widgetId, uint32 sensorId)
 
     CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;
     CapSense_FLASH_WD_STRUCT const *ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];
-    CapSense_RAM_WD_BASE_STRUCT *ptrWidgetRam = ptrWidget->ptr2WdgtRam;
+    CapSense_RAM_WD_BASE_STRUCT *ptrWidgetRam = (CapSense_RAM_WD_BASE_STRUCT *)ptrWidget->ptr2WdgtRam;
 
     /* Find pointer to specified sensor object */
     ptrSensor = ptrWidget->ptr2SnsRam;
@@ -330,7 +259,7 @@ uint32 CapSense_FtUpdateBaseline(
 {
     uint32 sign;
     uint32 difference;
-    uint32 channel;
+    uint32 freqChannel;
     uint32 baselineCoeff;
     uint32 result = CY_RET_SUCCESS;
 
@@ -339,10 +268,10 @@ uint32 CapSense_FtUpdateBaseline(
     #endif /* (CapSense_TOTAL_WIDGETS) */
 
     /* Apply baseline to every channel in sensor */
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         #if (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN)
-            if (ptrSensor->bslnInv[channel] != ((uint16) ~(ptrSensor->bsln[channel])))
+            if (ptrSensor->bslnInv[freqChannel] != ((uint16) ~(ptrSensor->bsln[freqChannel])))
             {
                 result = CapSense_PROCESS_BASELINE_FAILED;
             }
@@ -351,28 +280,28 @@ uint32 CapSense_FtUpdateBaseline(
         #endif /* (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN) */
 
         /* Calculate signal value and its sign */
-        if(ptrSensor->raw[channel] >= ptrSensor->bsln[channel])
+        if(ptrSensor->raw[freqChannel] >= ptrSensor->bsln[freqChannel])
         {
-            difference = (uint32)ptrSensor->raw[channel] - (uint32)ptrSensor->bsln[channel];
+            difference = (uint32)ptrSensor->raw[freqChannel] - (uint32)ptrSensor->bsln[freqChannel];
             sign = 1u;
-            ptrSensor->negBslnRstCnt[channel] = 0u;
+            ptrSensor->negBslnRstCnt[freqChannel] = 0u;
         }
         else
         {
-            difference = (uint32)ptrSensor->bsln[channel] - (uint32)ptrSensor->raw[channel];
+            difference = (uint32)ptrSensor->bsln[freqChannel] - (uint32)ptrSensor->raw[freqChannel];
             sign = 0u;
         }
 
         /* Reset baseline if condition is met */
         if((sign == 0u) && (difference > (uint32) ptrWidgetRam->nNoiseTh))
         {
-            if(ptrSensor->negBslnRstCnt[channel] >= ptrWidgetRam->lowBslnRst)
+            if(ptrSensor->negBslnRstCnt[freqChannel] >= ptrWidgetRam->lowBslnRst)
             {
-                CapSense_FtInitializeBaselineChannel(ptrSensor, wdType, channel);
+                CapSense_FtInitializeBaselineChannel(ptrSensor, wdType, freqChannel);
             }
             else
             {
-                ptrSensor->negBslnRstCnt[channel]++;
+                ptrSensor->negBslnRstCnt[freqChannel]++;
             }
         }
         else
@@ -390,10 +319,10 @@ uint32 CapSense_FtUpdateBaseline(
                 {
                     #if (CapSense_REGULAR_SENSOR_EN)
                         #if (CapSense_REGULAR_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                            history = (uint32) ptrSensor->bsln[channel] << 8u;
-                            history |= ptrSensor->bslnExt[channel];
+                            history = (uint32) ptrSensor->bsln[freqChannel] << 8u;
+                            history |= ptrSensor->bslnExt[freqChannel];
                         #else
-                            history = ptrSensor->bsln[channel];
+                            history = ptrSensor->bsln[freqChannel];
                         #endif /* (CapSense_REGULAR_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
 
                         #if (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN)
@@ -401,17 +330,17 @@ uint32 CapSense_FtUpdateBaseline(
                         #else /* (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN) */
                             baselineCoeff = CapSense_REGULAR_IIR_BL_N;
                         #endif /* (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN) */
-                        
+
                         history =  CapSense_FtIIR1stOrder(
-                                        (uint32)ptrSensor->raw[channel],
-                                        history, baselineCoeff, 
+                                        (uint32)ptrSensor->raw[freqChannel],
+                                        history, baselineCoeff,
                                         CapSense_REGULAR_IIR_BL_SHIFT);
-                                                   
+
                         #if (CapSense_REGULAR_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                                    ptrSensor->bsln[channel] = CY_LO16(history >> 8u);
-                                    ptrSensor->bslnExt[channel] = CY_LO8(history);
+                                    ptrSensor->bsln[freqChannel] = CY_LO16(history >> 8u);
+                                    ptrSensor->bslnExt[freqChannel] = CY_LO8(history);
                         #else
-                                    ptrSensor->bsln[channel] = CY_LO16(history);
+                                    ptrSensor->bsln[freqChannel] = CY_LO16(history);
                         #endif /* (CapSense_REGULAR_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
                     #endif /* (CapSense_REGULAR_SENSOR_EN) */
                 }
@@ -419,10 +348,10 @@ uint32 CapSense_FtUpdateBaseline(
                 {
                     #if (CapSense_PROXIMITY_SENSOR_EN)
                         #if (CapSense_PROX_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                            history = (uint32) ptrSensor->bsln[channel] << 8u;
-                            history |= ptrSensor->bslnExt[channel];
+                            history = (uint32) ptrSensor->bsln[freqChannel] << 8u;
+                            history |= ptrSensor->bslnExt[freqChannel];
                         #else
-                            history = (uint32) ptrSensor->bsln[channel];
+                            history = (uint32) ptrSensor->bsln[freqChannel];
                         #endif /* (CapSense_PROX_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
 
                         #if (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN)
@@ -430,28 +359,28 @@ uint32 CapSense_FtUpdateBaseline(
                         #else /* (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN) */
                             baselineCoeff = CapSense_PROX_IIR_BL_N;
                         #endif /* (CapSense_ENABLE == CapSense_WD_BSLN_COEFF_EN) */
-                        
+
                         history = CapSense_FtIIR1stOrder(
-                                        (uint32)ptrSensor->raw[channel], 
+                                        (uint32)ptrSensor->raw[freqChannel],
                                         history, baselineCoeff,
                                         CapSense_PROX_IIR_BL_SHIFT);
-                        
+
                         #if (CapSense_PROX_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                                    ptrSensor->bsln[channel] = CY_LO16(history >> 8u);
-                                    ptrSensor->bslnExt[channel] = CY_LO8(history);
+                                    ptrSensor->bsln[freqChannel] = CY_LO16(history >> 8u);
+                                    ptrSensor->bslnExt[freqChannel] = CY_LO8(history);
                         #else
-                                    ptrSensor->bsln[channel] = CY_LO16(history);
+                                    ptrSensor->bsln[freqChannel] = CY_LO16(history);
                         #endif /* (CapSense_PROX_IIR_BL_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
-                    #endif /* (CapSense_PROX_SENSOR_EN)   */
+                    #endif /* (CapSense_PROX_SENSOR_EN) */
                 }
-            #else /* (CapSense_CSD_BASELINE_TYPE == CapSense_IIR_BASELINE)  */
+            #else /* (CapSense_CSD_BASELINE_TYPE == CapSense_IIR_BASELINE) */
 
                 /******************************************************************
                 * This is the place where the bucket algorithm should be implemented.
-                * The bucket method will be implemented in future component version.
+                * The bucket method will be implemented in future Component version.
                 *******************************************************************/
 
-            #endif /* (CapSense_CSD_BASELINE_TYPE == CapSense_IIR_BASELINE)  */
+            #endif /* (CapSense_CSD_BASELINE_TYPE == CapSense_IIR_BASELINE) */
 
             #if (!CapSense_SENSOR_AUTO_RESET_EN)
                 }
@@ -460,7 +389,7 @@ uint32 CapSense_FtUpdateBaseline(
 
         #if (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN)
             /* Update baseline inversion of every channel in sensor */
-            ptrSensor->bslnInv[channel] = ~(ptrSensor->bsln[channel]);
+            ptrSensor->bslnInv[freqChannel] = ~(ptrSensor->bsln[freqChannel]);
             }
         #endif /* (CapSense_ENABLE == CapSense_TST_BSLN_DUPLICATION_EN) */
 
@@ -480,6 +409,11 @@ uint32 CapSense_FtUpdateBaseline(
 *  Initializes the baseline for all the sensors of all the widgets. Also, this function
 *  can be used to re-initialize baselines. CapSense_Start() calls this
 *  API as part of CapSense operation initialization.
+*  
+*  If any raw count filter is enabled, make sure the raw count filter history is 
+*  initialized as well using one of these functions:
+*  - CapSense_InitializeAllFilters().
+*  - CapSense_InitializeWidgetFilter().
 *
 *******************************************************************************/
 void CapSense_InitializeAllBaselines(void)
@@ -504,6 +438,11 @@ void CapSense_InitializeAllBaselines(void)
 * \details
 *  Initializes (or re-initializes) the baseline for all the sensors of the
 *  specified widget.
+*  
+*  If any raw count filter is enabled, make sure the raw count filter history is 
+*  initialized as well using one of these functions:
+*  - CapSense_InitializeAllFilters().
+*  - CapSense_InitializeWidgetFilter().
 *
 * \param  widgetId
 *  Specifies the ID number of a widget to initialize the baseline of all the sensors
@@ -587,12 +526,12 @@ void CapSense_InitializeSensorBaseline(uint32 widgetId, uint32 sensorId)
 *******************************************************************************/
 void CapSense_FtInitializeBaseline(CapSense_RAM_SNS_STRUCT *ptrSensor, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
     /* Apply baseline initialization to every channel in sensor */
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
-        CapSense_FtInitializeBaselineChannel(ptrSensor, wdType, channel);
+        CapSense_FtInitializeBaselineChannel(ptrSensor, wdType, freqChannel);
     }
 }
 
@@ -646,9 +585,141 @@ void CapSense_FtInitializeBaselineChannel(CapSense_RAM_SNS_STRUCT *ptrSensor, ui
     ptrSensor->negBslnRstCnt[channel] = 0u;
 }
 
+#if ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+     (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)))
+/*******************************************************************************
+* Function Name: CapSense_InitializeAllFilters
+****************************************************************************//**
+*
+* \brief
+*  Initializes (or re-initializes) the raw count filter history of all the 
+*  sensors of all the widgets.
+*
+* \details
+*  Initializes the raw count filter history for all the sensors of all the 
+*  widgets. Also, this function can be used to re-initialize baselines. 
+*  CapSense_Start() calls this API as part of CapSense 
+*  operation initialization.
+*
+*******************************************************************************/
+void CapSense_InitializeAllFilters(void)
+{
+    uint32 widgetId;
+
+    for(widgetId = CapSense_TOTAL_WIDGETS; widgetId-- > 0u;)
+    {
+        CapSense_InitializeWidgetFilter(widgetId);
+    }
+}
+
+/*******************************************************************************
+* Function Name: CapSense_InitializeWidgetFilter
+****************************************************************************//**
+*
+* \brief
+*  Initializes (or re-initializes) the raw count filter history of all the sensors 
+*  in a widget specified by the input parameter.
+*
+* \details
+*  Initializes (or re-initializes) the raw count filter history of all the sensors 
+*  in a widget specified by the input parameter.
+*
+* \param  widgetId
+*  Specifies the ID number of a widget to initialize the filter history of all 
+*  the sensors in the widget.
+*  A macro for the widget ID can be found in the
+*  CapSense Configuration header file defined as
+*  CapSense_<WidgetName>_WDGT_ID.
+*
+*******************************************************************************/
+void CapSense_InitializeWidgetFilter(uint32 widgetId)
+{
+    uint32 sensorId;
+    uint32 sensorsNumber;
+
+    CapSense_FLASH_WD_STRUCT const *ptrWidget;
+    CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;
+    #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
+        CapSense_PTR_FILTER_VARIANT ptrFilterHistObj;
+    #endif
+    
+    #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
+        CapSense_RAM_WD_BASE_STRUCT *ptrWidgetRam;
+        SMARTSENSE_CSD_NOISE_ENVELOPE_STRUCT *ptrNoiseEnvelope = NULL;
+    #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
+
+    ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];
+
+    #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
+        ptrWidgetRam = ptrWidget->ptr2WdgtRam;
+    #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
+
+    /* Find total amount of sensors in specified widget */
+    sensorsNumber = CapSense_GET_SNS_CNT_BY_PTR(ptrWidget);
+
+    for (sensorId = sensorsNumber; sensorId-- > 0u;)
+    {
+        /* Find pointer to specified sensor object */
+        ptrSensor = ptrWidget->ptr2SnsRam;
+        ptrSensor = &ptrSensor[sensorId];
+
+        #if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
+            /* Find pointer to to specified filter sensor object */
+            ptrFilterHistObj.ptr = ptrWidget->ptr2FltrHistory;
+        #endif
+
+        #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
+            /* Find pointer to specified noise envelope sensor object */
+            ptrNoiseEnvelope = ptrWidget->ptr2NoiseEnvlp;
+            ptrNoiseEnvelope = &ptrNoiseEnvelope[sensorId];
+        #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
+
+        if ((CapSense_WD_TYPE_ENUM)ptrWidget->wdgtType != CapSense_WD_PROXIMITY_E)
+        {
+            #if (0u != CapSense_REGULAR_RC_ALP_FILTER_EN)
+                ptrFilterHistObj.ptrAlp = &ptrFilterHistObj.ptrAlp[sensorId];
+            #elif (0u != CapSense_REGULAR_RC_FILTER_EN)
+                ptrFilterHistObj.ptrRegular = &ptrFilterHistObj.ptrRegular[sensorId];
+            #endif
+        }
+        else
+        {
+            #if (0u != CapSense_PROX_RC_ALP_FILTER_EN)
+                ptrFilterHistObj.ptrAlp = &ptrFilterHistObj.ptrAlp[sensorId];
+            #elif (0u != CapSense_PROX_RC_FILTER_EN)
+                ptrFilterHistObj.ptrProx = &ptrFilterHistObj.ptrProx[sensorId];
+            #endif /* #if (0u != CapSense_PROX_RC_FILTER_EN) */
+        }
+
+        #if (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN)
+            CapSense_InitializeIIRInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
+        #endif /* (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN) */
+
+        #if (CapSense_REGULAR_RC_MEDIAN_FILTER_EN || CapSense_PROX_RC_MEDIAN_FILTER_EN)
+            CapSense_InitializeMedianInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
+        #endif /* (CapSense_REGULAR_RC_MEDIAN_FILTER_EN || CapSense_PROX_RC_MEDIAN_FILTER_EN) */
+
+        #if (CapSense_REGULAR_RC_AVERAGE_FILTER_EN || CapSense_PROX_RC_AVERAGE_FILTER_EN)
+            CapSense_InitializeAverageInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
+        #endif /* (CapSense_REGULAR_RC_AVERAGE_FILTER_EN || CapSense_PROX_RC_AVERAGE_FILTER_EN) */
+
+        #if (CapSense_ALP_FILTER_EN)
+            CapSense_InitializeALPInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
+        #endif
+
+        #if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
+            if (CapSense_SENSE_METHOD_CSD_E ==
+                CapSense_GET_SENSE_METHOD(&CapSense_dsFlash.wdgtArray[widgetId]))
+            {
+                SmartSense_InitializeNoiseEnvelope(ptrSensor->raw[0u], ptrWidgetRam->sigPFC, ptrNoiseEnvelope);
+            }
+        #endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
+    }
+}
+#endif /* ((CapSense_ENABLE == CapSense_RC_FILTER_EN) || \
+           (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))) */
 
 #if (CapSense_REGULAR_RC_IIR_FILTER_EN || CapSense_PROX_RC_IIR_FILTER_EN)
-
 /*******************************************************************************
 * Function Name: CapSense_InitializeIIR
 ****************************************************************************//**
@@ -750,18 +821,18 @@ void CapSense_RunIIR(uint32 widgetId, uint32 sensorId)
 void CapSense_InitializeIIRInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                             CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_IIR_FILTER_EN)
                 #if (CapSense_REGULAR_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory = ptrSensorObj->raw[channel];
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistoryLow = 0u;
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory = ptrSensorObj->raw[freqChannel];
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistoryLow = 0u;
                 #else
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory = ptrSensorObj->raw[channel] << CapSense_REGULAR_IIR_RC_SHIFT;
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory = ptrSensorObj->raw[freqChannel] << CapSense_REGULAR_IIR_RC_SHIFT;
                 #endif /* (CapSense_REGULAR_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
@@ -769,10 +840,10 @@ void CapSense_InitializeIIRInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_IIR_FILTER_EN)
                 #if (CapSense_PROX_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory = ptrSensorObj->raw[channel];
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistoryLow = 0u;
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory = ptrSensorObj->raw[freqChannel];
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistoryLow = 0u;
                 #else
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory = ptrSensorObj->raw[channel] << CapSense_PROX_IIR_RC_SHIFT;
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory = ptrSensorObj->raw[freqChannel] << CapSense_PROX_IIR_RC_SHIFT;
                 #endif /* (CapSense_PROX_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
             #endif /* (CapSense_PROX_SENSOR_EN) */
         }
@@ -796,31 +867,31 @@ void CapSense_InitializeIIRInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj
 void CapSense_RunIIRInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                      CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
     uint32 temp;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_IIR_FILTER_EN)
                 #if (CapSense_REGULAR_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                    temp = ((uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory << CapSense_REGULAR_IIR_RC_SHIFT);
-                    temp |= ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistoryLow;
-                    temp = CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[channel],
+                    temp = ((uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory << CapSense_REGULAR_IIR_RC_SHIFT);
+                    temp |= ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistoryLow;
+                    temp = CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[freqChannel],
                                                         temp,
                                                         CapSense_REGULAR_IIR_RC_N,
                                                         CapSense_REGULAR_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistoryLow = CY_LO8(temp);
-                    ptrSensorObj->raw[channel] = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistoryLow = CY_LO8(temp);
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
                 #else
-                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[channel],
-                                                        (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory,
+                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[freqChannel],
+                                                        (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory,
                                                         CapSense_REGULAR_IIR_RC_N,
                                                         CapSense_REGULAR_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].iirHistory = CY_LO16(temp);
-                    ptrSensorObj->raw[channel] = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].iirHistory = CY_LO16(temp);
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp >>CapSense_REGULAR_IIR_RC_SHIFT);
                 #endif /* (CapSense_REGULAR_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
@@ -828,22 +899,22 @@ void CapSense_RunIIRInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_IIR_FILTER_EN)
                 #if (CapSense_PROX_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE)
-                    temp =  ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory << CapSense_PROX_IIR_RC_SHIFT;
-                    temp |= ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistoryLow;
-                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[channel],
+                    temp =  ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory << CapSense_PROX_IIR_RC_SHIFT;
+                    temp |= ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistoryLow;
+                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[freqChannel],
                                                         temp,
                                                         CapSense_PROX_IIR_RC_N,
                                                         CapSense_PROX_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistoryLow = CY_LO8(temp);
-                    ptrSensorObj->raw[channel] = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistoryLow = CY_LO8(temp);
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
                 #else
-                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[channel],
-                                                        (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory,
+                    temp =CapSense_FtIIR1stOrder((uint32)ptrSensorObj->raw[freqChannel],
+                                                        (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory,
                                                         CapSense_PROX_IIR_RC_N,
                                                         CapSense_PROX_IIR_RC_SHIFT);
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].iirHistory = CY_LO16(temp);
-                    ptrSensorObj->raw[channel] = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].iirHistory = CY_LO16(temp);
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp >>CapSense_PROX_IIR_RC_SHIFT);
                 #endif /* (CapSense_PROX_IIR_RC_TYPE == CapSense_IIR_FILTER_PERFORMANCE) */
             #endif /* (CapSense_PROX_SENSOR_EN) */
         }
@@ -956,22 +1027,22 @@ void CapSense_RunMedian(uint32 widgetId, uint32 sensorId)
 void CapSense_InitializeMedianInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                                CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_MEDIAN_FILTER_EN)
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[0u] = ptrSensorObj->raw[channel];
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[1u] = ptrSensorObj->raw[channel];
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[0u] = ptrSensorObj->raw[freqChannel];
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[1u] = ptrSensorObj->raw[freqChannel];
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
         else
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_MEDIAN_FILTER_EN)
-                ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[0u] = ptrSensorObj->raw[channel];
-                ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[1u] = ptrSensorObj->raw[channel];
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[0u] = ptrSensorObj->raw[freqChannel];
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[1u] = ptrSensorObj->raw[freqChannel];
             #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
         }
     }
@@ -994,37 +1065,37 @@ void CapSense_InitializeMedianInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHist
 void CapSense_RunMedianInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                         CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
     #if ((CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_MEDIAN_FILTER_EN) || \
          (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_MEDIAN_FILTER_EN))
         uint32 temp;
     #endif
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_MEDIAN_FILTER_EN)
-                temp = CapSense_FtMedian((uint32)ptrSensorObj->raw[channel],\
-                                                 (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[0u],\
-                                                 (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[1u]);
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[1u] = \
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[0u];
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].medHistory[0u] = ptrSensorObj->raw[channel];
-                ptrSensorObj->raw[channel] = CY_LO16(temp);
+                temp = CapSense_FtMedian((uint32)ptrSensorObj->raw[freqChannel],\
+                                                 (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[0u],\
+                                                 (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[1u]);
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[1u] = \
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[0u];
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].medHistory[0u] = ptrSensorObj->raw[freqChannel];
+                ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
         else
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_MEDIAN_FILTER_EN)
-                temp = CapSense_FtMedian((uint32)ptrSensorObj->raw[channel],\
-                                                 (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[0u],\
-                                                 (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[1u]);
-                ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[1u] = \
-                ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[0u];
-                ptrFilterHistObj.ptrProx->proxChannel[channel].medHistory[0u] = ptrSensorObj->raw[channel];
-                ptrSensorObj->raw[channel] = CY_LO16(temp);
+                temp = CapSense_FtMedian((uint32)ptrSensorObj->raw[freqChannel],\
+                                                 (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[0u],\
+                                                 (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[1u]);
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[1u] = \
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[0u];
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].medHistory[0u] = ptrSensorObj->raw[freqChannel];
+                ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
             #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
         }
     }
@@ -1136,27 +1207,27 @@ void CapSense_RunAverage(uint32 widgetId, uint32 sensorId)
 void CapSense_InitializeAverageInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,\
                                                   CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_AVERAGE_FILTER_EN)
-                ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
+                ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
                 #if (CapSense_REGULAR_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4)
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[1u] = ptrSensorObj->raw[channel];
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[2u] = ptrSensorObj->raw[channel];
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[1u] = ptrSensorObj->raw[freqChannel];
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[2u] = ptrSensorObj->raw[freqChannel];
                 #endif /* CapSense_REGULAR_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4 */
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
         else
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_AVERAGE_FILTER_EN)
-                ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
+                ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
                     #if (CapSense_PROX_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4)
-                        ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[1u] = ptrSensorObj->raw[channel];
-                        ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[2u] = ptrSensorObj->raw[channel];
+                        ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[1u] = ptrSensorObj->raw[freqChannel];
+                        ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[2u] = ptrSensorObj->raw[freqChannel];
                     #endif /* CapSense_REGULAR_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4 */
             #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
         }
@@ -1180,31 +1251,31 @@ void CapSense_InitializeAverageInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHis
 void CapSense_RunAverageInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,\
                                            CapSense_RAM_SNS_STRUCT *ptrSensorObj, uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
     uint32 temp;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_AVERAGE_FILTER_EN)
                 #if (CapSense_REGULAR_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_2)
-                    temp = ((uint32)ptrSensorObj->raw[channel] +
-                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0]) >> 1u;
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
-                    ptrSensorObj->raw[channel] = CY_LO16(temp);
+                    temp = ((uint32)ptrSensorObj->raw[freqChannel] +
+                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0]) >> 1u;
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
                 #else
-                    temp = ((uint32)ptrSensorObj->raw[channel] +
-                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0] +
-                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[1u] +
-                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[2u]) >> 2u;
+                    temp = ((uint32)ptrSensorObj->raw[freqChannel] +
+                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0] +
+                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[1u] +
+                            (uint32)ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[2u]) >> 2u;
 
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[2u] =
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[1u];
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[1u] =
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0];
-                    ptrFilterHistObj.ptrRegular->regularChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
-                    ptrSensorObj->raw[channel] = CY_LO16(temp);
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[2u] =
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[1u];
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[1u] =
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0];
+                    ptrFilterHistObj.ptrRegular->regularChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
                 #endif /* CapSense_REGULAR_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4 */
             #endif /* (CapSense_REGULAR_SENSOR_EN) */
         }
@@ -1212,22 +1283,22 @@ void CapSense_RunAverageInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,\
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_AVERAGE_FILTER_EN)
                 #if (CapSense_PROX_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_2)
-                    temp = ((uint32)ptrSensorObj->raw[channel] +
-                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0]) >> 1u;
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
-                    ptrSensorObj->raw[channel] = CY_LO16(temp);
+                    temp = ((uint32)ptrSensorObj->raw[freqChannel] +
+                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0]) >> 1u;
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
                 #else
-                    temp = ((uint32)ptrSensorObj->raw[channel] +
-                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0] +
-                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[1u] +
-                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[2u]) >> 2u;
+                    temp = ((uint32)ptrSensorObj->raw[freqChannel] +
+                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0] +
+                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[1u] +
+                            (uint32)ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[2u]) >> 2u;
 
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[2u] =
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[1u];
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[1u] =
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0];
-                    ptrFilterHistObj.ptrProx->proxChannel[channel].avgHistory[0] = ptrSensorObj->raw[channel];
-                    ptrSensorObj->raw[channel] = CY_LO16(temp);
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[2u] =
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[1u];
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[1u] =
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0];
+                    ptrFilterHistObj.ptrProx->proxChannel[freqChannel].avgHistory[0] = ptrSensorObj->raw[freqChannel];
+                    ptrSensorObj->raw[freqChannel] = CY_LO16(temp);
                 #endif /* CapSense_PROX_AVERAGE_LEN == CapSense_AVERAGE_FILTER_LEN_4 */
             #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
         }
@@ -1253,11 +1324,11 @@ void CapSense_InitializeALP(uint32 widgetId, uint32 sensorId)
     CapSense_FLASH_WD_STRUCT const *ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];
     CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;
     CapSense_PTR_FILTER_VARIANT ptrFilterHistObj;
-    
-    /* Find pointer to specified sensor object */     
+
+    /* Find pointer to specified sensor object */
     ptrSensor = ptrWidget->ptr2SnsRam;
     ptrSensor = &ptrSensor[sensorId];
-    
+
     /* Find pointer to specified filter sensor object */
     ptrFilterHistObj.ptr = ptrWidget->ptr2FltrHistory;
     ptrFilterHistObj.ptrAlp = &ptrFilterHistObj.ptrAlp[sensorId];
@@ -1269,11 +1340,11 @@ void CapSense_InitializeALP(uint32 widgetId, uint32 sensorId)
 * Function Name: CapSense_RunALP
 ****************************************************************************//**
 *
-* \brief    Executes the ALP filter algorithm on a sensor indicated by an input 
-*           parameter. 
+* \brief    Executes the ALP filter algorithm on a sensor indicated by an input
+*           parameter.
 *
-* \details  Executes the ALP filter algorithm on a sensor indicated by an input 
-*           parameter. 
+* \details  Executes the ALP filter algorithm on a sensor indicated by an input
+*           parameter.
 *
 * \param    widgetId Specifies the ID number of the widget.
 * \param    sensorId Specifies the ID number of the sensor in the widget.
@@ -1281,24 +1352,24 @@ void CapSense_InitializeALP(uint32 widgetId, uint32 sensorId)
 *******************************************************************************/
 void CapSense_RunALP(uint32 widgetId, uint32 sensorId)
 {
-    CapSense_FLASH_WD_STRUCT const *ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];      
-    CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;    
-    CapSense_PTR_FILTER_VARIANT ptrFilterHistObj; 
+    CapSense_FLASH_WD_STRUCT const *ptrWidget = &CapSense_dsFlash.wdgtArray[widgetId];
+    CapSense_RAM_SNS_STRUCT *ptrSensor = NULL;
+    CapSense_PTR_FILTER_VARIANT ptrFilterHistObj;
     ALP_FLTR_CONFIG_STRUCT alpFilterConfig;
     ALP_FLTR_CONFIG_STRUCT *ptrAlpFilterConfig = &alpFilterConfig;
     CapSense_RAM_WD_BASE_STRUCT *ptrRamWidget = ptrWidget->ptr2WdgtRam;
-              
-    /* Find pointer to specified sensor object */     
+
+    /* Find pointer to specified sensor object */
     ptrSensor = ptrWidget->ptr2SnsRam;
     ptrSensor = &ptrSensor[sensorId];
-    
+
     ptrAlpFilterConfig->configParam0 = ptrRamWidget->alpOnTh;
     ptrAlpFilterConfig->configParam1 = ptrRamWidget->alpOffTh;
     ptrAlpFilterConfig->configParam2 = ptrRamWidget->fingerTh;
     ptrAlpFilterConfig->configParam3 = ptrRamWidget->noiseTh;
     ptrAlpFilterConfig->configParam4 = ptrRamWidget->hysteresis;
 
-    /* Find pointer to specified filter sensor object */     
+    /* Find pointer to specified filter sensor object */
     ptrFilterHistObj.ptr = ptrWidget->ptr2FltrHistory;
     ptrFilterHistObj.ptrAlp = &ptrFilterHistObj.ptrAlp[sensorId];
 
@@ -1335,20 +1406,20 @@ void CapSense_InitializeALPInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj
                                             CapSense_RAM_SNS_STRUCT *ptrSensorObj,
                                             uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_ALP_FILTER_EN)
-                ALP_Initialize(&ptrFilterHistObj.ptrAlp->channel[channel], &ptrSensorObj->raw[channel]);
+                ALP_Initialize(&ptrFilterHistObj.ptrAlp->channel[freqChannel], &ptrSensorObj->raw[freqChannel]);
             #endif
         }
         else
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_ALP_FILTER_EN)
-                ALP_Initialize(&ptrFilterHistObj.ptrAlp->channel[channel], &ptrSensorObj->raw[channel]);
+                ALP_Initialize(&ptrFilterHistObj.ptrAlp->channel[freqChannel], &ptrSensorObj->raw[freqChannel]);
             #endif
         }
     }
@@ -1374,13 +1445,13 @@ void CapSense_ConfigRunALPInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                     uint32 wdType)
 {
     ALP_FLTR_CONFIG_STRUCT alpFilterConfig;
-    
+
     alpFilterConfig.configParam0 = ptrRamWdgt->alpOnTh;
     alpFilterConfig.configParam1 = ptrRamWdgt->alpOffTh;
     alpFilterConfig.configParam2 = ptrRamWdgt->fingerTh;
     alpFilterConfig.configParam3 = ptrRamWdgt->noiseTh;
     alpFilterConfig.configParam4 = ptrRamWdgt->hysteresis;
-    
+
     CapSense_RunALPInternal(ptrFilterHistObj, &alpFilterConfig, ptrSensorObj, wdType);
 }
 
@@ -1403,29 +1474,29 @@ void CapSense_RunALPInternal(CapSense_PTR_FILTER_VARIANT ptrFilterHistObj,
                                     CapSense_RAM_SNS_STRUCT *ptrSensorObj,
                                     uint32 wdType)
 {
-    uint32 channel;
+    uint32 freqChannel;
 
-    for(channel = CapSense_NUM_SCAN_FREQS; channel-- > 0u;)
+    for(freqChannel = CapSense_NUM_SCAN_FREQS; freqChannel-- > 0u;)
     {
         if ((CapSense_WD_TYPE_ENUM)wdType != CapSense_WD_PROXIMITY_E)
         {
             #if (CapSense_REGULAR_SENSOR_EN && CapSense_REGULAR_RC_ALP_FILTER_EN)
                 ptrAlpFilterConfig->configParam5 = CapSense_REGULAR_RC_ALP_FILTER_COEFF;
-                ALP_Run(&ptrFilterHistObj.ptrAlp->channel[channel], ptrAlpFilterConfig, &ptrSensorObj->raw[channel], &ptrSensorObj->bsln[channel]);
+                ALP_Run(&ptrFilterHistObj.ptrAlp->channel[freqChannel], ptrAlpFilterConfig, &ptrSensorObj->raw[freqChannel], &ptrSensorObj->bsln[freqChannel]);
             #endif
         }
         else
         {
             #if (CapSense_PROXIMITY_SENSOR_EN && CapSense_PROX_RC_ALP_FILTER_EN)
                 ptrAlpFilterConfig->configParam5 = CapSense_PROX_RC_ALP_FILTER_COEFF;
-                ALP_Run(&ptrFilterHistObj.ptrAlp->channel[channel], ptrAlpFilterConfig, &ptrSensorObj->raw[channel], &ptrSensorObj->bsln[channel]);
+                ALP_Run(&ptrFilterHistObj.ptrAlp->channel[freqChannel], ptrAlpFilterConfig, &ptrSensorObj->raw[freqChannel], &ptrSensorObj->bsln[freqChannel]);
             #endif
         }
     }
 }
 #endif /* (CapSense_ENABLE == CapSense_ALP_FILTER_EN) */
 
-#if ((CapSense_REGULAR_RC_FILTER_EN || CapSense_PROX_RC_FILTER_EN))
+#if (CapSense_ENABLE == CapSense_RC_FILTER_EN)
 /*******************************************************************************
 * Function Name: CapSense_FtRunEnabledFilters
 ****************************************************************************//**
@@ -1454,15 +1525,19 @@ void CapSense_FtRunEnabledFilters(uint32 widgetId, uint32 sensorId)
 
     if ((CapSense_WD_TYPE_ENUM)ptrWidget->wdgtType != CapSense_WD_PROXIMITY_E)
     {
-        #if (CapSense_REGULAR_SENSOR_EN)
-            ptrFilterHistObj.ptrRegular = &ptrFilterHistObj.ptrRegular[sensorId];
-        #endif /* (CapSense_REGULAR_SENSOR_EN) */
+        #if (0u != CapSense_REGULAR_RC_ALP_FILTER_EN)
+            ptrFilterHistObj.ptr = &ptrFilterHistObj.ptrAlp[sensorId];
+        #elif (0u != CapSense_REGULAR_RC_FILTER_EN)
+            ptrFilterHistObj.ptr = &ptrFilterHistObj.ptrRegular[sensorId];
+        #endif
     }
     else
     {
-        #if (CapSense_PROXIMITY_SENSOR_EN)
-            ptrFilterHistObj.ptrProx = &ptrFilterHistObj.ptrProx[sensorId];
-        #endif /* (CapSense_PROXIMITY_SENSOR_EN) */
+        #if (0u != CapSense_PROX_RC_ALP_FILTER_EN)
+            ptrFilterHistObj.ptr = &ptrFilterHistObj.ptrAlp[sensorId];
+        #elif (0u != CapSense_PROX_RC_FILTER_EN)
+            ptrFilterHistObj.ptr = &ptrFilterHistObj.ptrProx[sensorId];
+        #endif
     }
 
     CapSense_FtRunEnabledFiltersInternal(ptrFilterHistObj, ptrSensor, (uint32)ptrWidget->wdgtType);
@@ -1500,10 +1575,10 @@ void CapSense_FtRunEnabledFiltersInternal(CapSense_PTR_FILTER_VARIANT ptrFilterH
         CapSense_RunAverageInternal(ptrFilterHistObj, ptrSensorObj, wdType);
     #endif /* (CapSense_REGULAR_RC_AVERAGE_FILTER_EN || CapSense_PROX_RC_AVERAGE_FILTER_EN) */
 }
-#endif /* (CapSense_REGULAR_RC_FILTER_EN || CapSense_PROX_RC_FILTER_EN) */
+#endif /* (CapSense_ENABLE == CapSense_RC_FILTER_EN) */
 
 
-#if (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)
+#if (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN))
 /*******************************************************************************
 * Function Name: CapSense_RunNoiseEnvelope
 ****************************************************************************//**
@@ -1566,7 +1641,7 @@ void CapSense_InitializeNoiseEnvelope(uint32 widgetId, uint32 sensorId)
 
     SmartSense_InitializeNoiseEnvelope(ptrSensor->raw[0u], ptrWidgetRam->sigPFC, ptrNoiseEnvelope);
 }
-#endif /* #if CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN */
+#endif /* (0u != (CapSense_CSD_AUTOTUNE & CapSense_CSD_SS_TH_EN)) */
 
 
 #if (CapSense_POS_MEDIAN_FILTER_EN || CapSense_REGULAR_RC_MEDIAN_FILTER_EN || CapSense_PROX_RC_MEDIAN_FILTER_EN)
@@ -1625,17 +1700,17 @@ uint32 CapSense_FtMedian(uint32 x1, uint32 x2, uint32 x3)
 *******************************************************************************/
 uint32 CapSense_FtIIR1stOrder(uint32 input, uint32 prevOutput, uint32 n, uint32 shift)
 {
-    uint32 output;
+    uint32 filteredOutput;
 
     /*
     * n - IIR filter coefficient (n/256)
     * shift - Used to shift input data to have free LSB bits
     * for fraction storage of filter output calculation
     */
-    output = ((n * (input << shift)) + ((CapSense_IIR_COEFFICIENT_K - n) * prevOutput)) >> 8u;
+    filteredOutput = ((n * (input << shift)) + ((CapSense_IIR_COEFFICIENT_K - n) * prevOutput)) >> 8u;
 
     /* Shift operation of output will be done in upper level API if needed */
-    return output;
+    return filteredOutput;
 }
 
 

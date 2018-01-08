@@ -142,7 +142,7 @@ typedef struct
     /** Indoor Positioning Service GATT DB handles structure */
     const cy_stc_ble_ipss_t *ipss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t       callbackFunc;
 } cy_stc_ble_ips_config_t;
 

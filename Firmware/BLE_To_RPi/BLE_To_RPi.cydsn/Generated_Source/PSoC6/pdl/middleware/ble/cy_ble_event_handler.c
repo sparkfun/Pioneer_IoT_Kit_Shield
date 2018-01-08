@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the source code for the Event Handler State Machine
-*  of the BLE Component.
+*  of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -45,8 +45,8 @@ static void Cy_BLE_GAPC_DiscoverCharacteristicsEventHandler(cy_stc_ble_disc_char
 /***************************************
 * Global Variables
 ***************************************/
-volatile uint8_t cy_ble_eventHandlerFlag;
 volatile uint8_t cy_ble_busyStatus[CY_BLE_CONN_COUNT];
+volatile uint8_t cy_ble_eventHandlerFlag;
 volatile uint32_t cy_ble_cmdStatus;
 
 #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
@@ -67,7 +67,7 @@ cy_stc_ble_event_handler_t cy_ble_eventHandler;
 
 
 /******************************************************************************
-* Function Name: Cy_BLE_RegisterServiceEvtHandler
+* Function Name: Cy_BLE_RegisterServiceEventHandler
 ***************************************************************************//**
 *
 *  Registration Service Event Handler
@@ -133,7 +133,7 @@ cy_en_ble_api_result_t Cy_BLE_RegisterServiceEventHandler(cy_ble_event_handle_t 
 *  \param eventParam:  The event parameters.
 *
 * \return
-*  Return value is of type cy_en_ble_gatt_err_code_t.
+*  A return value of type cy_en_ble_gatt_err_code_t.
 *
 ******************************************************************************/
 cy_en_ble_gatt_err_code_t Cy_BLE_InvokeServiceEventHandler(uint32_t eventCode,
@@ -201,7 +201,7 @@ static void Cy_BLE_SendWriteResponse(const cy_stc_ble_gatts_write_cmd_req_param_
 * Function Name: Cy_BLE_TimeOutEventHandler
 ***************************************************************************//**
 *
-*  Handles a CY_BLE_EVT_TIMEOUT event from the BLE stack.
+*  Handles a CY_BLE_EVT_TIMEOUT event from the BLE Stack.
 *
 *  \param eventParam: The pointer to a structure of type cy_stc_ble_timeout_param_t.
 *
@@ -270,14 +270,13 @@ static void Cy_BLE_TimeOutEventHandler(const cy_stc_ble_timeout_param_t *eventPa
 * Function Name: Cy_BLE_IsDeviceAddressValid
 ***************************************************************************//**
 *
-*  This function verifies that the BLE public address has been programmed to SFLASH
-*  during manufacture. It can be used to verify if a public device address is
-*  programmed to flash memory.
+*  This function verifies that the device address is valid (not equal zero)
+*    
+*  \param deviceAddress: The pointer to the BD address of
+*                        type #cy_stc_ble_gap_bd_addr_t.
 *
-*  \param deviceAddress: The pointer to the BD address of type cy_stc_ble_gap_bd_addr_t.
-*
-* \return
-*  A non-zero value when a device address differs from the default SFLASH content.
+*  \return
+*   A non-zero value when a device address is valid
 *
 ******************************************************************************/
 uint8_t Cy_BLE_IsDeviceAddressValid(const cy_stc_ble_gap_bd_addr_t *deviceAddress)
@@ -303,11 +302,11 @@ uint8_t Cy_BLE_IsDeviceAddressValid(const cy_stc_ble_gap_bd_addr_t *deviceAddres
 
 
 /******************************************************************************
-* Function Name: Cy_BLE_L2Cap_ConnParamUpdateRspHandler
+* Function Name: Cy_BLE_L2Cap_ConnParamUpdateRspEventHandler
 ***************************************************************************//**
 *
 *  Handles an L2CAP connection parameter response event from
-*  the BLE stack.
+*  the BLE Stack.
 *
 *  \param eventParam:
 *      * Accepted = 0x0000
@@ -331,7 +330,7 @@ static void Cy_BLE_L2Cap_ConnParamUpdateRspEventHandler(const cy_stc_ble_l2cap_c
 ***************************************************************************//**
 *
 *  Handles a CY_BLE_EVT_GAP_CONNECTION_UPDATE_COMPLETE event from
-*  the BLE stack.
+*  the BLE Stack.
 *
 *  \param eventParam: The pointer to the data structure specified by the event.
 *
@@ -352,7 +351,7 @@ static void Cy_BLE_GAP_ConnUpdateCompleteEventHandler(const cy_stc_ble_gap_conn_
 * Function Name: Cy_BLE_EventHandler
 ***************************************************************************//**
 *
-*  Handles events from the BLE stack.
+*  Handles events from the BLE Stack.
 *
 *  \param event:   The event code.
 *  \param evParam: The event parameters.
@@ -425,13 +424,13 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
         case CY_BLE_EVT_STACK_SHUTDOWN_COMPLETE:
             Cy_BLE_SetState(CY_BLE_STATE_STOPPED);
 
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
             Cy_BLE_SetAdvertisementState(CY_BLE_ADV_STATE_STOPPED);
-            #endif  /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER) */
+        #endif  /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER) */
 
-            #if (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER)
+        #if (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER)
             Cy_BLE_SetScanState(CY_BLE_SCAN_STATE_STOPPED);
-            #endif /* (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER) */
+        #endif /* (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER) */
             
             /* Adding a delay of 10ms to ensure that the controller is completely 
              * shut-down before generating the event to the application.
@@ -464,7 +463,7 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
                     bleSsPowerLevel.pwrConfigParam.bdHandle = 0xFFu; /* Set the tx power level value for all connection handles.*/
                     (void)Cy_BLE_SetTxPowerLevel(&bleSsPowerLevel);
                     
-                    /* Set flag that executed Cy_BLE_SetTxPowerLevel during componnent start-up  */
+                    /* Set flag that executed Cy_BLE_SetTxPowerLevel during BLE start-up  */
                     cy_ble_cmdStatus |= CY_BLE_STATUS_SET_TX_PWR_LVL;
                 }
             }
@@ -473,16 +472,16 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
             
         case CY_BLE_EVT_TIMEOUT:
             Cy_BLE_TimeOutEventHandler((cy_stc_ble_timeout_param_t*)evParam);
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
-            #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)*/
+        #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)*/
             break;
 
         case CY_BLE_EVT_STACK_BUSY_STATUS:
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
             cy_ble_busyStatus[Cy_BLE_GetConnHandleByBdHandle(((cy_stc_ble_l2cap_state_info_t*)evParam)->bdHandle).attId] =
                 ((cy_stc_ble_l2cap_state_info_t*)evParam)->flowState;
-            #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)*/
+        #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)*/
             break;
 
         case CY_BLE_EVT_MEMORY_REQUEST:
@@ -526,13 +525,22 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
                 cy_ble_peerBonding[connectedHandle.attId] = ((cy_stc_ble_gap_auth_info_t*)evParam)->bonding;
             }
         #endif  /* CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES */
+        
+        #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
+            if(((cy_stc_ble_gap_auth_info_t *)evParam)->authErr == CY_BLE_GAP_AUTH_ERROR_NONE)
+            {
+                cy_stc_ble_conn_handle_t connectedHandle;
+                connectedHandle = Cy_BLE_GetConnHandleByBdHandle(((cy_stc_ble_gap_auth_info_t *)evParam)->bdHandle);
+                cy_ble_pairStatus[connectedHandle.attId] = true;
+            }
+        #endif /* ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)) */ 
             break;
 
         case CY_BLE_EVT_GAP_CONNECTION_UPDATE_COMPLETE:
             Cy_BLE_GAP_ConnUpdateCompleteEventHandler((const cy_stc_ble_gap_conn_param_updated_in_controller_t*)evParam);
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
-            #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
+        #endif /*(CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
             break;
 
     #if (CY_BLE_LL_PRIVACY_FEATURE != 0u)
@@ -540,7 +548,7 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
         {
             cy_stc_ble_gap_conn_param_updated_in_controller_t connCParam;
             cy_stc_ble_gap_enhance_conn_complete_param_t *connEnhanceParam;
-
+            
             connEnhanceParam = (cy_stc_ble_gap_enhance_conn_complete_param_t*)evParam;
             connCParam.status = connEnhanceParam->status;
             connCParam.connIntv = connEnhanceParam->connIntv;
@@ -551,10 +559,10 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
             /* Advertising is automatically stopped if a Slave is connected, so update the adv state to
              *  CY_BLE_ADV_STATE_STOPPED  */
             #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
-            if(connEnhanceParam->role == (uint8_t)CY_BLE_GAP_LL_ROLE_SLAVE)
-            {
-                Cy_BLE_SetAdvertisementState(CY_BLE_ADV_STATE_STOPPED);
-            }
+                if(connEnhanceParam->role == (uint8_t)CY_BLE_GAP_LL_ROLE_SLAVE)
+                {
+                    Cy_BLE_SetAdvertisementState(CY_BLE_ADV_STATE_STOPPED);
+                }
             #endif  /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER) */
         }
     #else
@@ -563,30 +571,49 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
 
             /* Advertising is automatically stopped if a Slave is connected, so update the adv state to CY_BLE_ADV_STATE_STOPPED  */
             #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
-            if(((cy_stc_ble_gap_connected_param_t*)evParam)->role == CY_BLE_GAP_LL_ROLE_SLAVE)
-            {
-                Cy_BLE_SetAdvertisementState(CY_BLE_ADV_STATE_STOPPED);
-            }
+                if(((cy_stc_ble_gap_connected_param_t*)evParam)->role == CY_BLE_GAP_LL_ROLE_SLAVE)
+                {
+                    Cy_BLE_SetAdvertisementState(CY_BLE_ADV_STATE_STOPPED);
+                }
             #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER) */
     #endif         /* CY_BLE_LL_PRIVACY_FEATURE != 0u */
             #if (CY_BLE_GAP_ROLE_CENTRAL)
-            if(cy_ble_connectingTimeout.timeout != 0u)
-            {
-                (void)Cy_BLE_StopTimer(&cy_ble_connectingTimeout);
-            }
+                if(cy_ble_connectingTimeout.timeout != 0u)
+                {
+                    (void)Cy_BLE_StopTimer(&cy_ble_connectingTimeout);
+                }
             #endif /* CY_BLE_GAP_ROLE_CENTRAL */
+            
+            #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
+            /* Store information about role of device connected (Master/Slave)*/
+            {   
+                #if (CY_BLE_LL_PRIVACY_FEATURE != 0u)
+                    cy_stc_ble_gap_enhance_conn_complete_param_t *tEvParam = 
+                        (cy_stc_ble_gap_enhance_conn_complete_param_t *)evParam;
+                #else
+                    cy_stc_ble_gap_connected_param_t *tEvParam = (cy_stc_ble_gap_connected_param_t *)evParam;
+                #endif /* (CY_BLE_LL_PRIVACY_FEATURE != 0u) */    
+                
+                cy_stc_ble_conn_handle_t tconnHandle = Cy_BLE_GetConnHandleByBdHandle(tEvParam->bdHandle);
+                if( tconnHandle.attId != CY_BLE_INVALID_CONN_HANDLE_VALUE)   
+                {
+                    cy_ble_devConnRole[tconnHandle.attId] = tEvParam->role;
+                }
+            }
+            #endif /*((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))*/
+        
             Cy_BLE_SetState(CY_BLE_STATE_ON);
             break;
 
         case CY_BLE_EVT_GAP_DEVICE_DISCONNECTED:
             Cy_BLE_SetState(CY_BLE_STATE_ON);
             break;
-
+        
         #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_BROADCASTER)
         case CY_BLE_EVT_GAPP_ADVERTISEMENT_START_STOP:
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
-            #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
+        #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
 
             if((cy_ble_eventHandlerFlag & CY_BLE_CALLBACK) != 0u)
             {
@@ -626,9 +653,9 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
 
         #if (CY_BLE_GAP_ROLE_CENTRAL || CY_BLE_GAP_ROLE_OBSERVER)
         case CY_BLE_EVT_GAPC_SCAN_START_STOP:
-            #if (CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_CENTRAL)
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
-            #endif /* (CY_BLE_GAP_ROLE_CENTRAL) */
+        #endif /* (CY_BLE_GAP_ROLE_CENTRAL) */
 
             if((cy_ble_eventHandlerFlag & CY_BLE_CALLBACK) != 0u)
             {
@@ -642,7 +669,7 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
                 {
                     Cy_BLE_SetScanState(CY_BLE_SCAN_STATE_STOPPED);
                 }
-                else /* The following event indicates that scanning has been stopped by stack */
+                else /* The following event indicates that scanning has been stopped by BLE Stack */
                 {
                     if(Cy_BLE_GetScanState() == CY_BLE_SCAN_STATE_SCANNING)
                     {
@@ -671,9 +698,9 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
         case CY_BLE_EVT_L2CAP_CONN_PARAM_UPDATE_RSP:
             Cy_BLE_L2Cap_ConnParamUpdateRspEventHandler((cy_stc_ble_l2cap_conn_update_rsp_param_t*)evParam);
 
-            #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
+        #if (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL)
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
-            #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
+        #endif /* (CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL) */
             break;
 
             /**********************************************************
@@ -694,9 +721,9 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
         #endif /* CY_BLE_GATT_ROLE_CLIENT */
             {
                 /* Clear the discovery index for the Client role */
-                #if (CY_BLE_GATT_ROLE_CLIENT)
+            #if (CY_BLE_GATT_ROLE_CLIENT)
                 (void)Cy_BLE_GATTC_RemoveConnHandle(*(cy_stc_ble_conn_handle_t*)evParam);
-                #endif /* CY_BLE_GATT_ROLE_CLIENT */
+            #endif /* CY_BLE_GATT_ROLE_CLIENT */
                 Cy_BLE_SetConnectionState(*(cy_stc_ble_conn_handle_t*)evParam, CY_BLE_CONN_STATE_CONNECTED);
                 cy_ble_connHandle[((cy_stc_ble_conn_handle_t*)evParam)->attId] = *(cy_stc_ble_conn_handle_t*)evParam;
             }
@@ -726,8 +753,7 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
                     (void)memset((uint8_t*)cy_ble_attValuesCccdMultiple[((cy_stc_ble_conn_handle_t*)evParam)->attId],
                                   0, CY_BLE_GATT_DB_CCCD_COUNT + CY_BLE_CCCD_CRC_BYTE);
                 }            
-            }
-           
+            }        
         #endif /* CY_BLE_GATT_ROLE_SERVER && (CY_BLE_BONDING_REQUIREMENT == CY_BLE_BONDING_YES) */
 
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
@@ -750,6 +776,10 @@ void Cy_BLE_EventHandler(cy_en_ble_event_t event,
             #endif /* CY_BLE_GATT_ROLE_CLIENT */
             }
 
+            #if ((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))
+                cy_ble_pairStatus[(*(cy_stc_ble_conn_handle_t *)evParam).attId] = false;
+            #endif /*((CY_BLE_GAP_ROLE_PERIPHERAL || CY_BLE_GAP_ROLE_CENTRAL))*/
+        
             (void)Cy_BLE_InvokeServiceEventHandler((uint32_t)event, (void*)evParam);
             break;
 
@@ -1206,7 +1236,7 @@ void Cy_BLE_ReadByTypeEventHandler(cy_stc_ble_gattc_read_by_type_rsp_param_t *ev
             /* The sub-procedure is complete when an Error Response is received and the
              *  Error Code is set to the Attribute Not Found; or the Read By Type Response has an
              *  Attribute Handle equal to the Ending Handle of the request - in this case
-             *  a CY_BLE_EVT_GATTC_LONG_PROCEDURE_END event is generated by the stack. */
+             *  a CY_BLE_EVT_GATTC_LONG_PROCEDURE_END event is generated by the BLE Stack. */
             cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
         }
         else if(Cy_BLE_GetConnectionState(eventParam->connHandle) == CY_BLE_CONN_STATE_CLIENT_INCL_DISCOVERING)
@@ -1432,7 +1462,7 @@ void Cy_BLE_FindInfoEventHandler(cy_stc_ble_gattc_find_info_rsp_param_t *eventPa
         /* The sub-procedure is complete when an Error Response is received and the
          * Error Code is set to the Attribute Not Found or the Find Information Response has
          * an Attribute Handle that is equal to the Ending Handle of the request in this
-         * case a CY_BLE_EVT_GATTC_LONG_PROCEDURE_END event is generated by the stack. */
+         * case a CY_BLE_EVT_GATTC_LONG_PROCEDURE_END event is generated by the BLE Stack. */
 
         cy_ble_eventHandlerFlag &= (uint8_t) ~CY_BLE_CALLBACK;
     }

@@ -112,7 +112,7 @@ typedef struct
     /** Wireless Power Transfer Service GATT DB handles structure */
     const cy_stc_ble_wptss_t *wptss;
 
-    /** An application layer event callback function to receive service events from the BLE Component. */
+    /** An application layer event callback function to receive service events from the BLE Middleware. */
     cy_ble_callback_t        callbackFunc;
 } cy_stc_ble_wpts_config_t;
 

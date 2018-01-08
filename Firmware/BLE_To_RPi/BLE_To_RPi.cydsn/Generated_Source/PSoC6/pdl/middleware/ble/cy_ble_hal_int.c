@@ -4,7 +4,7 @@
 *
 * \brief
 *  This file contains the source code for the Interrupt Service Routine for the
-*  HAL section of the BLE component
+*  HAL section of the BLE Middleware.
 *
 ********************************************************************************
 * \copyright
@@ -25,6 +25,137 @@ extern "C" {
 
 #if (CY_BLE_CONFIG_STACK_CONTR_CORE)
 
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+/* Private Function Prototypes  */
+static void Cy_BLE_HAL_SendInterruptNotification(void);
+
+/* Globals */    
+volatile uint32_t cy_ble_interruptCallbackFeatureMask = 0u;  
+
+
+/*******************************************************************************
+* Function Name: Cy_BLE_HAL_SendInterruptNotification
+****************************************************************************//**
+*
+*  This function sends notification (with interrupt type information) to user 
+*  callback for the BLE interrupts subscribed by user. The list of supported 
+*  interrupts described in the enumeration cy_en_ble_interrupt_callback_feature_t.
+*  Cy_BLE_RegisterInterruptCallback() API used to register callback for receiving
+*  the BLE interrupts.
+*
+*******************************************************************************/
+static void Cy_BLE_HAL_SendInterruptNotification(void)
+{
+    if(cy_ble_interruptCallbackFeatureMask != 0u)
+    {
+        cy_en_ble_interrupt_callback_feature_t interruptType = CY_BLE_INTR_CALLBACK_NONE;
+                
+        /* Read BLE_BLELL->EVENT_INTR */      
+        if((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLESS_STACK_ISR) != 0u) 
+        {
+            interruptType |= CY_BLE_INTR_CALLBACK_BLESS_STACK_ISR;    
+        }
+        else
+        {
+            if(((BLE_BLESS->INTR_STAT & BLE_BLESS_INTR_STAT_DSM_ENTERED_INTR_Msk) != 0u) &&
+               ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_ENTERED)!= 0u))
+            {
+                interruptType |= CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_ENTERED;
+            }
+            
+            if(((BLE_BLESS->INTR_STAT & BLE_BLESS_INTR_STAT_DSM_EXITED_INTR_Msk) != 0u) &&
+               ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_EXITED) != 0u))
+            {
+                interruptType |= CY_BLE_INTR_CALLBACK_BLESS_INTR_STAT_DSM_EXITED;
+            }
+       
+            if(((BLE_BLESS->INTR_STAT & BLE_BLESS_INTR_STAT_LL_INTR_Msk) != 0u))
+            { 
+                /**
+                 *  Updates the firmware and hardware to exit sleep mode, when
+                 *  called from the interrupt mode, after checking the state machine.
+                 */
+                Cy_BLE_LlIsrExitLowPowerMode();
+           
+                if(BLE_BLELL->EVENT_INTR != 0x0u)
+                {            
+                    if((BLE_BLELL->EVENT_INTR & BLE_BLELL_EVENT_INTR_CONN_INTR_Msk) != 0u)
+                    {
+                        if(((BLE_BLELL->CONN_INTR & BLE_BLELL_CONN_INTR_CLOSE_CE_Msk) != 0u) &&
+                            ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CLOSE_CE) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CLOSE_CE */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CLOSE_CE;
+                        }
+                        
+                        if(((BLE_BLELL->CONN_INTR & BLE_BLELL_CONN_INTR_CE_TX_ACK_Msk) != 0u) &&
+                           ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_TX_ACK) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_TX_ACK */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_TX_ACK;
+                        }
+                        
+                        if(((BLE_BLELL->CONN_EXT_INTR & BLE_BLELL_CONN_EXT_INTR_EARLY_INTR_Msk) != 0u) &&
+                           ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_CONN_EXT_INTR_EARLY) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_CONN_EXT_INTR_EARLY */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_CONN_EXT_INTR_EARLY;                     
+                        }
+                        
+                        if(((BLE_BLELL->CONN_INTR & BLE_BLELL_CONN_INTR_CE_RX_Msk) != 0u) &&
+                            ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_RX) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_RX */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_CONN_INTR_CE_RX;
+                        }
+                        
+                    }    
+                    
+                    if((BLE_BLELL->EVENT_INTR & BLE_BLELL_EVENT_INTR_SCAN_INTR_Msk) != 0u)
+                    {
+                        if(((BLE_BLELL->SCAN_INTR & BLE_BLELL_SCAN_INTR_ADV_RX_INTR_Msk) != 0u) &&
+                           ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_ADV_RX) != 0u))
+                        {
+                            /* Return interrupt type Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_ADV_RX */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_ADV_RX;
+                        }
+                        
+                        if(((BLE_BLELL->SCAN_INTR & BLE_BLELL_SCAN_INTR_SCAN_RSP_RX_INTR_Msk) != 0u) &&
+                           ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_SCAN_RSP_RX) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_SCAN_RSP_RX */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_SCAN_INTR_SCAN_RSP_RX;
+                        }  
+                    }
+                    
+                    if((BLE_BLELL->EVENT_INTR & BLE_BLELL_EVENT_INTR_ADV_INTR_Msk) != 0u)
+                    {
+                        if(((BLE_BLELL->ADV_INTR & BLE_BLELL_ADV_INTR_CONN_REQ_RX_INTR_Msk) != 0u) &&
+                           ((cy_ble_interruptCallbackFeatureMask & CY_BLE_INTR_CALLBACK_BLELL_ADV_INTR_CONN_REQ_RX) != 0u))
+                        {
+                            /* Return interrupt type CY_BLE_INTR_CALLBACK_BLELL_ADV_INTR_CONN_REQ_RX */    
+                            interruptType |= CY_BLE_INTR_CALLBACK_BLELL_ADV_INTR_CONN_REQ_RX;
+                        }   
+                    }
+                }
+            }
+        }
+        
+        /* Send interrupt type information to registered callback */
+        if(interruptType != CY_BLE_INTR_CALLBACK_NONE)
+        {       
+            #if (CY_BLE_MODE_PROFILE)
+                if(Cy_BLE_InterruptCallback != NULL)
+                {
+                    Cy_BLE_InterruptCallback((uint32_t)interruptType);   
+                }
+            #endif /* (CY_BLE_MODE_PROFILE) */
+        }
+    }
+}
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+    
+
 /*******************************************************************************
 * Function Name: Cy_BLE_BlessInterrupt
 ****************************************************************************//**
@@ -37,7 +168,16 @@ extern "C" {
 *******************************************************************************/
 void Cy_BLE_BlessInterrupt(void)
 {
-    /* Call stack manager bless function handler */
+#if (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE)
+    /** 
+     * Send notification (with interrupt type) to user callback for the 
+     * BLE interrupts subscribed by user. Cy_BLE_RegisterInterruptCallback API 
+     * used to register callback for receiving BLE interrupts.
+     */
+    Cy_BLE_HAL_SendInterruptNotification();
+#endif /* (CY_BLE_STACK_MODE == CY_BLE_STACK_RELEASE) */
+    
+    /* Call BLE Stack manager bless function handler */
     Cy_BLE_HAL_BlessInterruptHandler();
     /* Host stack takes care of clearing interrupts */
 }

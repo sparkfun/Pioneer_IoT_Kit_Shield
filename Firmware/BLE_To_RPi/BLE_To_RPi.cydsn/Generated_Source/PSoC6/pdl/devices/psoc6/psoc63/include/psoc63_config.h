@@ -5,8 +5,8 @@
 * PSoC 63 device configuration header
 *
 * \note
-* Generated 9/21/2017 by CyDeviceHeaderGenerator v1.2.0.101
-* from the register map configuration rev#1007711
+* Generator version: 1.2.0.115
+* Database revision: rev#1026096
 *
 ********************************************************************************
 * \copyright
@@ -1438,7 +1438,7 @@ typedef enum
 /* Level or edge detection setting for a trigger mux */
 typedef enum
 {
- /* The trigger is a simple level output */
+    /* The trigger is a simple level output */
     TRIGGER_TYPE_LEVEL = 0u,
     /* The trigger is synchronized to the consumer blocks clock
        and a two cycle pulse is generated on this clock */
@@ -1619,6 +1619,12 @@ typedef enum
 #define SRSS_HARD_ALTHFMUX_PRESENT      1u
 /* Width of MCWDT Subcounters 0 and 1. Applies to all MCWDT. */
 #define SRSS_MCWDT_CTR_WIDTH            32u
+/* Low-current buck regulator present. Can be derived from S40S_SISOBUCKLC_PRESENT
+   or SIMOBUCK_PRESENT. */
+#define SRSS_BUCKCTL_PRESENT            1u
+/* Low-current SISO buck core regulator is present. Only compatible with ULP
+   linear regulator system (ULPLINREG_PRESENT==1). */
+#define SRSS_S40S_SISOBUCKLC_PRESENT    0u
 /* Backup memory is present (only used when BACKUP_PRESENT==1) */
 #define SRSS_BACKUP_BMEM_PRESENT        0u
 /* Number of Backup registers to include (each is 32b). Only used when
@@ -1628,18 +1634,6 @@ typedef enum
 #define IOSS_HSIOM_AMUX_SPLIT_NR        9u
 /* Number of HSIOM ports in device (same as GPIO.GPIO_PRT_NR) */
 #define IOSS_HSIOM_HSIOM_PORT_NR        15u
-/* Number of PWR/GND MONITOR CELLs in the device */
-#define IOSS_HSIOM_MONITOR_NR           0u
-/* Number of PWR/GND MONITOR CELLs in range 0..31 */
-#define IOSS_HSIOM_MONITOR_NR_0_31      0u
-/* Number of PWR/GND MONITOR CELLs in range 32..63 */
-#define IOSS_HSIOM_MONITOR_NR_32_63     0u
-/* Number of PWR/GND MONITOR CELLs in range 64..95 */
-#define IOSS_HSIOM_MONITOR_NR_64_95     0u
-/* Number of PWR/GND MONITOR CELLs in range 96..127 */
-#define IOSS_HSIOM_MONITOR_NR_96_127    0u
-/* Indicates the presence of alternate JTAG interface */
-#define IOSS_HSIOM_ALTJTAG_PRESENT      0u
 /* Number of GPIO ports in range 0..31 */
 #define IOSS_GPIO_GPIO_PORT_NR_0_31     15u
 /* Number of GPIO ports in range 32..63 */
@@ -1660,6 +1654,550 @@ typedef enum
 #define PERI_MS_PPU_COMBINATORIAL       1u
 /* The number of programmable PPU structures for PERI (all peripherals) */
 #define PERI_MS_PPU_PROG_STRUCT_NR      16u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_CLOCK_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT0_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_CLOCK_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT1_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_CLOCK_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL2_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL3_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL4_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL5_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL6_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL7_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL8_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL9_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL12_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL13_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT2_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL2_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL3_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL4_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL5_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL6_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL8_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL9_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL10_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL11_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL12_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT3_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL2_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT4_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT5_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL2_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL3_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL4_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL5_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL6_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL7_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL8_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL9_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT6_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT7_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT8_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT9_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL0_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL1_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL2_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT10_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT11_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT12_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT13_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT14_PERI_GROUP_STRUCT_SL15_PRESENT 0u
+/* Presence of a timeout functionality (1: Yes, 0:No) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_CLOCK_PRESENT 1u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL0_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL1_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL2_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL3_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL4_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL5_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL6_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL7_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL8_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL9_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL10_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL11_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL12_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL13_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL14_PRESENT 0u
+/* Slave present (0:No, 1:Yes) */
+#define PERI_GROUP_PRESENT15_PERI_GROUP_STRUCT_SL15_PRESENT 0u
 /* Number of programmable clocks (outputs) */
 #define PERI_CLOCK_NR                   59u
 /* Number of 8.0 dividers */
@@ -2387,6 +2925,78 @@ typedef enum
 #define AUDIOSS_I2S                     1u
 /* PDM capable? (0=No,1=Yes) */
 #define AUDIOSS_PDM                     1u
+
+/* MMIO Targets Defines */
+#define CY_MMIO_CRYPTO_GROUP_NR         1u
+#define CY_MMIO_CRYPTO_SLAVE_NR         1u
+#define CY_MMIO_CPUSS_GROUP_NR          2u
+#define CY_MMIO_CPUSS_SLAVE_NR          1u
+#define CY_MMIO_FAULT_GROUP_NR          2u
+#define CY_MMIO_FAULT_SLAVE_NR          2u
+#define CY_MMIO_IPC_GROUP_NR            2u
+#define CY_MMIO_IPC_SLAVE_NR            3u
+#define CY_MMIO_PROT_GROUP_NR           2u
+#define CY_MMIO_PROT_SLAVE_NR           4u
+#define CY_MMIO_FLASHC_GROUP_NR         2u
+#define CY_MMIO_FLASHC_SLAVE_NR         5u
+#define CY_MMIO_SRSS_GROUP_NR           2u
+#define CY_MMIO_SRSS_SLAVE_NR           6u
+#define CY_MMIO_BACKUP_GROUP_NR         2u
+#define CY_MMIO_BACKUP_SLAVE_NR         7u
+#define CY_MMIO_DW_GROUP_NR             2u
+#define CY_MMIO_DW_SLAVE_NR             8u
+#define CY_MMIO_EFUSE_GROUP_NR          2u
+#define CY_MMIO_EFUSE_SLAVE_NR          12u
+#define CY_MMIO_PROFILE_GROUP_NR        2u
+#define CY_MMIO_PROFILE_SLAVE_NR        13u
+#define CY_MMIO_HSIOM_GROUP_NR          3u
+#define CY_MMIO_HSIOM_SLAVE_NR          1u
+#define CY_MMIO_GPIO_GROUP_NR           3u
+#define CY_MMIO_GPIO_SLAVE_NR           2u
+#define CY_MMIO_SMARTIO_GROUP_NR        3u
+#define CY_MMIO_SMARTIO_SLAVE_NR        3u
+#define CY_MMIO_UDB_GROUP_NR            3u
+#define CY_MMIO_UDB_SLAVE_NR            4u
+#define CY_MMIO_LPCOMP_GROUP_NR         3u
+#define CY_MMIO_LPCOMP_SLAVE_NR         5u
+#define CY_MMIO_CSD0_GROUP_NR           3u
+#define CY_MMIO_CSD0_SLAVE_NR           6u
+#define CY_MMIO_TCPWM0_GROUP_NR         3u
+#define CY_MMIO_TCPWM0_SLAVE_NR         8u
+#define CY_MMIO_TCPWM1_GROUP_NR         3u
+#define CY_MMIO_TCPWM1_SLAVE_NR         9u
+#define CY_MMIO_LCD0_GROUP_NR           3u
+#define CY_MMIO_LCD0_SLAVE_NR           10u
+#define CY_MMIO_BLE_GROUP_NR            3u
+#define CY_MMIO_BLE_SLAVE_NR            11u
+#define CY_MMIO_USBFS0_GROUP_NR         3u
+#define CY_MMIO_USBFS0_SLAVE_NR         12u
+#define CY_MMIO_SMIF0_GROUP_NR          4u
+#define CY_MMIO_SMIF0_SLAVE_NR          2u
+#define CY_MMIO_SCB0_GROUP_NR           6u
+#define CY_MMIO_SCB0_SLAVE_NR           1u
+#define CY_MMIO_SCB1_GROUP_NR           6u
+#define CY_MMIO_SCB1_SLAVE_NR           2u
+#define CY_MMIO_SCB2_GROUP_NR           6u
+#define CY_MMIO_SCB2_SLAVE_NR           3u
+#define CY_MMIO_SCB3_GROUP_NR           6u
+#define CY_MMIO_SCB3_SLAVE_NR           4u
+#define CY_MMIO_SCB4_GROUP_NR           6u
+#define CY_MMIO_SCB4_SLAVE_NR           5u
+#define CY_MMIO_SCB5_GROUP_NR           6u
+#define CY_MMIO_SCB5_SLAVE_NR           6u
+#define CY_MMIO_SCB6_GROUP_NR           6u
+#define CY_MMIO_SCB6_SLAVE_NR           7u
+#define CY_MMIO_SCB7_GROUP_NR           6u
+#define CY_MMIO_SCB7_SLAVE_NR           8u
+#define CY_MMIO_SCB8_GROUP_NR           6u
+#define CY_MMIO_SCB8_SLAVE_NR           9u
+#define CY_MMIO_PASS_GROUP_NR           9u
+#define CY_MMIO_PASS_SLAVE_NR           1u
+#define CY_MMIO_I2S_GROUP_NR            10u
+#define CY_MMIO_I2S_SLAVE_NR            1u
+#define CY_MMIO_PDM_GROUP_NR            10u
+#define CY_MMIO_PDM_SLAVE_NR            2u
 
 #endif /* _PSOC63_CONFIG_H_ */
 
