@@ -1,33 +1,20 @@
-SparkFun microSD Shield
-===========================
+Pioneer IoT Kit Shield
+======================
 
-![microSD Shield](https://cdn.sparkfun.com//assets/parts/9/5/2/8/12761-05.jpg)
+![Pioneer IoT Kit Shield](https://cdn.sparkfun.com/assets/parts/1/2/6/2/0/14531-Pioneer_Kit_Add-On_Shield-01.jpg)
 
-[*microSD Shield (DEV-12761)*](https://www.sparkfun.com/products/12761)
-
-The microSD shield equips your Arduino with mass-storage capability, so you can use it for data-logging or other related projects. 
+[*Pioneer IoT Kit Shield (DEV-14531)*](https://www.sparkfun.com/products/14531)
 
 Repository Contents
 -------------------
 
-* **/Firmware** - Example .INO sketch for Arduino. Requires the SD.h library
+* **/Firmware** - Example projects for the PSoC 6 and PSoC 4BLE Pioneer kits.
 * **/Hardware** - All Eagle design files (.brd, .sch)
 * **/Production** - Test bed files and production panel files
 
 Documentation
 --------------
-* **[Hookup Guide](https://learn.sparkfun.com/tutorials/microsd-shield-and-sd-breakout-hookup-guide)** - Basic hookup guide for the microSD Shield.
-* **[SparkFun Fritzing repo](https://github.com/sparkfun/Fritzing_Parts)** - Fritzing diagrams for SparkFun products.
-* **[SparkFun 3D Model repo](https://github.com/sparkfun/3D_Models)** - 3D models of SparkFun products. 
-
-Product Versions
-----------------
-* [DEV-09802](https://www.sparkfun.com/products/9802)- Hardware version 1.3. Designed for Uno (not R3)
-
-Version History
----------------
-* [v1.3](https://github.com/sparkfun/microSD_Shield/tree/V_1.3) Version 1.3
-
+* **[Hookup Guide](https://learn.sparkfun.com/tutorials/using-the-psoc-6-pioneer-board-with-the-pioneer-iot-add-on-shield)** - Basic hookup guide for the Pioneer IoT Kit Shield.
 
 License Information
 -------------------
