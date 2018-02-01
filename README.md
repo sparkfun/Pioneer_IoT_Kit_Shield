@@ -5,6 +5,8 @@ Pioneer IoT Kit Shield
 
 [*Pioneer IoT Kit Shield (DEV-14531)*](https://www.sparkfun.com/products/14531)
 
+The Pioneer IoT Add-On Shield is a unique board designed to add more functionality to the PSoC 6 from Cypress while remaining useful and practical for plenty of other Internet of Things applications. Each Add-On Shield is a pretty simple board with an equally simple layout that provides XBee, Qwiic and microSD functionality not only to the PSoC 6 but also to any board with an Arduino R3 shield format.
+
 Repository Contents
 -------------------
 
