@@ -1,0 +1,8 @@
+C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\BLE_Central_EnvSensors1.cyprj|43160e64-2f0c-4c84-8c15-8ff8f4d89d68
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|8acf7eaa-bfed-4d3e-91cf-9145d0b6d1c7
+C:\Users\mike.hord\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|2350fea6-1374-4f7a-b258-50f95a580839
+C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|f7ec3263-d95d-4625-aae6-44de6c0b92f4
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|d4b850f4-ef57-422c-8388-0c6ff6c2318e
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|6727a31f-335f-480c-b73c-7840c37901a4
+C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|2ccaf1b2-3e4a-403d-9f14-2d40105f9b7d
+C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\Environmental_Sensor.cyprj|893ed971-2b25-4ed2-9234-e399a0e2468a

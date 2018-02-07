@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="us-ascii"?>
+
+<fileSet version="1" anchorPath="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp" xsi:schemaLocation="http://cypress.com/xsd/cypathdictionary cypathdictionary.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://cypress.com/xsd/cypathdictionary">
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_cfg.h" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_sysint_cfg.h" value="HEADER;;;;;Pins and Interrupts" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_sysint_cfg.c" value="SOURCE_C;CortexM0p,CortexM4;;;;Pins and Interrupts" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_cfg.c" value="SOURCE_C;CortexM0p;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cymetadata.c" value="SOURCE_C;CortexM0p,CortexM4;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cydevice_trm.h" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cydevicegnu_trm.inc" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cydevicerv_trm.inc" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cydeviceiar_trm.inc" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter.h" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_gpio.h" value="HEADER;;;;;Pins and Interrupts" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cyfitter_sysint.h" value="HEADER;;;;;Pins and Interrupts" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cydisabledsheets.h" value="HEADER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE.h" value="HEADER;;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE.c" value="SOURCE_C;CortexM0p,CortexM4;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE_config.c" value="SOURCE_C;CortexM0p,CortexM4;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE_config.h" value="HEADER;;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE_dis_config.c" value="SOURCE_C;CortexM0p,CortexM4;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\BLE_custom_config.c" value="SOURCE_C;CortexM0p,CortexM4;;;;BLE" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\UART_DEB.c" value="SOURCE_C;CortexM0p,CortexM4;;;;UART_DEB" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\UART_DEB.h" value="HEADER;;;;;UART_DEB" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\MCWDT_PDL.c" value="SOURCE_C;CortexM0p,CortexM4;;;;MCWDT" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\MCWDT_PDL.h" value="HEADER;;;;;MCWDT" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\XBEE_UART.c" value="SOURCE_C;CortexM0p,CortexM4;;;;XBEE_UART" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\XBEE_UART.h" value="HEADER;;;;;XBEE_UART" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\UART_DEB_SCBCLK.h" value="HEADER;;;;;UART_DEB_SCBCLK" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\XBEE_UART_SCBCLK.h" value="HEADER;;;;;XBEE_UART_SCBCLK" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\project.h" value="OTHER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cycodeshareimport.ld" value="OTHER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cycodeshareexport.ld" value="OTHER;;;;;" />
+  <file name="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\codegentemp\cycodeshareimport.scat" value="OTHER;;;;;" />
+</fileSet>

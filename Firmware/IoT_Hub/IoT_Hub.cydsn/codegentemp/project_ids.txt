@@ -1,7 +1,0 @@
-C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\IoT_Hub\IoT_Hub.cydsn\IoT_Hub.cyprj|9b5bdb79-8336-4fdf-b1eb-8a99392c85f9
-C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|2384231d-5dc1-473f-b650-a97f79bfff66
-C:\Users\mike.hord\Documents\PSoC Creator\4.1\Downloads ( 4.1).cylib\Downloads ( 4.1).cyprj|6f89748e-dd90-441d-bcfd-4b660b4b062e
-C:\Users\mike.hord\Documents\PSoC Creator\4.2\Downloads ( 4.2).cylib\Downloads ( 4.2).cyprj|b0271a65-5f1c-46f0-b220-613ff7b3d992
-C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|9ef7b637-d7bb-4056-9f51-a48a2a96e63f
-C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|453b0f02-904f-429f-b8ad-cbad5714a55d
-C:\Program Files (x86)\Cypress\PSoC Creator\4.2\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|c7382463-ba2a-4321-a096-ef9f167f734f
