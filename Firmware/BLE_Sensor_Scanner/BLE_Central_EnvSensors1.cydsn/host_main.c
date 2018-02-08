@@ -970,7 +970,7 @@ int HostMain(void)
     /* Initialize Debug UART */
     UART_DEB_Start();
     XBEE_UART_Start();
-    //XBeeWiFiInit();
+    XBeeWiFiInit();
     DBG_PRINTF("BLE Multi Master Single Slave Example \r\n");
              
     /* Start the BLE component and register the generic event handler */
