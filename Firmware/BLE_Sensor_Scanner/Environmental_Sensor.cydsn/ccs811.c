@@ -25,7 +25,7 @@ local, and you've found our code helpful, please buy us a round!
 
 // Starts the CCS811 sensor operation by checking to make sure it's present
 //  and then writing to the APP_START register.
-int8_t ccs811_init(const struct ccs811_dev *dev)
+int8_t ccs811_init(struct ccs811_dev *dev)
 {
   uint8_t data = 0;
   dev->read(dev->dev_addr, CCS811_HW_ID, &data, 1);
@@ -33,7 +33,13 @@ int8_t ccs811_init(const struct ccs811_dev *dev)
   {
     return -1;
   }
+  CyDelay(70);
+  uint8_t resetKey[4] = {0x11,0xE5,0x72,0x8A};
+  dev->write(dev->dev_addr, CCS811_SW_RESET, resetKey, 4);
+  CyDelay(70);
   dev->write(dev->dev_addr, CCS811_APP_START, &data, 0);
+  dev->settings.driveMode = MODE_4;
+  ccs811_set_sensor_settings(dev);
   return 0;
 }
 

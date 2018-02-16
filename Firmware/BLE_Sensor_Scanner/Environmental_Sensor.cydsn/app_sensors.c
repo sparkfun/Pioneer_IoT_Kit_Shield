@@ -28,6 +28,8 @@ local, and you've found our code helpful, please buy us a round!
 extern struct bme280_dev bme280;
 extern struct ccs811_dev ccs811;
 
+static uint8_t resettedCCS811 = 0;
+
 uint8 sendNotifications_BME280_Temp;
 uint8 sendNotifications_BME280_Pressure;
 uint8 sendNotifications_BME280_Humidity;
@@ -42,6 +44,22 @@ void sendSensorNotification(void)
   struct ccs811_data ccs811_data;
   bme280_get_sensor_data(BME280_ALL, &bme280_data, &bme280);
   ccs811_get_sensor_data(&ccs811_data, &ccs811);
+  
+  // Sometimes, the CCS811 goes out to lunch and starts returning
+  //  65021 (0xFDFD) for one or both values. If this happens, we
+  //  need to re-init the part.
+  if (ccs811_data.ECO2 == 65021 || ccs811_data.TVOC == 65021)
+  {
+    ccs811_init(&ccs811);
+    ccs811_get_sensor_data(&ccs811_data, &ccs811);
+    UART_UartPutString("Reset CCS811\n");
+    resettedCCS811 = 1;
+  }
+  
+  if (resettedCCS811)
+  {
+    UART_UartPutString("Did the thing\n");
+  }
   
   char buffer[20];
   

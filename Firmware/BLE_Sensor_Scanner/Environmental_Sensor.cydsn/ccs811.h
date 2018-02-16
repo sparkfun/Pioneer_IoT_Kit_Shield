@@ -74,7 +74,7 @@ struct ccs811_dev {
 };
   
 // Function prototypes
-int8_t ccs811_init(const struct ccs811_dev *dev);
+int8_t ccs811_init(struct ccs811_dev *dev);
 int8_t ccs811_set_sensor_settings(const struct ccs811_dev *dev);
 int8_t ccs811_get_sensor_settings(struct ccs811_dev *dev);
 int8_t ccs811_get_sensor_data(struct ccs811_data *data, struct ccs811_dev *dev);

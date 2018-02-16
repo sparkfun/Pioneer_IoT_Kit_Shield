@@ -13,10 +13,9 @@
 <v>Output</v>
 </TreeKeys>
 <TreeStates>
-<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="BLE_Sensor_Scanner\BLE_Central_EnvSensors1\CM0p (Core 0)">
+<CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="BLE_Sensor_Scanner\Environmental_Sensor\Source Files\main.c">
 <ExpandedNodeIds>
 <v>BLE_Sensor_Scanner</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\TopDesign</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\BLE_Central_EnvSensors1.cydwr\Pins</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\BLE_Central_EnvSensors1.cydwr\Analog</v>
@@ -77,8 +76,8 @@
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Generated_Source\PSoC6\pdl\drivers</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Generated_Source\PSoC6\pdl\drivers\peripheral</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Generated_Source\PSoC6\pdl\drivers\peripheral\systick</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\TopDesign</v>
-<v>BLE_Sensor_Scanner\Environmental_Sensor\Environmental_Sensor.cydwr</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Environmental_Sensor.cydwr\Pins</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Environmental_Sensor.cydwr\Analog</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Environmental_Sensor.cydwr\Clocks</v>
@@ -107,33 +106,36 @@
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\low_power.c</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\main.c</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\sensors_config.c</v>
-<v>BLE_Sensor_Scanner\Environmental_Sensor\Generated_Source</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor\Generated_Source\PSoC4</v>
 </ExpandedNodeIds>
 <VisibleNodeIds>
 <v>BLE_Sensor_Scanner</v>
 <v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\TopDesign</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\BLE_Central_EnvSensors1.cydwr</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\CM0p (Core 0)</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\CM4 (Core 1)</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Header Files</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Header Files\common.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Header Files\user_interface.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Header Files\wifi.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Source Files</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Source Files\debug.c</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Source Files\host_main.c</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Source Files\user_interface.c</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Host Files\Source Files\wifi.c</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Shared Files</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Shared Files\cy_ipc_config.c</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Shared Files\cy_ipc_config.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Shared Files\cyapicallbacks.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Shared Files\system_psoc63.h</v>
-<v>BLE_Sensor_Scanner\BLE_Central_EnvSensors1\Generated_Source</v>
 <v>BLE_Sensor_Scanner\Environmental_Sensor</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\TopDesign</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Environmental_Sensor.cydwr</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\app_Ble.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\app_sensors.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\bme280.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\bme280_defs.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\ccs811.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\config.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\i2c_support.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\LED.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\low_power.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\main.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Header Files\sensors_config.h</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\app_Ble.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\app_sensors.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\bme280.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\ccs811.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\i2c_support.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\low_power.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\main.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Source Files\sensors_config.c</v>
+<v>BLE_Sensor_Scanner\Environmental_Sensor\Generated_Source</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 <CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237 type_name="CyDesigner.Common.Base.Controls.CyTreeViewState" version="1" SelectedNodeId="">
@@ -546,8 +548,11 @@
 </CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997>
 <Unloaded />
 <OpenDocs>
-<name v=".\BLE_Central_EnvSensors1.cydsn\common.h" />
-<name v=".\BLE_Central_EnvSensors1.cydsn\host_main.c" />
+<name v=".\Environmental_Sensor.cydsn\app_sensors.c" />
+<name v=".\Environmental_Sensor.cydsn\ccs811.c" />
+<name v=".\Environmental_Sensor.cydsn\i2c_support.c" />
+<name v=".\Environmental_Sensor.cydsn\ccs811.h" />
+<name v=".\Environmental_Sensor.cydsn\main.c" />
 </OpenDocs>
 <OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
 
@@ -555,7 +560,7 @@
   Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
   http://www.actiprosoftware.com
 
---><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1212, 711" SelectedTabbedMdiWindow="c8a53157-fc74-43f3-af53-0b54de384ff9"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\common.h" Guid="dc4fb29e-6a1f-4205-af79-d3d55bf5830d" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\BLE_Central_EnvSensors1.cydsn\host_main.c" Guid="c8a53157-fc74-43f3-af53-0b54de384ff9" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1212, 711" SelectedTabbedMdiWindow="7b3f6f4c-f382-4fd6-b60e-3ecac5c826e5"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\app_sensors.c" Guid="1ebad6a5-f7b2-4916-86fb-f17fbcddd695" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\ccs811.c" Guid="7b3f6f4c-f382-4fd6-b60e-3ecac5c826e5" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\i2c_support.c" Guid="be45b87d-7ab3-4671-99cc-83320ff7e5aa" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\ccs811.h" Guid="7b66a6f3-d87a-42b2-9b33-10de777a08a0" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_IoT_Kit_Shield\Firmware\BLE_Sensor_Scanner\Environmental_Sensor.cydsn\main.c" Guid="2cb85278-7985-4284-b83a-dac6ae37210e" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
 <config v="" />
 <AutoUpdate v="true" />
 </CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>
