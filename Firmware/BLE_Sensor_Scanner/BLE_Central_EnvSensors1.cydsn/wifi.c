@@ -26,9 +26,9 @@ void XBeeWiFiInit()
 {
   // Configure the XBee connection settings.
   char buffer[40];       // Create a buffer for our commands
-  char ssid[] = "sparkfun-guest";
+  char ssid[] = "ssid_goes_here";
   char ts_ip[] = "184.106.153.149";  // thingspeak.com IP address
-  char ssid_pw[] = "sparkfun6333";
+  char ssid_pw[] = "wifi_pw_here";
   int dest_port = 80;
   char encrypt_mode = WPA2;
   

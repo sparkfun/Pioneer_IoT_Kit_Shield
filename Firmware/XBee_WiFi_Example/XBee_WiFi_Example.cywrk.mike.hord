@@ -92,83 +92,6 @@
 <ExpandedNodeIds>
 <v>XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ble_clk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_flash.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_gpio.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_config.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_drv.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_pipe.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_sema.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_lvd.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_profile.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_prot.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_ezi2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_i2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_spi.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_uart.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysanalog.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysclk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysint.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib_gcc.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syspm.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_systick.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_trigmux.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_wdt.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cyfitter_cfg.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cyfitter_sysint_cfg.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\ipc_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\main_cm0p.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\startup_psoc63_cm0plus.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\system_psoc63_cm0plus.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\UART.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.elf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.hex</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.map</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ble_clk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_flash.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_gpio.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ipc_config.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ipc_drv.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ipc_pipe.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ipc_sema.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_lvd.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_profile.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_prot.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_scb_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_scb_ezi2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_scb_i2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_scb_spi.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_scb_uart.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_sysanalog.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_sysclk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_sysint.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_syslib.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_syslib_gcc.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_syspm.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_systick.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_trigmux.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_wdt.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cyfitter_sysint_cfg.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\ipc_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\main_cm4.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\startup_psoc63_cm4.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\system_psoc63_cm4.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\UART.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\XBee_WiFi_Example.elf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\XBee_WiFi_Example.hex</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\XBee_WiFi_Example.map</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example.gpdsc</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example.rpt</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example_timing.html</v>
@@ -176,52 +99,9 @@
 <VisibleNodeIds>
 <v>XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ble_clk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_flash.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_gpio.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_config.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_drv.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_pipe.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_ipc_sema.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_lvd.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_profile.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_prot.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_ezi2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_i2c.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_spi.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_scb_uart.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysanalog.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysclk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_sysint.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syslib_gcc.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_syspm.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_systick.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_trigmux.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cy_wdt.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cyfitter_cfg.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cyfitter_sysint_cfg.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\cymetadata.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\ipc_common.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\main_cm0p.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\startup_psoc63_cm0plus.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\system_psoc63_cm0plus.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\Listing Files\UART.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.elf</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.hex</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM0p\ARM_GCC_541\Debug\XBee_WiFi_Example.map</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_ble_clk.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_flash.lst</v>
-<v>XBee_WiFi_Example\XBee_WiFi_Example\CortexM4\ARM_GCC_541\Debug\Listing Files\cy_gpio.lst</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example.gpdsc</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example.rpt</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\XBee_WiFi_Example_timing.html</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStates>
@@ -234,15 +114,39 @@
 <v>XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 6 Architecture TRM</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 63 Family Datasheet</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\Peripheral Driver Library</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\System Reference Guides</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Gnd_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0\LED_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Power_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0\Resistor_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SCB_UART_PDL_v2_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0\SwitchSPST_v1_0.pdf</v>
 </ExpandedNodeIds>
 <VisibleNodeIds>
 <v>XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 6 Architecture TRM</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\PSoC 63 Family Datasheet</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\Peripheral Driver Library</v>
 <v>XBee_WiFi_Example\XBee_WiFi_Example\System Reference Guides</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Gnd_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\GPIO_PDL_v1_0\GPIO_PDL_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\LED_v1_0\LED_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Power_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\Resistor_v1_0\Resistor_v1_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SCB_UART_PDL_v2_0.pdf</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0</v>
+<v>XBee_WiFi_Example\XBee_WiFi_Example\SwitchSPST_v1_0\SwitchSPST_v1_0.pdf</v>
 </VisibleNodeIds>
 </CyGuid_2a325b3b-c96a-4e9f-b7a0-2c44ecb5f237>
 </TreeStatesV2>
@@ -256,23 +160,14 @@
 </userData>
 </CyGuid_fdba8dfd-b15b-4469-9bbb-9e40c3e70997>
 <Unloaded />
-<OpenDocs>
-<name v=".\XBee_WiFi_Example.cydsn\main_cm0p.c" />
-<name v=".\XBee_WiFi_Example.cydsn\main_cm4.c" />
-<name v=".\XBee_WiFi_Example.cydsn\ipc_common.c" />
-<name v=".\XBee_WiFi_Example.cydsn\ipc_common.h" />
-<name v=".\XBee_WiFi_Example.cydsn\wifi.h" />
-<name v=".\XBee_WiFi_Example.cydsn\TopDesign\TopDesign.cysch" />
-<name v=".\XBee_WiFi_Example.cydsn\Generated_Source\PSoC6\pdl\drivers\peripheral\ipc\cy_ipc_drv.h" />
-<name v=".\XBee_WiFi_Example.cydsn\cy_ipc_config.h" />
-</OpenDocs>
+<OpenDocs />
 <OpenDocsLayout><![CDATA[<?xml version="1.0"?><!--
 
   Actipro Docking/MDI for WinForms
   Copyright (c) 2001-2016 Actipro Software LLC.  All rights reserved.
   http://www.actiprosoftware.com
 
---><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1333, 710" SelectedTabbedMdiWindow="35c55745-c44f-4901-bfce-9d8e4ac316b2"><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\main_cm0p.c" Guid="0b013a51-81a6-4725-a8f0-79bd5659aa2f" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\main_cm4.c" Guid="35c55745-c44f-4901-bfce-9d8e4ac316b2" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\ipc_common.c" Guid="d2dee019-bc4c-41fb-9900-27477f1f323e" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\ipc_common.h" Guid="b13dc167-0220-4338-8b24-db97f7f01071" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\wifi.h" Guid="97954b5b-23c2-4678-9a3e-65001a716c58" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\TopDesign\TopDesign.cysch" Guid="01c414ca-2317-442d-8686-e7145b9bdb12" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\Generated_Source\PSoC6\pdl\drivers\peripheral\ipc\cy_ipc_drv.h" Guid="7fe0029e-dc7a-4322-aa65-435f934dd29c" /><DocumentWindow Key="C:\Dropbox\Projects\Pioneer_Kit_Shield\Firmware\XBee_WiFi_Example\XBee_WiFi_Example.cydsn\cy_ipc_config.h" Guid="eabd0e38-184c-4b55-b3c6-e7cb84f4a638" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
+--><DocumentLayout Version="1.0"><LayoutData><TabbedMdiRootContainer Orientation="Horizontal"><TabbedMdiContainer Size="1466, 711" SelectedTabbedMdiWindow="b4803881-3039-45d2-95b9-6210bc2aad23"><ToolWindow Key="Start Page:bd4649ab-da6b-4d04-a663-c722b8bf99db:Start Page" Guid="b4803881-3039-45d2-95b9-6210bc2aad23" /></TabbedMdiContainer></TabbedMdiRootContainer><FloatingContainers /></LayoutData></DocumentLayout>]]></OpenDocsLayout>
 <config v="" />
 <AutoUpdate v="true" />
 </CyGuid_843a90a4-0c4b-4e44-991d-05e7fb117a21>

@@ -934,7 +934,7 @@ void DisplayData2(app_stc_sensor_data_t * sensorData)
               char buffer[100];
               DBG_PRINTF("Posted!\n\r");
               // In the following line, replace the Xs with your API key from ThingSpeak.
-              sprintf(buffer, "GET /update?key=KB7PA9GHQVC0O9PF&field1=%i&field2=%u&field3=%u&field4=%d&field5=%d HTTP/1.1\r\n",
+              sprintf(buffer, "GET /update?key=XXXXXXXXXXXXXXXXX&field1=%i&field2=%u&field3=%u&field4=%d&field5=%d HTTP/1.1\r\n",
                       sensorData->temperature, sensorData->pressure, sensorData->humidity, sensorData->tvoc, sensorData->eco2);
               XBEE_UART_PutString(buffer);
               XBEE_UART_PutString("Host: api.thingspeak.com\r\n\r\n");
